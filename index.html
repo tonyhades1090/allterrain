@@ -2,182 +2,166 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GEO-MASTER PRO</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LAND-MASTER TOTAL</title>
     
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+    <script src='https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js'></script>
+    <link href='https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css' rel='stylesheet' />
     
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', sans-serif; }
-        #map { height: 100vh; width: 100vw; z-index: 1; }
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #000; }
+        #map { height: 100vh; width: 100vw; touch-action: none; }
 
-        /* Barra de Búsqueda Flotante Estilo Google */
-        .search-container {
-            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
-            z-index: 1000; display: flex; width: 90%; max-width: 500px;
-            background: white; border-radius: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            padding: 5px 15px; align-items: center;
+        /* Buscador Estilo Google */
+        .search-box {
+            position: absolute; top: 15px; left: 50%; transform: translateX(-50%);
+            z-index: 10; width: 90%; max-width: 450px; display: flex;
+            background: white; border-radius: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            padding: 5px 15px;
         }
         #search-input {
-            border: none; width: 100%; padding: 12px; font-size: 16px; outline: none; border-radius: 25px;
+            flex: 1; border: none; padding: 12px; font-size: 16px; outline: none; border-radius: 28px;
         }
         .search-btn { background: none; border: none; cursor: pointer; font-size: 20px; color: #4285F4; }
 
-        /* Botones de Control Laterales */
-        .side-controls {
-            position: absolute; bottom: 30px; right: 20px; z-index: 1000;
-            display: flex; flex-direction: column; gap: 15px;
+        /* Botones laterales flotantes */
+        .controls {
+            position: absolute; bottom: 30px; right: 20px; z-index: 10;
+            display: flex; flex-direction: column; gap: 12px;
         }
-        .control-btn {
-            width: 55px; height: 55px; border-radius: 50%; background: white;
+        .btn {
+            width: 56px; height: 56px; border-radius: 50%; background: white;
             border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            cursor: pointer; font-size: 24px; display: flex; align-items: center; justify-content: center;
+            font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center;
         }
-        .active-filter { border: 3px solid #4CAF50; }
-
-        /* Popup de Propiedad Estilo Moderno */
-        .property-popup { font-size: 14px; min-width: 200px; }
-        .property-popup select, .property-popup textarea {
-            width: 100%; margin-top: 10px; border-radius: 5px; border: 1px solid #ccc; padding: 5px;
-        }
-        .save-btn {
-            background: #4285F4; color: white; border: none; padding: 8px;
-            width: 100%; margin-top: 10px; cursor: pointer; border-radius: 5px; font-weight: bold;
-        }
-        .delete-btn { background: #ea4335; margin-top: 5px; }
     </style>
 </head>
 <body>
 
-    <div class="search-container">
-        <input type="text" id="search-input" placeholder="Busca una dirección o propiedad...">
-        <button class="search-btn" onclick="executeSearch()">🔍</button>
+    <div class="search-box">
+        <input type="text" id="search-input" placeholder="Buscar dirección o lote...">
+        <button class="search-btn" onclick="search()">🔍</button>
     </div>
 
-    <div class="side-controls">
-        <button class="control-btn" title="Mi Ubicación" onclick="goToMyLocation()">📍</button>
-        <button class="control-btn" id="filter-btn" title="Mostrar/Ocultar Marcados" onclick="toggleFilter()">🏷️</button>
+    <div class="controls">
+        <button class="btn" onclick="locate()">🎯</button>
+        <button class="btn" id="layer-btn" onclick="toggleMarkers()">📍</button>
     </div>
 
     <div id="map"></div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
-
-    <script>
-        // 1. INICIALIZACIÓN DEL MAPA
-        const map = L.map('map', { zoomControl: false }).setView([40.4167, -3.7033], 15);
-        
-        // Capa Híbrida Satélite (Para ver límites de propiedades reales)
-        const satelliteLayer = L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
-            maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3']
-        }).addTo(map);
-
-        let savedProperties = JSON.parse(localStorage.getItem('properties')) || {};
-        let markersGroup = L.layerGroup().addTo(map);
-        let currentMarker = null;
-        let showAll = true;
-
-        // 2. FUNCIÓN DE BÚSQUEDA
-        const geocoder = L.Control.Geocoder.nominatim();
-        function executeSearch() {
-            const query = document.getElementById('search-input').value;
-            geocoder.geocode(query, (results) => {
-                if (results.length > 0) {
-                    const res = results[0];
-                    map.setView(res.center, 19);
-                    L.popup().setLatLng(res.center).setContent("Propiedad encontrada").openOn(map);
+<script>
+    // Configuración del mapa con libertad total de movimiento
+    const map = new maplibregl.Map({
+        container: 'map',
+        style: {
+            "version": 8,
+            "sources": {
+                "google-sat": {
+                    "type": "raster",
+                    "tiles": ["https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"],
+                    "tileSize": 256
                 }
-            });
-        }
+            },
+            "layers": [{
+                "id": "satellite",
+                "type": "raster",
+                "source": "google-sat"
+            }]
+        },
+        center: [-3.7037, 40.4167], // Madrid por defecto
+        zoom: 17,
+        pitch: 60, // Inclinación inicial para ver profundidad
+        bearing: 0,
+        antialias: true,
+        // ACTIVAR TODA LA MOVILIDAD (Giro, Inclinación, Zoom)
+        dragRotate: true,
+        touchZoomRotate: true,
+        touchPitch: true,
+        maxPitch: 85 // Permite casi ver el horizonte
+    });
 
-        // 3. MI UBICACIÓN
-        function goToMyLocation() {
-            map.locate({setView: true, maxZoom: 18});
-        }
+    // Datos persistentes
+    let landMarkers = JSON.parse(localStorage.getItem('my_lands')) || {};
+    let activeMarkers = [];
 
-        // 4. GESTIÓN DE PROPIEDADES (CLIC EN MAPA)
-        map.on('click', function(e) {
-            openPropertyPopup(e.latlng);
+    // Función al tocar el mapa
+    map.on('click', (e) => {
+        const id = `${e.lngLat.lng.toFixed(6)},${e.lngLat.lat.toFixed(6)}`;
+        showPopup(e.lngLat, id);
+    });
+
+    function showPopup(lngLat, id) {
+        const data = landMarkers[id] || { icon: '📍', note: '', water: '' };
+        
+        const div = document.createElement('div');
+        div.innerHTML = `
+            <b style="display:block;margin-bottom:8px">Propiedad</b>
+            <select id="sel-icon" style="width:100%;padding:5px">
+                <option value="📍" ${data.icon === '📍' ? 'selected' : ''}>📍 Marcador</option>
+                <option value="🏠" ${data.icon === '🏠' ? 'selected' : ''}>🏠 Casa</option>
+                <option value="💧" ${data.icon === '💧' ? 'selected' : ''}>💧 Agua</option>
+                <option value="del">❌ Eliminar</option>
+            </select>
+            <input type="text" id="sel-water" placeholder="Agua..." value="${data.water}" style="width:100%;margin-top:5px">
+            <textarea id="sel-note" placeholder="Notas..." style="width:100%;margin-top:5px">${data.note}</textarea>
+            <button onclick="save('${id}', ${lngLat.lng}, ${lngLat.lat})" style="width:100%;margin-top:10px;background:#4285F4;color:white;border:none;padding:8px;border-radius:4px">GUARDAR</button>
+        `;
+
+        new maplibregl.Popup({ closeOnClick: true })
+            .setLngLat(lngLat)
+            .setDOMContent(div)
+            .addTo(map);
+    }
+
+    function save(id, lng, lat) {
+        const icon = document.getElementById('sel-icon').value;
+        if (icon === 'del') {
+            delete landMarkers[id];
+        } else {
+            landMarkers[id] = {
+                lng, lat, icon,
+                note: document.getElementById('sel-note').value,
+                water: document.getElementById('sel-water').value
+            };
+        }
+        localStorage.setItem('my_lands', JSON.stringify(landMarkers));
+        location.reload(); // Recarga rápida para limpiar y refrescar
+    }
+
+    function render() {
+        Object.keys(landMarkers).forEach(id => {
+            const p = landMarkers[id];
+            const el = document.createElement('div');
+            el.innerHTML = p.icon;
+            el.style.fontSize = '28px';
+            el.style.cursor = 'pointer';
+
+            const m = new maplibregl.Marker({ element: el })
+                .setLngLat([p.lng, p.lat])
+                .addTo(map);
+            
+            el.onclick = (e) => {
+                e.stopPropagation();
+                showPopup({lng: p.lng, lat: p.lat}, id);
+            };
         });
+    }
 
-        function openPropertyPopup(latlng, existingId = null) {
-            const id = existingId || `${latlng.lat},${latlng.lng}`;
-            const data = savedProperties[id] || { icon: '📍', note: '', water: 'No definida' };
+    async function search() {
+        const q = document.getElementById('search-input').value;
+        const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
+        const d = await r.json();
+        if(d[0]) map.flyTo({ center: [d[0].lon, d[0].lat], zoom: 19, pitch: 65, duration: 2000 });
+    }
 
-            const content = `
-                <div class="property-popup">
-                    <strong>Editar Propiedad</strong><br>
-                    Icono: <select id="pop-icon">
-                        <option value="📍" ${data.icon === '📍' ? 'selected' : ''}>📍 Estándar</option>
-                        <option value="🏠" ${data.icon === '🏠' ? 'selected' : ''}>🏠 Casa</option>
-                        <option value="🏗️" ${data.icon === '🏗️' ? 'selected' : ''}>🏗️ Construcción</option>
-                        <option value="💧" ${data.icon === '💧' ? 'selected' : ''}>💧 Agua</option>
-                        <option value="none">❌ Quitar Icono</option>
-                    </select><br>
-                    Tipo de Agua: <input type="text" id="pop-water" value="${data.water}"><br>
-                    Notas: <textarea id="pop-note" rows="3">${data.note}</textarea>
-                    <button class="save-btn" onclick="saveProperty('${id}', ${latlng.lat}, ${latlng.lng})">GUARDAR CAMBIOS</button>
-                    ${existingId ? `<button class="save-btn delete-btn" onclick="deleteProperty('${id}')">ELIMINAR TODO</button>` : ''}
-                </div>
-            `;
-            L.popup().setLatLng(latlng).setContent(content).openOn(map);
-        }
+    function locate() {
+        navigator.geolocation.getCurrentPosition(p => {
+            map.flyTo({ center: [p.coords.longitude, p.coords.latitude], zoom: 18, pitch: 70 });
+        });
+    }
 
-        // 5. GUARDAR Y REEMPLAZAR (Petición clave)
-        function saveProperty(id, lat, lng) {
-            const icon = document.getElementById('pop-icon').value;
-            const note = document.getElementById('pop-note').value;
-            const water = document.getElementById('pop-water').value;
-
-            if (icon === 'none') {
-                deleteProperty(id);
-                return;
-            }
-
-            savedProperties[id] = { lat, lng, icon, note, water };
-            localStorage.setItem('properties', JSON.stringify(savedProperties));
-            renderMarkers();
-            map.closePopup();
-        }
-
-        function deleteProperty(id) {
-            delete savedProperties[id];
-            localStorage.setItem('properties', JSON.stringify(savedProperties));
-            renderMarkers();
-            map.closePopup();
-        }
-
-        // 6. RENDERIZADO SMOOTH
-        function renderMarkers() {
-            markersGroup.clearLayers();
-            if (!showAll) return;
-
-            for (let id in savedProperties) {
-                const p = savedProperties[id];
-                const marker = L.marker([p.lat, p.lng], {
-                    icon: L.divIcon({
-                        html: `<div style="font-size: 24px;">${p.icon}</div>`,
-                        className: 'custom-div-icon'
-                    })
-                });
-                marker.on('click', (e) => {
-                    L.DomEvent.stopPropagation(e);
-                    openPropertyPopup(L.latLng(p.lat, p.lng), id);
-                });
-                markersGroup.addLayer(marker);
-            }
-        }
-
-        function toggleFilter() {
-            showAll = !showAll;
-            document.getElementById('filter-btn').classList.toggle('active-filter');
-            renderMarkers();
-        }
-
-        // Cargar datos iniciales
-        renderMarkers();
-    </script>
+    render();
+</script>
 </body>
 </html>
