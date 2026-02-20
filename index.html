@@ -17,6 +17,8 @@
         input, select, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
         .btn-main { width: 100%; padding: 16px; background: #1a73e8; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .auth-link { color: #1a73e8; cursor: pointer; text-decoration: underline; font-size: 14px; margin-top: 15px; display: block; }
+        .remember-me { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #555; margin: 10px 0; }
+        .remember-me input { width: auto; margin: 0; }
         .search-container { position: absolute; top: 15px; left: 10px; right: 10px; z-index: 1000; display: flex; gap: 5px; }
         #search-input { flex: 1; padding: 12px; border-radius: 10px; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.2); font-size: 16px; }
         .btn-search { padding: 10px 15px; background: #1a73e8; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
@@ -31,24 +33,28 @@
 <body>
 
     <div id="login-screen">
-        <div class="login-box">
+        <form class="login-box" onsubmit="event.preventDefault(); handleAuth();">
             <h1 style="color:#1a73e8;">ALLTERRAIN</h1>
-            <input type="email" id="email" placeholder="Email">
-            <input type="password" id="password" placeholder="Contraseña">
-            <button class="btn-main" id="auth-btn" onclick="handleAuth()">ENTRAR</button>
+            <input type="email" id="email" placeholder="Email" required autocomplete="username">
+            <input type="password" id="password" placeholder="Contraseña" required autocomplete="current-password">
+            <div class="remember-me">
+                <input type="checkbox" id="remember" checked>
+                <label for="remember">Recordarme en este dispositivo</label>
+            </div>
+            <button type="submit" class="btn-main" id="auth-btn">ENTRAR</button>
             <span class="auth-link" id="toggle-auth" onclick="toggleAuth()">¿No tienes cuenta? Regístrate</span>
             <span class="auth-link" style="color:gray; text-decoration:none;" onclick="resetPassword()">Olvidé mi contraseña</span>
-        </div>
+        </form>
     </div>
 
     <div id="app-ui" style="display:none;">
         <div class="search-container">
-            <input type="text" id="search-input" placeholder="Dirección en Chesterfield...">
+            <input type="text" id="search-input" placeholder="Ej: 8605 Conrad Rd">
             <button class="btn-search" onclick="searchAddress()">IR</button>
         </div>
         <div class="side-controls">
             <button class="btn-map" onclick="goToMe()">🎯</button>
-            <button class="btn-map" id="admin-btn" style="background:#1a73e8; color:white; display:none;" onclick="alert('Admin Panel')">👤</button>
+            <button class="btn-map" id="admin-btn" style="background:#1a73e8; color:white; display:none;" onclick="alert('Modo Admin')">👤</button>
             <button class="btn-map" onclick="logout()">🚪</button>
         </div>
     </div>
@@ -96,11 +102,19 @@
         document.getElementById('toggle-auth').innerText = isLoginMode ? "¿No tienes cuenta? Regístrate" : "¿Ya tienes cuenta? Entra";
     }
 
-    function handleAuth() {
+    async function handleAuth() {
         const email = document.getElementById('email').value;
         const pass = document.getElementById('password').value;
-        if (isLoginMode) auth.signInWithEmailAndPassword(email, pass).catch(e => alert(e.message));
-        else auth.createUserWithEmailAndPassword(email, pass).catch(e => alert(e.message));
+        const remember = document.getElementById('remember').checked;
+        
+        // Persistencia: LOCAL si está marcado, SESSION si no
+        const persistence = remember ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION;
+        
+        try {
+            await auth.setPersistence(persistence);
+            if (isLoginMode) await auth.signInWithEmailAndPassword(email, pass);
+            else await auth.createUserWithEmailAndPassword(email, pass);
+        } catch(e) { alert(e.message); }
     }
 
     function resetPassword() {
@@ -154,6 +168,7 @@
     async function searchAddress() {
         const q = document.getElementById('search-input').value;
         if(!q) return;
+        // Búsqueda forzada en Chesterfield VA
         const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q + ", Chesterfield, VA")}`);
         const data = await res.json();
         if(data && data[0]) {
