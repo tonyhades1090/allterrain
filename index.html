@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Aquafill LandMaster Pro</title>
+    <title>Allterrain LandMaster</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -13,7 +13,7 @@
         body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', sans-serif; background: #000; overflow: hidden; }
         #map { height: 100vh; width: 100vw; position: absolute; }
         
-        /* BARRA DE BÚSQUEDA REGRESADA */
+        /* BARRA DE BÚSQUEDA */
         .search-container { position: absolute; top: 15px; left: 10px; right: 10px; z-index: 1000; display: flex; gap: 5px; }
         #search-input { flex: 1; padding: 12px; border-radius: 10px; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.2); font-size: 16px; }
         .btn-search { padding: 10px 15px; background: #1a73e8; color: white; border: none; border-radius: 10px; font-weight: bold; }
@@ -36,17 +36,18 @@
 
     <div id="login-screen">
         <div style="width:100%; max-width:350px; text-align:center;">
-            <h1 style="color:#1a73e8;">Aquafill</h1>
+            <h1 style="color:#1a73e8;">ALLTERRAIN</h1>
+            <p>Sistema de Prospección</p>
             <input type="email" id="email" placeholder="Email">
             <input type="password" id="password" placeholder="Clave">
-            <button class="btn-main" onclick="handleAuth()">Entrar</button>
+            <button class="btn-main" onclick="handleAuth()">ENTRAR</button>
         </div>
     </div>
 
     <div id="app-ui" style="display:none;">
         <div class="search-container">
             <input type="text" id="search-input" placeholder="Buscar dirección o ZIP...">
-            <button class="btn-search" onclick="searchAddress()">BUSCAR</button>
+            <button class="btn-search" onclick="searchAddress()">IR</button>
         </div>
         <div class="side-controls">
             <button class="btn-map" onclick="goToMe()">🎯</button>
@@ -62,13 +63,13 @@
                 <span class="owner-name" id="m-owner">Buscando...</span>
             </div>
             <select id="f-icon">
-                <option value="💧">💧 Interesado</option>
+                <option value="💧">💧 Marcar Casa (Latino)</option>
                 <option value="✅">✅ Venta Cerrada</option>
                 <option value="❌">❌ No interesado</option>
                 <option value="none">Quitar Marcador</option>
             </select>
             <input type="number" id="f-tds" placeholder="Valor TDS">
-            <textarea id="f-note" placeholder="Notas..."></textarea>
+            <textarea id="f-note" placeholder="Notas del plan de ataque..."></textarea>
             <button class="btn-main" onclick="saveData()">GUARDAR</button>
             <button style="background:none; border:none; color:grey; margin-top:15px;" onclick="closeModal()">Cerrar</button>
         </div>
@@ -111,14 +112,19 @@
             currentId = `${e.lngLat.lng.toFixed(6)}|${e.lngLat.lat.toFixed(6)}`;
             document.getElementById('modal-overlay').style.display = 'flex';
             
-            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${e.lngLat.lat}&lon=${e.lngLat.lng}`);
-            const data = await res.json();
-            const fullAddr = (data.address.house_number + " " + data.address.road).toUpperCase();
-            document.getElementById('m-address').innerText = fullAddr;
+            try {
+                const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${e.lngLat.lat}&lon=${e.lngLat.lng}`);
+                const data = await res.json();
+                const house = data.address.house_number || "";
+                const road = data.address.road || "";
+                const fullAddr = (house + " " + road).toUpperCase().trim();
+                document.getElementById('m-address').innerText = fullAddr || "Dirección no detectada";
 
-            // Busca el dueño
-            const doc = await db.collection("propiedades").doc(fullAddr).get();
-            document.getElementById('m-owner').innerText = doc.exists ? doc.data().propietario : "No registrado";
+                const doc = await db.collection("propiedades").doc(fullAddr).get();
+                document.getElementById('m-owner').innerText = doc.exists ? doc.data().propietario : "No registrado";
+            } catch (err) {
+                document.getElementById('m-address').innerText = "Error GPS";
+            }
         });
 
         db.collection("marcadores").onSnapshot(snap => {
