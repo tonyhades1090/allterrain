@@ -12,60 +12,69 @@
     <style>
         body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', sans-serif; background: #000; overflow: hidden; }
         #map { height: 100vh; width: 100vw; position: absolute; }
+        /* PANTALLA LOGIN COMPLETA */
+        #login-screen { position: fixed; inset: 0; background: #fff; z-index: 5000; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .login-box { width: 100%; max-width: 350px; text-align: center; }
+        input, select, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
+        .btn-main { width: 100%; padding: 16px; background: #1a73e8; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .auth-link { color: #1a73e8; cursor: pointer; text-decoration: underline; font-size: 14px; margin-top: 15px; display: block; }
+        /* UI DEL MAPA */
         .search-container { position: absolute; top: 15px; left: 10px; right: 10px; z-index: 1000; display: flex; gap: 5px; }
         #search-input { flex: 1; padding: 12px; border-radius: 10px; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.2); font-size: 16px; }
         .btn-search { padding: 10px 15px; background: #1a73e8; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
-        #login-screen { position: fixed; inset: 0; background: #fff; z-index: 5000; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .btn-main { width: 100%; padding: 16px; background: #1a73e8; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; }
-        .side-controls { position: absolute; bottom: 30px; right: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
-        .btn-map { width: 55px; height: 55px; border-radius: 50%; background: white; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3); font-size: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-        #modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; display: none; align-items: center; justify-content: center; padding: 20px; }
-        .modal-card { background: white; width: 100%; max-width: 380px; padding: 20px; border-radius: 25px; text-align: center; }
-        .owner-box { background: #e8f0fe; padding: 15px; border-radius: 15px; margin-bottom: 15px; border: 2px solid #1a73e8; }
-        .owner-name { font-size: 18px; font-weight: 900; color: #1967d2; }
+        .side-controls { position: absolute; bottom: 30px; right: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 12px; }
+        .btn-map { width: 60px; height: 60px; border-radius: 50%; background: white; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.3); font-size: 26px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        /* MODAL DE PROPIEDAD */
+        #modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; display: none; align-items: center; justify-content: center; padding: 15px; }
+        .modal-card { background: white; width: 100%; max-width: 400px; padding: 25px; border-radius: 25px; text-align: center; }
+        .owner-box { background: #f0f4ff; padding: 15px; border-radius: 15px; margin-bottom: 15px; border: 2px solid #1a73e8; }
+        .owner-name { font-size: 20px; font-weight: 900; color: #1967d2; text-transform: uppercase; }
     </style>
 </head>
 <body>
 
     <div id="login-screen">
-        <div style="width:100%; max-width:350px; text-align:center;">
+        <div class="login-box">
             <h1 style="color:#1a73e8;">ALLTERRAIN</h1>
-            <input type="email" id="email" placeholder="Email" style="width:100%; padding:15px; margin:8px 0; border:1px solid #ccc; border-radius:12px;">
-            <input type="password" id="password" placeholder="Contraseña" style="width:100%; padding:15px; margin:8px 0; border:1px solid #ccc; border-radius:12px;">
-            <button class="btn-main" onclick="handleAuth()">ENTRAR</button>
+            <input type="email" id="email" placeholder="Email">
+            <input type="password" id="password" placeholder="Contraseña">
+            <button class="btn-main" id="auth-btn" onclick="handleAuth()">ENTRAR</button>
+            <span class="auth-link" id="toggle-auth" onclick="toggleAuth()">¿No tienes cuenta? Regístrate</span>
+            <span class="auth-link" style="color:gray; text-decoration:none;" onclick="resetPassword()">Olvidé mi contraseña</span>
         </div>
     </div>
 
     <div id="app-ui" style="display:none;">
         <div class="search-container">
-            <input type="text" id="search-input" placeholder="7430 Conrad Rd, 23832">
+            <input type="text" id="search-input" placeholder="Dirección en Chesterfield...">
             <button class="btn-search" onclick="searchAddress()">IR</button>
         </div>
         <div class="side-controls">
             <button class="btn-map" onclick="goToMe()">🎯</button>
-            <button class="btn-map" id="admin-btn" style="background:#1a73e8; color:white; display:none;" onclick="alert('Modo Admin Activo')">👤</button>
+            <button class="btn-map" id="admin-btn" style="background:#1a73e8; color:white; display:none;" onclick="alert('Admin Panel')">👤</button>
             <button class="btn-map" onclick="logout()">🚪</button>
         </div>
     </div>
 
     <div id="modal-overlay">
         <div class="modal-card">
-            <div id="m-address" style="font-weight:bold; margin-bottom:10px;">...</div>
+            <div id="m-address" style="font-weight:bold; color:#555; margin-bottom:8px;"></div>
             <div class="owner-box">
-                <span style="font-size:11px; color:#666;">DUEÑO:</span><br>
-                <span class="owner-name" id="m-owner">Buscando...</span>
+                <div style="font-size:11px; color:#666;">PROPIETARIO:</div>
+                <div class="owner-name" id="m-owner">Buscando...</div>
             </div>
-            <select id="f-icon" style="width:100%; padding:10px; margin-bottom:10px;">
+            <select id="f-icon">
                 <option value="💧">💧</option>
                 <option value="✅">✅</option>
                 <option value="❌">❌</option>
                 <option value="🕒">🕒</option>
-                <option value="none">Quitar Marcador</option>
+                <option value="none">-- QUITAR MARCADOR --</option>
             </select>
             <input type="number" id="f-tds" placeholder="Valor TDS">
             <textarea id="f-note" placeholder="Notas del cliente..."></textarea>
-            <button class="btn-main" onclick="saveData()">GUARDAR</button>
-            <button onclick="closeModal()" style="background:none; border:none; margin-top:10px; color:gray; cursor:pointer;">Cerrar</button>
+            
+            <button class="btn-main" onclick="saveData()">GUARDAR REPORTE</button>
+            <button onclick="closeModal()" style="background:none; border:none; margin-top:10px; color:gray; cursor:pointer;">Cancelar</button>
         </div>
     </div>
     <div id="map"></div>
@@ -82,18 +91,34 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
-    const adminEmails = ["tonyhades@gmail.com"]; // TU CORREO PARA SER ADMIN
+    const adminEmails = ["tonyhades@gmail.com"];
+    let map, currentCoords, currentId, mapMarkers = [], isLoginMode = true;
 
-    let map, currentCoords, currentId, mapMarkers = [];
+    // LÓGICA DE USUARIOS
+    function toggleAuth() {
+        isLoginMode = !isLoginMode;
+        document.getElementById('auth-btn').innerText = isLoginMode ? "ENTRAR" : "REGISTRARSE";
+        document.getElementById('toggle-auth').innerText = isLoginMode ? "¿No tienes cuenta? Regístrate" : "¿Ya tienes cuenta? Entra";
+    }
+
+    function handleAuth() {
+        const email = document.getElementById('email').value;
+        const pass = document.getElementById('password').value;
+        if (isLoginMode) auth.signInWithEmailAndPassword(email, pass).catch(e => alert(e.message));
+        else auth.createUserWithEmailAndPassword(email, pass).catch(e => alert(e.message));
+    }
+
+    function resetPassword() {
+        const email = document.getElementById('email').value;
+        if (!email) return alert("Escribe tu email");
+        auth.sendPasswordResetEmail(email).then(() => alert("Email enviado")).catch(e => alert(e.message));
+    }
 
     auth.onAuthStateChanged(user => {
         if(user) {
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('app-ui').style.display = 'block';
-            // RESTAURADA LÓGICA DE ADMIN
-            if(adminEmails.includes(user.email.toLowerCase())) {
-                document.getElementById('admin-btn').style.display = 'flex';
-            }
+            if(adminEmails.includes(user.email.toLowerCase())) document.getElementById('admin-btn').style.display = 'flex';
             initMap();
         }
     });
@@ -103,7 +128,7 @@
             container: 'map',
             style: { "version": 8, "sources": { "gh": { "type": "raster", "tiles": ["https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"], "tileSize": 256 }}, "layers": [{"id":"h","type":"raster","source":"gh"}] },
             center: [-77.4360, 37.5407],
-            zoom: 17
+            zoom: 16
         });
 
         map.on('click', async e => {
@@ -115,26 +140,22 @@
             const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${e.lngLat.lat}&lon=${e.lngLat.lng}`);
             const data = await res.json();
             
-            let house = data.address.house_number || "";
-            let road = data.address.road || "";
-            // TRADUCTOR INTELIGENTE DE CALLES
-            road = road.replace("Road", "RD").replace("Street", "ST").replace("Avenue", "AVE").replace("Lane", "LN").replace("Court", "CT").replace("Drive", "DR").replace("Point", "PT");
-            
-            const fullAddr = (house + " " + road).toUpperCase().trim();
+            // TRADUCTOR DE DIRECCIONES
+            let road = (data.address.road || "").replace("Road", "RD").replace("Lane", "LN").replace("Street", "ST").replace("Drive", "DR").replace("Court", "CT");
+            const fullAddr = ((data.address.house_number || "") + " " + road).toUpperCase().trim();
             document.getElementById('m-address').innerText = fullAddr;
             
             const doc = await db.collection("propiedades").doc(fullAddr).get();
-            document.getElementById('m-owner').innerText = doc.exists ? doc.data().propietario : "Sin datos";
+            document.getElementById('m-owner').innerText = doc.exists ? doc.data().propietario : "NO REGISTRADO";
         });
 
-        // CARGAR MARCADORES EXISTENTES
+        // MARCADORES EN TIEMPO REAL
         db.collection("marcadores").onSnapshot(snap => {
             mapMarkers.forEach(m => m.remove());
             snap.forEach(doc => {
                 const p = doc.data();
-                const el = document.createElement('div');
-                el.innerHTML = p.icon; el.style.fontSize = '35px';
-                const m = new maplibregl.Marker({element:el}).setLngLat([p.lng, p.lat]).addTo(map);
+                const el = document.createElement('div'); el.innerHTML = p.icon; el.style.fontSize = '35px';
+                const m = new maplibregl.Marker({element: el}).setLngLat([p.lng, p.lat]).addTo(map);
                 mapMarkers.push(m);
             });
         });
@@ -142,28 +163,20 @@
 
     async function searchAddress() {
         const q = document.getElementById('search-input').value;
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
+        if(!q) return;
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}, Chesterfield, VA`);
         const data = await res.json();
         if(data[0]) map.flyTo({center: [data[0].lon, data[0].lat], zoom: 18});
     }
 
-    function handleAuth() {
-        const email = document.getElementById('email').value;
-        const pass = document.getElementById('password').value;
-        auth.signInWithEmailAndPassword(email, pass).catch(e => alert(e.message));
-    }
-
     function saveData() {
         const iconVal = document.getElementById('f-icon').value;
-        const data = {
-            lng: currentCoords.lng, lat: currentCoords.lat,
-            address: document.getElementById('m-address').innerText,
-            icon: iconVal,
-            tds: document.getElementById('f-tds').value,
-            note: document.getElementById('f-note').value
-        };
         if(iconVal === 'none') db.collection("marcadores").doc(currentId).delete();
-        else db.collection("marcadores").doc(currentId).set(data);
+        else db.collection("marcadores").doc(currentId).set({ 
+            lng: currentCoords.lng, lat: currentCoords.lat, 
+            address: document.getElementById('m-address').innerText, 
+            icon: iconVal, tds: document.getElementById('f-tds').value, note: document.getElementById('f-note').value 
+        });
         closeModal();
     }
 
