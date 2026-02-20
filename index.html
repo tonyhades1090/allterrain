@@ -3,140 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LAND-MASTER BIOMETRIC</title>
+    <title>LAND-MASTER TOTAL PRO</title>
     
     <script src='https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js'></script>
     <link href='https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css' rel='stylesheet' />
     
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; font-family: sans-serif; background: #f0f2f5; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', sans-serif; background: #000; overflow: hidden; }
         
         /* PANTALLA DE LOGIN */
         #login-screen {
-            position: fixed; inset: 0; background: white; z-index: 2000;
+            position: fixed; inset: 0; background: #fff; z-index: 2000;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            padding: 20px; transition: opacity 0.5s;
+            padding: 20px; transition: 0.5s;
         }
         .login-card { width: 100%; max-width: 350px; text-align: center; }
-        .login-card h2 { margin-bottom: 25px; color: #1a73e8; font-size: 28px; }
         input[type="email"], input[type="password"] {
-            width: 100%; padding: 15px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;
+            width: 100%; padding: 15px; margin: 10px 0; border: 1px solid #ddd; border-radius: 12px; box-sizing: border-box;
         }
-        .btn-login {
+        .btn-main {
             width: 100%; padding: 15px; background: #1a73e8; color: white; border: none;
-            border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px;
+            border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px;
         }
-        .btn-biometric {
-            background: none; border: 1px solid #1a73e8; color: #1a73e8; margin-top: 15px;
-        }
-        .remember-me { margin: 15px 0; display: flex; align-items: center; gap: 10px; font-size: 14px; }
+        .btn-bio { background: white; border: 1px solid #1a73e8; color: #1a73e8; margin-top: 10px; }
 
-        /* MAPA Y UI */
+        /* INTERFAZ DEL MAPA */
         #map { height: 100vh; width: 100vw; display: none; }
-        .search-box {
+        .ui-overlay { display: none; }
+
+        /* Barra de Búsqueda Estilo Google */
+        .search-container {
             position: absolute; top: 15px; left: 50%; transform: translateX(-50%);
-            z-index: 10; width: 90%; max-width: 450px; display: flex;
-            background: white; border-radius: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.4); padding: 5px 15px;
+            z-index: 100; width: 90%; max-width: 480px; display: flex;
+            background: white; border-radius: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); padding: 5px 15px;
         }
-        #search-input { flex: 1; border: none; padding: 12px; outline: none; border-radius: 28px; }
-        .controls { position: absolute; bottom: 30px; right: 20px; z-index: 10; display: flex; flex-direction: column; gap: 12px; }
-        .btn-map { width: 56px; height: 56px; border-radius: 50%; background: white; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3); font-size: 24px; }
+        #search-input { flex: 1; border: none; padding: 12px; outline: none; font-size: 16px; background: transparent; }
+        
+        /* Botones Laterales */
+        .side-controls {
+            position: absolute; bottom: 30px; right: 20px; z-index: 100;
+            display: flex; flex-direction: column; gap: 15px;
+        }
+        .map-btn {
+            width: 56px; height: 56px; border-radius: 50%; background: white;
+            border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+        }
+        .filter-off { opacity: 0.5; background: #eee; }
+
+        /* Estilo del Popup (Ventana de Propiedad) */
+        .prop-card { min-width: 220px; padding: 5px; }
+        .prop-card select, .prop-card textarea, .prop-card input {
+            width: 100%; margin-top: 8px; padding: 8px; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box;
+        }
+        .btn-save { background: #28a745; color: white; border: none; width: 100%; padding: 10px; margin-top: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .btn-del { background: #dc3545; margin-top: 5px; }
     </style>
 </head>
 <body>
 
     <div id="login-screen">
         <div class="login-card">
-            <h2>Bienvenido</h2>
-            <input type="email" id="email" placeholder="Correo electrónico">
-            <input type="password" id="password" placeholder="Contraseña">
-            
-            <div class="remember-me">
-                <input type="checkbox" id="remember"> <label for="remember">Recordar mi correo</label>
+            <h1 style="color:#1a73e8">LandMaster</h1>
+            <input type="email" id="user-email" placeholder="Correo electrónico">
+            <input type="password" id="user-pass" placeholder="Contraseña">
+            <div style="margin: 10px 0; font-size: 14px;">
+                <input type="checkbox" id="remember-me"> Recordar mi usuario
             </div>
+            <button class="btn-main" onclick="doLogin()">ENTRAR</button>
+            <button class="btn-main btn-bio" onclick="doLogin()">FACE ID / HUELLA</button>
+        </div>
+    </div>
 
-            <button class="btn-login" onclick="handleLogin()">ENTRAR</button>
-            <button class="btn-login btn-biometric" id="bio-btn" onclick="handleBiometric()" style="display:none;">
-                USAR FACE ID / HUELLA
-            </button>
+    <div class="ui-overlay" id="map-ui">
+        <div class="search-container">
+            <input type="text" id="search-input" placeholder="Buscar dirección o lote...">
+            <button style="border:none;background:none;cursor:pointer;font-size:20px" onclick="searchLoc()">🔍</button>
+        </div>
+
+        <div class="side-controls">
+            <button class="map-btn" onclick="goToMe()" title="Mi Ubicación">🎯</button>
+            <button class="map-btn" id="toggle-layer" onclick="toggleMarkers()" title="Mostrar/Ocultar Marcadores">🏷️</button>
+            <button class="map-btn" onclick="logout()" title="Cerrar Sesión" style="font-size: 18px;">🚪</button>
         </div>
     </div>
 
     <div id="map"></div>
-    <div id="map-ui" style="display:none;">
-        <div class="search-box">
-            <input type="text" id="search-input" placeholder="Buscar propiedad...">
-            <button style="border:none; background:none; cursor:pointer;" onclick="search()">🔍</button>
-        </div>
-        <div class="controls">
-            <button class="btn-map" onclick="locate()">🎯</button>
-            <button class="btn-map" onclick="logout()">🚪</button>
-        </div>
-    </div>
 
 <script>
-    // --- LÓGICA DE LOGIN Y BIOMETRÍA ---
-    const loginScreen = document.getElementById('login-screen');
-    const mapDiv = document.getElementById('map');
-    const mapUI = document.getElementById('map-ui');
+    let map;
+    let landData = JSON.parse(localStorage.getItem('my_properties')) || {};
+    let activeMarkers = [];
+    let showMarkers = true;
 
-    // Al cargar: ¿Recordamos al usuario?
+    // --- LOGICA DE LOGIN ---
     window.onload = () => {
-        const savedEmail = localStorage.getItem('saved_email');
-        if (savedEmail) {
-            document.getElementById('email').value = savedEmail;
-            document.getElementById('remember').checked = true;
-        }
-        
-        // Verificar si el dispositivo soporta FaceID/Huella
-        if (window.PublicKeyCredential) {
-            document.getElementById('bio-btn').style.display = 'block';
+        const saved = localStorage.getItem('remembered_user');
+        if (saved) {
+            document.getElementById('user-email').value = saved;
+            document.getElementById('remember-me').checked = true;
         }
     };
 
-    function handleLogin() {
-        const email = document.getElementById('email').value;
-        const remember = document.getElementById('remember').checked;
-
-        if (email && document.getElementById('password').value) {
-            if (remember) localStorage.setItem('saved_email', email);
-            else localStorage.removeItem('saved_email');
-            
-            startApp();
+    function doLogin() {
+        const email = document.getElementById('user-email').value;
+        if (document.getElementById('remember-me').checked) {
+            localStorage.setItem('remembered_user', email);
         } else {
-            alert("Introduce tus datos");
+            localStorage.removeItem('remembered_user');
         }
+        
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('map').style.display = 'block';
+        document.getElementById('map-ui').style.display = 'block';
+        initMap();
     }
 
-    async function handleBiometric() {
-        // Simulación de autenticación biométrica (WebAuthn)
-        // En un entorno real, esto conectaría con tu servidor de claves
-        try {
-            // Aquí el navegador lanza el FaceID/Huella nativo
-            alert("Iniciando reconocimiento biométrico...");
-            startApp();
-        } catch (err) {
-            alert("Error en biometría");
-        }
-    }
+    function logout() { location.reload(); }
 
-    function startApp() {
-        loginScreen.style.opacity = '0';
-        setTimeout(() => {
-            loginScreen.style.display = 'none';
-            mapDiv.style.display = 'block';
-            mapUI.style.display = 'block';
-            initMap();
-        }, 500);
-    }
-
-    function logout() {
-        location.reload();
-    }
-
-    // --- LÓGICA DEL MAPA (MANIOBRABILIDAD TOTAL) ---
+    // --- INICIALIZACIÓN DEL MAPA ---
     function initMap() {
-        const map = new maplibregl.Map({
+        map = new maplibregl.Map({
             container: 'map',
             style: {
                 "version": 8,
@@ -151,18 +138,123 @@
             },
             center: [-74.006, 40.7128],
             zoom: 17,
-            pitch: 60,
+            pitch: 50,
             bearing: 0,
-            antialias: true,
-            dragRotate: true, // Habilita rotación con botón derecho o dos dedos
-            touchZoomRotate: true,
-            touchPitch: true // Habilita inclinación con dos dedos
+            antialias: true
         });
 
-        // Aquí iría el resto de funciones de búsqueda y marcadores (igual que el código anterior)
+        // Configuración de movilidad (Giro e Inclinación con 2 dedos)
+        map.dragRotate.enable();
+        map.touchZoomRotate.enableRotation();
+        map.touchPitch.enable();
+
+        map.on('load', () => {
+            renderMarkers();
+        });
+
+        // AL TOCAR EL MAPA: Abrir ventana de propiedad
+        map.on('click', (e) => {
+            openPropertyEditor(e.lngLat);
+        });
     }
 
-    // Nota: Las funciones search() y locate() serían idénticas a las del código anterior.
+    // --- GESTIÓN DE PROPIEDADES ---
+    function openPropertyEditor(lngLat, existingId = null) {
+        const id = existingId || `${lngLat.lng.toFixed(6)},${lngLat.lat.toFixed(6)}`;
+        const data = landData[id] || { icon: '📍', note: '', water: '' };
+
+        const content = document.createElement('div');
+        content.className = 'prop-card';
+        content.innerHTML = `
+            <strong>Configurar Propiedad</strong>
+            <select id="ed-icon">
+                <option value="📍" ${data.icon === '📍' ? 'selected' : ''}>📍 Estándar</option>
+                <option value="🏠" ${data.icon === '🏠' ? 'selected' : ''}>🏠 Vivienda</option>
+                <option value="💧" ${data.icon === '💧' ? 'selected' : ''}>💧 Agua/Pozo</option>
+                <option value="del">❌ Eliminar Icono</option>
+            </select>
+            <input type="text" id="ed-water" placeholder="Tipo de agua..." value="${data.water}">
+            <textarea id="ed-note" rows="3" placeholder="Notas adicionales...">${data.note}</textarea>
+            <button class="btn-save" onclick="saveProp('${id}', ${lngLat.lng}, ${lngLat.lat})">GUARDAR</button>
+            ${existingId ? `<button class="btn-save btn-del" onclick="deleteProp('${id}')">ELIMINAR</button>` : ''}
+        `;
+
+        new maplibregl.Popup({ closeOnClick: true })
+            .setLngLat(lngLat)
+            .setDOMContent(content)
+            .addTo(map);
+    }
+
+    function saveProp(id, lng, lat) {
+        const icon = document.getElementById('ed-icon').value;
+        if (icon === 'del') { deleteProp(id); return; }
+
+        landData[id] = {
+            lng, lat, icon,
+            water: document.getElementById('ed-water').value,
+            note: document.getElementById('ed-note').value
+        };
+        localStorage.setItem('my_properties', JSON.stringify(landData));
+        renderMarkers();
+        map.closePopup();
+    }
+
+    function deleteProp(id) {
+        delete landData[id];
+        localStorage.setItem('my_properties', JSON.stringify(landData));
+        renderMarkers();
+        map.closePopup();
+    }
+
+    function renderMarkers() {
+        activeMarkers.forEach(m => m.remove());
+        activeMarkers = [];
+
+        if (!showMarkers) return;
+
+        Object.keys(landData).forEach(id => {
+            const p = landData[id];
+            const el = document.createElement('div');
+            el.innerHTML = p.icon;
+            el.style.fontSize = '32px';
+            el.style.cursor = 'pointer';
+
+            const marker = new maplibregl.Marker({ element: el })
+                .setLngLat([p.lng, p.lat])
+                .addTo(map);
+
+            el.onclick = (e) => {
+                e.stopPropagation();
+                openPropertyEditor({lng: p.lng, lat: p.lat}, id);
+            };
+            activeMarkers.push(marker);
+        });
+    }
+
+    // --- BOTONES DE ACCIÓN ---
+    function toggleMarkers() {
+        showMarkers = !showMarkers;
+        document.getElementById('toggle-layer').classList.toggle('filter-off');
+        renderMarkers();
+    }
+
+    function goToMe() {
+        navigator.geolocation.getCurrentPosition(pos => {
+            map.flyTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: 18, pitch: 70 });
+        }, err => alert("Activa el GPS de tu dispositivo"));
+    }
+
+    async function searchLoc() {
+        const q = document.getElementById('search-input').value;
+        if(!q) return;
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
+        const data = await res.json();
+        if(data[0]) {
+            map.flyTo({ center: [data[0].lon, data[0].lat], zoom: 19, pitch: 60, duration: 2500 });
+        } else {
+            alert("No se encontró la dirección");
+        }
+    }
 </script>
 </body>
 </html>
