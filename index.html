@@ -12,19 +12,14 @@
     <style>
         body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', sans-serif; background: #000; overflow: hidden; }
         #map { height: 100vh; width: 100vw; position: absolute; }
-        
         .search-container { position: absolute; top: 15px; left: 10px; right: 10px; z-index: 1000; display: flex; gap: 5px; }
         #search-input { flex: 1; padding: 12px; border-radius: 10px; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.2); font-size: 16px; }
-        .btn-search { padding: 10px 15px; background: #1a73e8; color: white; border: none; border-radius: 10px; font-weight: bold; }
-
+        .btn-search { padding: 10px 15px; background: #1a73e8; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
         #login-screen { position: fixed; inset: 0; background: #fff; z-index: 5000; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .login-card { width: 100%; max-width: 350px; text-align: center; }
         input, select, textarea { width: 100%; padding: 15px; margin: 8px 0; border: 1px solid #ccc; border-radius: 12px; font-size: 16px; box-sizing: border-box; }
         .btn-main { width: 100%; padding: 16px; background: #1a73e8; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; }
-        
         .side-controls { position: absolute; bottom: 30px; right: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
-        .btn-map { width: 55px; height: 55px; border-radius: 50%; background: white; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3); font-size: 24px; display: flex; align-items: center; justify-content: center; }
-        
+        .btn-map { width: 55px; height: 55px; border-radius: 50%; background: white; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3); font-size: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
         #modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; display: none; align-items: center; justify-content: center; padding: 20px; }
         .modal-card { background: white; width: 100%; max-width: 380px; padding: 20px; border-radius: 25px; text-align: center; }
         .owner-box { background: #e8f0fe; padding: 15px; border-radius: 15px; margin-bottom: 15px; border: 2px solid #1a73e8; }
@@ -35,10 +30,9 @@
 <body>
 
     <div id="login-screen">
-        <div class="login-card">
+        <div style="width:100%; max-width:350px; text-align:center;">
             <h1 style="color:#1a73e8; margin-bottom:0;">ALLTERRAIN</h1>
-            <p style="color:#666; margin-bottom:20px;">LandMaster System</p>
-            <input type="email" id="email" placeholder="Correo Electrónico">
+            <input type="email" id="email" placeholder="Email">
             <input type="password" id="password" placeholder="Contraseña">
             <button class="btn-main" id="btn-auth" onclick="handleAuth()">ENTRAR</button>
             <div class="auth-links" onclick="toggleAuthMode()" id="toggle-text">¿No tienes cuenta? Regístrate</div>
@@ -52,8 +46,8 @@
             <button class="btn-search" onclick="searchAddress()">IR</button>
         </div>
         <div class="side-controls">
-            <button class="btn-map" onclick="goToMe()">🎯</button>
-            <button class="btn-map" id="admin-btn" style="background:#1a73e8; color:white; display:none;" onclick="alert('Panel Admin')">👤</button>
+            <button class="btn-map" onclick="toggleMapMode()">🗺️</button> <button class="btn-map" onclick="goToMe()">🎯</button>
+            <button class="btn-map" id="admin-btn" style="background:#1a73e8; color:white; display:none;" onclick="alert('Admin Activo')">👤</button>
             <button class="btn-map" onclick="logout()">🚪</button>
         </div>
     </div>
@@ -62,18 +56,15 @@
         <div class="modal-card">
             <div id="m-address" style="font-weight:bold; margin-bottom:10px;">...</div>
             <div class="owner-box">
-                <span style="font-size:12px; color:#666;">DUEÑO REGISTRADO:</span><br>
+                <span style="font-size:12px; color:#666;">DUEÑO:</span><br>
                 <span class="owner-name" id="m-owner">Buscando...</span>
             </div>
             <select id="f-icon">
                 <option value="💧">💧 Interesado</option>
-                <option value="✅">✅ Venta Cerrada</option>
-                <option value="❌">❌ No interesado</option>
-                <option value="none">Quitar Marcador</option>
+                <option value="✅">✅ Venta</option>
+                <option value="❌">❌ No</option>
             </select>
-            <input type="number" id="f-tds" placeholder="Valor TDS">
-            <textarea id="f-note" placeholder="Notas..."></textarea>
-            <button class="btn-main" onclick="saveData()">GUARDAR REPORTE</button>
+            <button class="btn-main" onclick="saveData()">GUARDAR</button>
             <button style="background:none; border:none; color:grey; margin-top:15px;" onclick="closeModal()">Cerrar</button>
         </div>
     </div>
@@ -92,45 +83,23 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
     const adminEmails = ["tonyhades@gmail.com"];
-    let isLoginMode = true;
+    
+    let map, isSatellite = true, storage = {}, mapMarkers = [], currentCoords, currentId, isLoginMode = true;
 
     auth.onAuthStateChanged(user => {
         if(user) {
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('app-ui').style.display = 'block';
-            if(adminEmails.includes(user.email.toLowerCase())) {
-                document.getElementById('admin-btn').style.display = 'flex';
-            }
+            if(adminEmails.includes(user.email.toLowerCase())) document.getElementById('admin-btn').style.display = 'flex';
             initMap();
         }
     });
 
-    function toggleAuthMode() {
-        isLoginMode = !isLoginMode;
-        document.getElementById('btn-auth').innerText = isLoginMode ? "ENTRAR" : "REGISTRARME";
-        document.getElementById('toggle-text').innerText = isLoginMode ? "¿No tienes cuenta? Regístrate" : "Ya tengo cuenta, Entrar";
-    }
-
-    function handleAuth() {
-        const email = document.getElementById('email').value;
-        const pass = document.getElementById('password').value;
-        if(isLoginMode) {
-            auth.signInWithEmailAndPassword(email, pass).catch(e => alert(e.message));
-        } else {
-            auth.createUserWithEmailAndPassword(email, pass).catch(e => alert(e.message));
-        }
-    }
-
-    function resetPassword() {
-        const email = document.getElementById('email').value;
-        if(!email) return alert("Escribe tu correo primero");
-        auth.sendPasswordResetEmail(email).then(() => alert("Email enviado para resetear clave")).catch(e => alert(e.message));
-    }
-
     function initMap() {
+        const style = isSatellite ? "y" : "m"; // 'y' para satélite, 'm' para calles
         map = new maplibregl.Map({
             container: 'map',
-            style: { "version": 8, "sources": { "gh": { "type": "raster", "tiles": ["https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"], "tileSize": 256 }}, "layers": [{"id":"h","type":"raster","source":"gh"}] },
+            style: { "version": 8, "sources": { "gh": { "type": "raster", "tiles": ["https://mt1.google.com/vt/lyrs="+style+"&x={x}&y={y}&z={z}"], "tileSize": 256 }}, "layers": [{"id":"h","type":"raster","source":"gh"}] },
             center: [-77.4360, 37.5407],
             zoom: 17
         });
@@ -139,27 +108,19 @@
             currentCoords = e.lngLat;
             currentId = `${e.lngLat.lng.toFixed(6)}|${e.lngLat.lat.toFixed(6)}`;
             document.getElementById('modal-overlay').style.display = 'flex';
-            document.getElementById('m-owner').innerText = "Buscando...";
-            
             const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${e.lngLat.lat}&lon=${e.lngLat.lng}`);
             const data = await res.json();
-            const fullAddr = (data.address.house_number + " " + data.address.road).toUpperCase().trim();
+            const fullAddr = (data.address.house_number + " " + data.address.road).toUpperCase();
             document.getElementById('m-address').innerText = fullAddr;
-
             const doc = await db.collection("propiedades").doc(fullAddr).get();
-            document.getElementById('m-owner').innerText = doc.exists ? doc.data().propietario : "No descargado";
+            document.getElementById('m-owner').innerText = doc.exists ? doc.data().propietario : "No registrado";
         });
+    }
 
-        db.collection("marcadores").onSnapshot(snap => {
-            mapMarkers.forEach(m => m.remove());
-            snap.forEach(doc => {
-                const p = doc.data();
-                const el = document.createElement('div');
-                el.innerHTML = p.icon; el.style.fontSize = '35px';
-                const m = new maplibregl.Marker({element:el}).setLngLat([p.lng, p.lat]).addTo(map);
-                mapMarkers.push(m);
-            });
-        });
+    function toggleMapMode() {
+        isSatellite = !isSatellite;
+        map.remove();
+        initMap();
     }
 
     async function searchAddress() {
@@ -169,16 +130,16 @@
         if(data[0]) map.flyTo({center: [data[0].lon, data[0].lat], zoom: 18});
     }
 
-    function saveData() {
-        const data = {
-            lng: currentCoords.lng, lat: currentCoords.lat,
-            address: document.getElementById('m-address').innerText,
-            icon: document.getElementById('f-icon').value,
-            tds: document.getElementById('f-tds').value,
-            note: document.getElementById('f-note').value
-        };
-        db.collection("marcadores").doc(currentId).set(data);
-        closeModal();
+    function handleAuth() {
+        const email = document.getElementById('email').value;
+        const pass = document.getElementById('password').value;
+        if(isLoginMode) auth.signInWithEmailAndPassword(email, pass).catch(e => alert(e.message));
+        else auth.createUserWithEmailAndPassword(email, pass).catch(e => alert(e.message));
+    }
+    
+    function toggleAuthMode() {
+        isLoginMode = !isLoginMode;
+        document.getElementById('btn-auth').innerText = isLoginMode ? "ENTRAR" : "REGISTRARME";
     }
 
     function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
