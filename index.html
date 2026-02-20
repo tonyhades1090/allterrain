@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>All Terrain Pro</title>
+    <title>All Terrain Pro | Admin System</title>
     
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
@@ -18,37 +18,34 @@
         body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #020617; font-family: -apple-system, system-ui, sans-serif; }
         #map { position: absolute; top: 0; bottom: 0; width: 100%; z-index: 1; visibility: hidden; }
         
-        /* Pantalla Login */
         #auth-container { position: fixed; inset: 0; z-index: 5000; background: #020617; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .auth-card { background: #0f172a; width: 100%; max-width: 400px; padding: 30px; border-radius: 2.5rem; border: 1px solid #1e293b; text-align: center; }
+        .auth-card { background: #0f172a; width: 100%; max-width: 400px; padding: 35px; border-radius: 2.5rem; border: 1px solid #1e293b; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
         input { background: #1e293b !important; border: 1px solid #334155 !important; color: white !important; width: 100%; padding: 16px; border-radius: 1.2rem; margin-bottom: 12px; outline: none; font-size: 16px; }
         
-        /* Pins con Iconos */
-        .pin-circle { width: 42px; height: 42px; border-radius: 50%; border: 3px solid white; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+        .pin-circle { width: 44px; height: 44px; border-radius: 50%; border: 3px solid white; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.6); }
 
-        /* Panel Inferior */
-        .bottom-panel { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(15, 23, 42, 0.98); backdrop-filter: blur(20px); border-radius: 2.5rem 2.5rem 0 0; z-index: 2000; padding: 24px; transform: translateY(100%); transition: 0.4s cubic-bezier(0.33, 1, 0.68, 1); border-top: 1px solid rgba(255,255,255,0.1); padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
+        .bottom-panel { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(15, 23, 42, 0.98); backdrop-filter: blur(25px); border-radius: 2.5rem 2.5rem 0 0; z-index: 2000; padding: 24px; transform: translateY(100%); transition: 0.5s cubic-bezier(0.33, 1, 0.68, 1); border-top: 1px solid rgba(255,255,255,0.1); padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
         .bottom-panel.open { transform: translateY(0); }
 
         .status-btn { background: #0f172a; border: 2px solid #334155; border-radius: 1.2rem; padding: 15px; font-size: 1.6rem; transition: 0.2s; }
         .status-btn.active { border-color: #3b82f6; background: rgba(59, 130, 246, 0.2); transform: scale(1.1); }
 
-        .map-controls { position: fixed; bottom: 30px; right: 20px; display: flex; flex-direction: column; gap: 15px; z-index: 1000; }
-        .ctrl-btn { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(0,0,0,0.4); border: none; }
+        .admin-badge { background: #ef4444; color: white; font-size: 9px; padding: 2px 8px; border-radius: 10px; font-weight: 900; letter-spacing: 1px; }
     </style>
 </head>
 <body>
 
     <div id="auth-container">
         <div class="auth-card">
-            <i class="fa-solid fa-droplet text-blue-500 text-5xl mb-6"></i>
-            <h1 id="auth-title" class="text-white text-2xl font-black uppercase tracking-tighter mb-6">All Terrain Pro</h1>
-            <input id="auth-email" type="email" placeholder="Email">
-            <input id="auth-pass" type="password" placeholder="Password">
-            <button onclick="handleAuth()" id="btn-main" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold uppercase tracking-widest mb-4">Entrar</button>
-            <button onclick="toggleAuth()" id="btn-switch" class="text-blue-400 text-xs font-bold uppercase">¿No tienes cuenta? Regístrate</button>
-            <br><br>
-            <button onclick="resetPass()" class="text-slate-500 text-[10px] uppercase">Olvidé mi contraseña</button>
+            <i class="fa-solid fa-shield-halved text-blue-500 text-5xl mb-6"></i>
+            <h1 id="auth-title" class="text-white text-2xl font-black uppercase tracking-tighter mb-2">All Terrain Pro</h1>
+            <p id="admin-notice" class="text-slate-500 text-[10px] mb-6 uppercase font-bold tracking-widest">Sistema de Control Maestro</p>
+            
+            <input id="auth-email" type="email" placeholder="Email Corporativo">
+            <input id="auth-pass" type="password" placeholder="Contraseña">
+            
+            <button onclick="handleAuth()" id="btn-main" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold uppercase tracking-widest mb-4 shadow-lg active:scale-95">Entrar al Sistema</button>
+            <button onclick="toggleAuth()" id="btn-switch" class="text-blue-400 text-xs font-bold uppercase">¿Nuevo Empleado? Regístrate</button>
         </div>
     </div>
 
@@ -56,35 +53,54 @@
 
     <div id="ui-controls" style="display:none;">
         <div class="fixed top-6 inset-x-4 z-[1000] flex gap-2">
-            <input id="search" type="text" placeholder="Buscar dirección..." class="flex-1 bg-white/95 p-4 rounded-2xl shadow-2xl text-slate-800 font-bold border-none">
-            <button onclick="goSearch()" class="bg-blue-600 text-white w-14 rounded-2xl shadow-xl"><i class="fa-solid fa-magnifying-glass"></i></button>
+            <div class="relative flex-1">
+                <input id="search" type="text" placeholder="Buscar dirección..." class="w-full bg-white/95 p-4 pl-12 rounded-2xl shadow-2xl text-slate-800 font-bold border-none outline-none">
+                <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            </div>
+            <button onclick="logout()" class="bg-slate-900 text-white w-14 rounded-2xl shadow-xl border border-white/10"><i class="fa-solid fa-power-off"></i></button>
         </div>
 
-        <div class="map-controls">
-            <button class="ctrl-btn bg-blue-600 text-white" onclick="alert('Historial próximamente')"><i class="fa-solid fa-list-ul"></i></button>
-            <button class="ctrl-btn bg-white text-slate-700" onclick="centerMe()"><i class="fa-solid fa-location-crosshairs text-xl"></i></button>
+        <div class="fixed bottom-10 right-6 flex flex-col gap-4 z-[1000]">
+            <button id="admin-btn" class="w-14 h-14 bg-red-600 text-white rounded-full shadow-2xl hidden" onclick="verTodo()"><i class="fa-solid fa-eye"></i></button>
+            <button class="w-14 h-14 bg-blue-600 text-white rounded-full shadow-2xl" onclick="centerMe()"><i class="fa-solid fa-location-arrow"></i></button>
         </div>
 
         <div id="panel-prop" class="bottom-panel">
-            <button onclick="closeP()" class="absolute -top-12 right-6 bg-slate-800 text-white w-10 h-10 rounded-full border-2 border-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            <button onclick="closeP()" class="absolute -top-12 right-6 bg-slate-800 text-white w-10 h-10 rounded-full border-2 border-slate-600 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+            
             <div class="text-center mb-6">
-                <p id="addr" class="text-white font-bold text-lg leading-tight">Dirección</p>
-                <p class="text-blue-400 text-[10px] font-black uppercase tracking-widest mt-1">Análisis de Propiedad</p>
+                <div id="admin-tag" class="hidden mb-2"><span class="admin-badge">MODO DUEÑO</span></div>
+                <p id="addr" class="text-white font-bold text-lg leading-tight">Ubicación Seleccionada</p>
+                <p id="inspector-name" class="text-slate-500 text-[10px] font-black uppercase tracking-widest mt-1">Nuevo Registro</p>
             </div>
+
             <div class="grid grid-cols-4 gap-3 mb-6">
                 <button onclick="setSt('💧','#3b82f6',this)" class="status-btn active">💧</button>
                 <button onclick="setSt('✅','#22c55e',this)" class="status-btn">✅</button>
                 <button onclick="setSt('❌','#ef4444',this)" class="status-btn">❌</button>
                 <button onclick="setSt('⚠️','#f59e0b',this)" class="status-btn">⚠️</button>
             </div>
+
             <div class="grid grid-cols-2 gap-3 mb-6">
-                <input id="tds" type="number" placeholder="TDS" class="text-center font-bold !mb-0">
-                <input id="cl" type="number" step="0.1" placeholder="CL" class="text-center font-bold !mb-0">
+                <div class="bg-slate-900 rounded-2xl p-3 border border-slate-800">
+                    <span class="text-[9px] text-slate-500 font-bold uppercase ml-2">TDS (PPM)</span>
+                    <input id="tds" type="number" placeholder="000" class="!bg-transparent !border-none !mb-0 text-center text-xl font-black">
+                </div>
+                <div class="bg-slate-900 rounded-2xl p-3 border border-slate-800">
+                    <span class="text-[9px] text-slate-500 font-bold uppercase ml-2">Cloro (CL)</span>
+                    <input id="cl" type="number" step="0.1" placeholder="0.0" class="!bg-transparent !border-none !mb-0 text-center text-xl font-black">
+                </div>
             </div>
+
             <div class="flex gap-3">
-                <button id="nav-btn" class="flex-1 bg-slate-200 py-4 rounded-2xl font-bold text-slate-800 text-xs uppercase">Google Maps</button>
-                <button onclick="save()" class="flex-[1.5] bg-blue-600 py-4 rounded-2xl font-black text-white text-xs uppercase">Guardar</button>
+                <button id="nav-btn" class="flex-1 bg-slate-200 py-4 rounded-2xl font-bold text-slate-800 text-xs uppercase flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-route text-blue-600"></i> GPS
+                </button>
+                <button onclick="save()" class="flex-[1.5] bg-blue-600 py-4 rounded-2xl font-black text-white text-xs uppercase shadow-lg active:scale-95 transition-all">
+                    Guardar Inspección
+                </button>
             </div>
+            <button id="del-btn" onclick="borrarRegistro()" class="w-full mt-4 text-red-500 text-[10px] font-bold uppercase hidden">Eliminar este registro</button>
         </div>
     </div>
 
@@ -93,17 +109,24 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth(), db = firebase.firestore();
 
-        let isLog = true, map, marker, curEmoji = "💧", curCol = "#3b82f6";
+        const OWNER_EMAIL = "tonyhades@gmail.com";
+        let isLog = true, map, marker, curEmoji = "💧", curCol = "#3b82f6", isAdmin = false;
 
-        function toggleAuth() { isLog = !isLog; document.getElementById('auth-title').innerText = isLog ? "All Terrain Pro" : "Crear Cuenta"; document.getElementById('btn-main').innerText = isLog ? "Entrar" : "Registrarme"; }
+        function toggleAuth() { isLog = !isLog; document.getElementById('auth-title').innerText = isLog ? "All Terrain Pro" : "Registro Empleado"; }
+        
         async function handleAuth() {
             const e = document.getElementById('auth-email').value, p = document.getElementById('auth-pass').value;
             try { isLog ? await auth.signInWithEmailAndPassword(e,p) : await auth.createUserWithEmailAndPassword(e,p); } catch(err){ alert(err.message); }
         }
-        function resetPass() { const e = document.getElementById('auth-email').value; if(e) auth.sendPasswordResetEmail(e).then(()=>alert("Revisa tu correo")); }
 
         auth.onAuthStateChanged(user => {
             if(user) { 
+                isAdmin = (user.email === OWNER_EMAIL);
+                if(isAdmin) {
+                    document.getElementById('admin-btn').classList.remove('hidden');
+                    document.getElementById('admin-tag').classList.remove('hidden');
+                    document.getElementById('del-btn').classList.remove('hidden');
+                }
                 document.getElementById('auth-container').style.display='none';
                 document.getElementById('map').style.visibility='visible';
                 document.getElementById('ui-controls').style.display='block';
@@ -115,14 +138,15 @@
             if(map) return;
             map = L.map('map', { zoomControl: false }).setView([25.76, -80.19], 13);
             L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
+            
             map.on('click', async e => {
                 const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${e.latlng.lat}&lon=${e.latlng.lng}`);
                 const d = await res.json();
                 if(marker) map.removeLayer(marker);
                 marker = L.marker(e.latlng).addTo(map);
                 updIco();
-                document.getElementById('addr').innerText = (d.display_name.split(',')[0] || "Propiedad") + ", " + (d.display_name.split(',')[1] || "");
-                document.getElementById('nav-btn').onclick = () => window.open(`https://www.google.com/maps?q=${e.latlng.lat},${e.latlng.lng}`);
+                document.getElementById('addr').innerText = d.display_name.split(',')[0] + ", " + d.display_name.split(',')[1];
+                document.getElementById('nav-btn').onclick = () => window.open(`http://maps.google.com/maps?daddr=${e.latlng.lat},${e.latlng.lng}`);
                 document.getElementById('panel-prop').classList.add('open');
             });
         }
@@ -136,19 +160,49 @@
 
         function updIco() {
             if(!marker) return;
-            marker.setIcon(L.divIcon({ className:'', html:`<div class="pin-circle" style="background:${curCol}">${curEmoji}</div>`, iconSize:[42,42], iconAnchor:[21,21] }));
-        }
-
-        async function goSearch() {
-            const q = document.getElementById('search').value;
-            const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
-            const d = await r.json();
-            if(d[0]) map.setView([d[0].lat, d[0].lon], 17);
+            marker.setIcon(L.divIcon({ className:'', html:`<div class="pin-circle" style="background:${curCol}">${curEmoji}</div>`, iconSize:[44,44], iconAnchor:[22,22] }));
         }
 
         function centerMe() { map.locate({setView:true, maxZoom:17}); }
         function closeP() { document.getElementById('panel-prop').classList.remove('open'); }
-        async function save() { alert("Guardado en la cuenta de " + auth.currentUser.email); closeP(); }
+        function logout() { auth.signOut(); location.reload(); }
+
+        async function save() {
+            const data = {
+                lat: marker.getLatLng().lat,
+                lng: marker.getLatLng().lng,
+                tds: document.getElementById('tds').value,
+                cl: document.getElementById('cl').value,
+                estado: curEmoji,
+                color: curCol,
+                direccion: document.getElementById('addr').innerText,
+                inspector: auth.currentUser.email,
+                fecha: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            await db.collection("inspecciones").add(data);
+            alert("✅ Registro exitoso");
+            closeP();
+            if(isAdmin) verTodo();
+        }
+
+        async function verTodo() {
+            if(!isAdmin) return;
+            const snap = await db.collection("inspecciones").get();
+            snap.forEach(doc => {
+                const d = doc.data();
+                L.marker([d.lat, d.lng]).addTo(map).setIcon(L.divIcon({ 
+                    className:'', 
+                    html:`<div class="pin-circle" style="background:${d.color}; opacity:0.8; transform:scale(0.8)">${d.estado}</div>`, 
+                    iconSize:[44,44], iconAnchor:[22,22] 
+                })).on('click', () => {
+                    document.getElementById('addr').innerText = d.direccion;
+                    document.getElementById('inspector-name').innerText = "Realizado por: " + d.inspector;
+                    document.getElementById('tds').value = d.tds;
+                    document.getElementById('cl').value = d.cl;
+                    document.getElementById('panel-prop').classList.add('open');
+                });
+            });
+        }
     </script>
 </body>
 </html>
