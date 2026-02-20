@@ -3,88 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LAND-MASTER TOTAL PRO</title>
+    <title>LandMaster Pro</title>
     
     <script src='https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js'></script>
     <link href='https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css' rel='stylesheet' />
     
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', sans-serif; background: #000; overflow: hidden; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #000; overflow: hidden; }
         
-        /* PANTALLA DE LOGIN */
+        /* LOGIN */
         #login-screen {
-            position: fixed; inset: 0; background: #fff; z-index: 2000;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            padding: 20px; transition: 0.5s;
+            position: fixed; inset: 0; background: white; z-index: 5000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;
         }
-        .login-card { width: 100%; max-width: 350px; text-align: center; }
-        input[type="email"], input[type="password"] {
-            width: 100%; padding: 15px; margin: 10px 0; border: 1px solid #ddd; border-radius: 12px; box-sizing: border-box;
-        }
-        .btn-main {
-            width: 100%; padding: 15px; background: #1a73e8; color: white; border: none;
-            border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px;
-        }
-        .btn-bio { background: white; border: 1px solid #1a73e8; color: #1a73e8; margin-top: 10px; }
+        .login-card { width: 100%; max-width: 380px; text-align: center; }
+        input { width: 100%; padding: 16px; margin: 10px 0; border: 1px solid #ccc; border-radius: 12px; box-sizing: border-box; font-size: 16px; outline: none; }
+        .btn-main { width: 100%; padding: 16px; background: #1a73e8; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
+        .btn-bio { background: white; border: 2px solid #1a73e8; color: #1a73e8; }
 
-        /* INTERFAZ DEL MAPA */
-        #map { height: 100vh; width: 100vw; display: none; }
-        .ui-overlay { display: none; }
+        /* MAPA */
+        #map { height: 100vh; width: 100vw; position: absolute; }
 
-        /* Barra de Búsqueda Estilo Google */
-        .search-container {
-            position: absolute; top: 15px; left: 50%; transform: translateX(-50%);
-            z-index: 100; width: 90%; max-width: 480px; display: flex;
-            background: white; border-radius: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); padding: 5px 15px;
+        /* BUSCADOR */
+        .search-bar {
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+            z-index: 1000; width: 90%; max-width: 500px; display: flex;
+            background: white; border-radius: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); padding: 4px 15px;
         }
         #search-input { flex: 1; border: none; padding: 12px; outline: none; font-size: 16px; background: transparent; }
-        
-        /* Botones Laterales */
+        .search-btn { background: none; border: none; font-size: 20px; color: #1a73e8; cursor: pointer; }
+
+        /* CONTROLES */
         .side-controls {
-            position: absolute; bottom: 30px; right: 20px; z-index: 100;
+            position: absolute; bottom: 40px; right: 20px; z-index: 1000;
             display: flex; flex-direction: column; gap: 15px;
         }
-        .map-btn {
-            width: 56px; height: 56px; border-radius: 50%; background: white;
-            border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+        .btn-map {
+            width: 60px; height: 60px; border-radius: 50%; background: white;
+            border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            font-size: 26px; cursor: pointer; display: flex; align-items: center; justify-content: center;
         }
-        .filter-off { opacity: 0.5; background: #eee; }
+        .active-filter { background: #e8f0fe; border: 2px solid #1a73e8; }
 
-        /* Estilo del Popup (Ventana de Propiedad) */
-        .prop-card { min-width: 220px; padding: 5px; }
-        .prop-card select, .prop-card textarea, .prop-card input {
-            width: 100%; margin-top: 8px; padding: 8px; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box;
-        }
-        .btn-save { background: #28a745; color: white; border: none; width: 100%; padding: 10px; margin-top: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; }
-        .btn-del { background: #dc3545; margin-top: 5px; }
+        /* FORMULARIO DE PROPIEDAD */
+        .popup-form { min-width: 240px; padding: 10px; }
+        .popup-form h3 { margin: 0 0 10px 0; font-size: 17px; }
+        select, textarea, input { width: 100%; margin-bottom: 12px; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; box-sizing: border-box; }
+        .btn-save { background: #34a853; color: white; border: none; width: 100%; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .btn-del { background: #ea4335; margin-top: 8px; }
     </style>
 </head>
 <body>
 
     <div id="login-screen">
         <div class="login-card">
-            <h1 style="color:#1a73e8">LandMaster</h1>
-            <input type="email" id="user-email" placeholder="Correo electrónico">
-            <input type="password" id="user-pass" placeholder="Contraseña">
-            <div style="margin: 10px 0; font-size: 14px;">
-                <input type="checkbox" id="remember-me"> Recordar mi usuario
+            <h1 style="color:#1a73e8; margin-bottom:40px;">LandMaster</h1>
+            <input type="email" id="email-login" placeholder="Correo electrónico">
+            <input type="password" id="pass-login" placeholder="Contraseña">
+            <div style="margin: 10px 0; font-size: 14px; display: flex; align-items: center; gap: 8px;">
+                <input type="checkbox" id="remember-me" style="width: auto;"> Recordar mi correo
             </div>
-            <button class="btn-main" onclick="doLogin()">ENTRAR</button>
-            <button class="btn-main btn-bio" onclick="doLogin()">FACE ID / HUELLA</button>
+            <button class="btn-main" onclick="startApp()">ENTRAR</button>
+            <button class="btn-main btn-bio" onclick="startApp()">FACE ID / HUELLA</button>
         </div>
     </div>
 
-    <div class="ui-overlay" id="map-ui">
-        <div class="search-container">
-            <input type="text" id="search-input" placeholder="Buscar dirección o lote...">
-            <button style="border:none;background:none;cursor:pointer;font-size:20px" onclick="searchLoc()">🔍</button>
+    <div id="app-ui" style="display:none;">
+        <div class="search-bar">
+            <input type="text" id="search-input" placeholder="Buscar dirección...">
+            <button class="search-btn" onclick="doSearch()">🔍</button>
         </div>
-
         <div class="side-controls">
-            <button class="map-btn" onclick="goToMe()" title="Mi Ubicación">🎯</button>
-            <button class="map-btn" id="toggle-layer" onclick="toggleMarkers()" title="Mostrar/Ocultar Marcadores">🏷️</button>
-            <button class="map-btn" onclick="logout()" title="Cerrar Sesión" style="font-size: 18px;">🚪</button>
+            <button class="btn-map" onclick="goToCurrentLoc()">🎯</button>
+            <button class="btn-map" id="vis-btn" onclick="toggleMarkers()">👁️</button>
+            <button class="btn-map" onclick="location.reload()" style="font-size:18px;">🚪</button>
         </div>
     </div>
 
@@ -92,168 +84,143 @@
 
 <script>
     let map;
-    let landData = JSON.parse(localStorage.getItem('my_properties')) || {};
-    let activeMarkers = [];
-    let showMarkers = true;
+    let storage = JSON.parse(localStorage.getItem('land_master_db')) || {};
+    let mapMarkers = [];
+    let isVisible = true;
 
-    // --- LOGICA DE LOGIN ---
+    // Recordar usuario
     window.onload = () => {
-        const saved = localStorage.getItem('remembered_user');
+        const saved = localStorage.getItem('user_ref');
         if (saved) {
-            document.getElementById('user-email').value = saved;
+            document.getElementById('email-login').value = saved;
             document.getElementById('remember-me').checked = true;
         }
     };
 
-    function doLogin() {
-        const email = document.getElementById('user-email').value;
-        if (document.getElementById('remember-me').checked) {
-            localStorage.setItem('remembered_user', email);
-        } else {
-            localStorage.removeItem('remembered_user');
-        }
-        
+    function startApp() {
+        const email = document.getElementById('email-login').value;
+        if (document.getElementById('remember-me').checked) localStorage.setItem('user_ref', email);
+        else localStorage.removeItem('user_ref');
+
         document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('map').style.display = 'block';
-        document.getElementById('map-ui').style.display = 'block';
+        document.getElementById('app-ui').style.display = 'block';
         initMap();
     }
 
-    function logout() { location.reload(); }
-
-    // --- INICIALIZACIÓN DEL MAPA ---
     function initMap() {
         map = new maplibregl.Map({
             container: 'map',
             style: {
                 "version": 8,
                 "sources": {
-                    "google-sat": {
+                    "google-hybrid": {
                         "type": "raster",
                         "tiles": ["https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"],
                         "tileSize": 256
                     }
                 },
-                "layers": [{"id": "satellite", "type": "raster", "source": "google-sat"}]
+                "layers": [{"id": "hybrid", "type": "raster", "source": "google-hybrid"}]
             },
-            center: [-74.006, 40.7128],
-            zoom: 17,
-            pitch: 50,
+            center: [-80.1918, 25.7617],
+            zoom: 18,
+            pitch: 60,
             bearing: 0,
             antialias: true
         });
 
-        // Configuración de movilidad (Giro e Inclinación con 2 dedos)
+        // MOVILIDAD GOOGLE MAPS (Giro/Inclinación 2 dedos)
         map.dragRotate.enable();
         map.touchZoomRotate.enableRotation();
         map.touchPitch.enable();
 
-        map.on('load', () => {
-            renderMarkers();
-        });
-
-        // AL TOCAR EL MAPA: Abrir ventana de propiedad
-        map.on('click', (e) => {
-            openPropertyEditor(e.lngLat);
-        });
+        map.on('load', () => { drawMarkers(); });
+        map.on('click', (e) => { openEditor(e.lngLat); });
     }
 
-    // --- GESTIÓN DE PROPIEDADES ---
-    function openPropertyEditor(lngLat, existingId = null) {
-        const id = existingId || `${lngLat.lng.toFixed(6)},${lngLat.lat.toFixed(6)}`;
-        const data = landData[id] || { icon: '📍', note: '', water: '' };
+    function openEditor(lngLat, existingId = null) {
+        const id = existingId || `${lngLat.lng.toFixed(6)}|${lngLat.lat.toFixed(6)}`;
+        const data = storage[id] || { icon: '📍', note: '', water: '' };
 
-        const content = document.createElement('div');
-        content.className = 'prop-card';
-        content.innerHTML = `
-            <strong>Configurar Propiedad</strong>
-            <select id="ed-icon">
-                <option value="📍" ${data.icon === '📍' ? 'selected' : ''}>📍 Estándar</option>
-                <option value="🏠" ${data.icon === '🏠' ? 'selected' : ''}>🏠 Vivienda</option>
-                <option value="💧" ${data.icon === '💧' ? 'selected' : ''}>💧 Agua/Pozo</option>
-                <option value="del">❌ Eliminar Icono</option>
+        const div = document.createElement('div');
+        div.className = 'popup-form';
+        div.innerHTML = `
+            <h3>Propiedad</h3>
+            <label>Icono:</label>
+            <select id="f-icon">
+                <option value="💧" ${data.icon === '💧' ? 'selected' : ''}>💧 Gota de agua</option>
+                <option value="❌" ${data.icon === '❌' ? 'selected' : ''}>❌ X roja</option>
+                <option value="✅" ${data.icon === '✅' ? 'selected' : ''}>✅ Checkmark</option>
+                <option value="⌚" ${data.icon === '⌚' ? 'selected' : ''}>⌚ Reloj / Cronómetro</option>
+                <option value="none">Quitar icono</option>
             </select>
-            <input type="text" id="ed-water" placeholder="Tipo de agua..." value="${data.water}">
-            <textarea id="ed-note" rows="3" placeholder="Notas adicionales...">${data.note}</textarea>
-            <button class="btn-save" onclick="saveProp('${id}', ${lngLat.lng}, ${lngLat.lat})">GUARDAR</button>
-            ${existingId ? `<button class="btn-save btn-del" onclick="deleteProp('${id}')">ELIMINAR</button>` : ''}
+            <input type="text" id="f-water" placeholder="Tipo de agua..." value="${data.water}">
+            <textarea id="f-note" rows="3" placeholder="Notas...">${data.note}</textarea>
+            <button class="btn-save" onclick="saveData('${id}', ${lngLat.lng}, ${lngLat.lat})">GUARDAR</button>
+            ${existingId ? `<button class="btn-save btn-del" onclick="deleteData('${id}')">BORRAR</button>` : ''}
         `;
 
-        new maplibregl.Popup({ closeOnClick: true })
-            .setLngLat(lngLat)
-            .setDOMContent(content)
-            .addTo(map);
+        new maplibregl.Popup({ closeOnClick: true }).setLngLat(lngLat).setDOMContent(div).addTo(map);
     }
 
-    function saveProp(id, lng, lat) {
-        const icon = document.getElementById('ed-icon').value;
-        if (icon === 'del') { deleteProp(id); return; }
+    function saveData(id, lng, lat) {
+        const icon = document.getElementById('f-icon').value;
+        if (icon === 'none') { deleteData(id); return; }
 
-        landData[id] = {
+        storage[id] = {
             lng, lat, icon,
-            water: document.getElementById('ed-water').value,
-            note: document.getElementById('ed-note').value
+            water: document.getElementById('f-water').value,
+            note: document.getElementById('f-note').value
         };
-        localStorage.setItem('my_properties', JSON.stringify(landData));
-        renderMarkers();
+        localStorage.setItem('land_master_db', JSON.stringify(storage));
+        drawMarkers();
         map.closePopup();
     }
 
-    function deleteProp(id) {
-        delete landData[id];
-        localStorage.setItem('my_properties', JSON.stringify(landData));
-        renderMarkers();
+    function deleteData(id) {
+        delete storage[id];
+        localStorage.setItem('land_master_db', JSON.stringify(storage));
+        drawMarkers();
         map.closePopup();
     }
 
-    function renderMarkers() {
-        activeMarkers.forEach(m => m.remove());
-        activeMarkers = [];
+    function drawMarkers() {
+        mapMarkers.forEach(m => m.remove());
+        mapMarkers = [];
+        if (!isVisible) return;
 
-        if (!showMarkers) return;
-
-        Object.keys(landData).forEach(id => {
-            const p = landData[id];
+        Object.keys(storage).forEach(id => {
+            const p = storage[id];
             const el = document.createElement('div');
             el.innerHTML = p.icon;
-            el.style.fontSize = '32px';
+            el.style.fontSize = '35px';
             el.style.cursor = 'pointer';
 
-            const marker = new maplibregl.Marker({ element: el })
-                .setLngLat([p.lng, p.lat])
-                .addTo(map);
-
+            const m = new maplibregl.Marker({ element: el }).setLngLat([p.lng, p.lat]).addTo(map);
             el.onclick = (e) => {
                 e.stopPropagation();
-                openPropertyEditor({lng: p.lng, lat: p.lat}, id);
+                openEditor({lng: p.lng, lat: p.lat}, id);
             };
-            activeMarkers.push(marker);
+            mapMarkers.push(m);
         });
     }
 
-    // --- BOTONES DE ACCIÓN ---
-    function toggleMarkers() {
-        showMarkers = !showMarkers;
-        document.getElementById('toggle-layer').classList.toggle('filter-off');
-        renderMarkers();
-    }
-
-    function goToMe() {
+    function goToCurrentLoc() {
         navigator.geolocation.getCurrentPosition(pos => {
-            map.flyTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: 18, pitch: 70 });
-        }, err => alert("Activa el GPS de tu dispositivo"));
+            map.flyTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: 19, pitch: 70 });
+        });
     }
 
-    async function searchLoc() {
+    function toggleMarkers() {
+        isVisible = !isVisible;
+        document.getElementById('vis-btn').classList.toggle('active-filter');
+        drawMarkers();
+    }
+
+    async function doSearch() {
         const q = document.getElementById('search-input').value;
-        if(!q) return;
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
-        const data = await res.json();
-        if(data[0]) {
-            map.flyTo({ center: [data[0].lon, data[0].lat], zoom: 19, pitch: 60, duration: 2500 });
-        } else {
-            alert("No se encontró la dirección");
-        }
+        const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
+        const d = await r.json();
+        if (d[0]) map.flyTo({ center: [d[0].lon, d[0].lat], zoom: 19, pitch: 65 });
     }
 </script>
 </body>
