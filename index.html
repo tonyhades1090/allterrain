@@ -56,16 +56,20 @@
         <div class="modal-card">
             <div id="m-address" style="font-weight:bold; margin-bottom:10px;">...</div>
             <div class="owner-box">
-                <span style="font-size:12px; color:#666;">DUEÑO:</span><br>
+                <span style="font-size:11px; color:#666;">PROPIETARIO REGISTRADO:</span><br>
                 <span class="owner-name" id="m-owner">Buscando...</span>
             </div>
             <select id="f-icon">
-                <option value="💧">💧 Interesado</option>
-                <option value="✅">✅ Venta</option>
-                <option value="❌">❌ No</option>
+                <option value="💧">💧</option>
+                <option value="✅">✅</option>
+                <option value="❌">❌</option>
+                <option value="🕒">🕒</option>
+                <option value="none">Quitar Marcador</option>
             </select>
-            <button class="btn-main" onclick="saveData()">GUARDAR</button>
-            <button style="background:none; border:none; color:grey; margin-top:15px;" onclick="closeModal()">Cerrar</button>
+            <input type="number" id="f-tds" placeholder="Valor TDS (Grosor del agua)">
+            <textarea id="f-note" placeholder="Agregar notas aquí..."></textarea>
+            <button class="btn-main" onclick="saveData()">GUARDAR REPORTE</button>
+            <button style="background:none; border:none; color:grey; margin-top:15px; cursor:pointer;" onclick="closeModal()">Cerrar</button>
         </div>
     </div>
     <div id="map"></div>
@@ -107,14 +111,17 @@
             currentCoords = e.lngLat;
             currentId = `${e.lngLat.lng.toFixed(6)}|${e.lngLat.lat.toFixed(6)}`;
             document.getElementById('modal-overlay').style.display = 'flex';
+            document.getElementById('m-owner').innerText = "Buscando...";
+            
             const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${e.lngLat.lat}&lon=${e.lngLat.lng}`);
             const data = await res.json();
             const house = data.address.house_number || "";
             const road = data.address.road || "";
             const fullAddr = (house + " " + road).toUpperCase().trim();
             document.getElementById('m-address').innerText = fullAddr;
+            
             const doc = await db.collection("propiedades").doc(fullAddr).get();
-            document.getElementById('m-owner').innerText = doc.exists ? doc.data().propietario : "No registrado";
+            document.getElementById('m-owner').innerText = doc.exists ? doc.data().propietario : "Sin datos";
         });
 
         db.collection("marcadores").onSnapshot(snap => {
@@ -123,7 +130,8 @@
                 const p = doc.data();
                 const el = document.createElement('div');
                 el.innerHTML = p.icon; el.style.fontSize = '35px';
-                new maplibregl.Marker({element:el}).setLngLat([p.lng, p.lat]).addTo(map);
+                const m = new maplibregl.Marker({element:el}).setLngLat([p.lng, p.lat]).addTo(map);
+                mapMarkers.push(m);
             });
         });
     }
@@ -147,9 +155,24 @@
         document.getElementById('btn-auth').innerText = isLoginMode ? "ENTRAR" : "REGISTRARME";
     }
 
+    function resetPassword() {
+        const email = document.getElementById('email').value;
+        if(!email) return alert("Escribe tu email");
+        auth.sendPasswordResetEmail(email).then(() => alert("Email enviado"));
+    }
+
     function saveData() {
-        const data = { lng: currentCoords.lng, lat: currentCoords.lat, address: document.getElementById('m-address').innerText, icon: document.getElementById('f-icon').value };
-        db.collection("marcadores").doc(currentId).set(data);
+        const iconVal = document.getElementById('f-icon').value;
+        const data = {
+            lng: currentCoords.lng,
+            lat: currentCoords.lat,
+            address: document.getElementById('m-address').innerText,
+            icon: iconVal,
+            tds: document.getElementById('f-tds').value,
+            note: document.getElementById('f-note').value
+        };
+        if(iconVal === 'none') db.collection("marcadores").doc(currentId).delete();
+        else db.collection("marcadores").doc(currentId).set(data);
         closeModal();
     }
 
