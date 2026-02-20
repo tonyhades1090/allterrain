@@ -3,34 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>All Terrain | Professional Field Map</title>
+    <title>All Terrain | Navigation & Analysis</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #020617; font-family: sans-serif; }
-        #map-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://user-images.githubusercontent.com/10001/fake-map.jpg'); background-size: cover; background-position: center; }
-        #fab { position: fixed; bottom: 30px; right: 20px; width: 65px; height: 65px; background: #2563eb; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); z-index: 100; }
-        #side-panel { position: fixed; bottom: -100%; left: 0; width: 100%; background: rgba(15, 23, 42, 0.98); backdrop-filter: blur(20px); border-radius: 2.5rem 2.5rem 0 0; transition: 0.4s ease; z-index: 101; padding: 25px; border-top: 1px solid rgba(255,255,255,0.1); }
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #020617; }
+        #map-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('https://user-images.githubusercontent.com/10001/fake-map.jpg'); background-size: cover; background-position: center; z-index: 1; }
+        #fab { position: fixed; bottom: 30px; right: 20px; width: 65px; height: 65px; background: #2563eb; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); z-index: 100; transition: 0.3s; }
+        #side-panel { position: fixed; bottom: -100%; left: 0; width: 100%; background: rgba(15, 23, 42, 0.98); backdrop-filter: blur(25px); border-radius: 2.5rem 2.5rem 0 0; transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; padding: 25px; border-top: 1px solid rgba(255,255,255,0.1); box-shadow: 0 -10px 40px rgba(0,0,0,0.8); }
         #side-panel.open { bottom: 0; }
-        .status-btn { background: #1e293b; border-radius: 1rem; padding: 15px; border: 2px solid transparent; font-size: 1.5rem; }
-        .status-btn.active { border-color: #3b82f6; background: rgba(59, 130, 246, 0.2); }
+        .status-btn { background: #1e293b; border-radius: 1rem; padding: 15px; border: 2px solid transparent; font-size: 1.5rem; transition: 0.2s; }
+        .status-btn.active { border-color: #3b82f6; background: rgba(59, 130, 246, 0.2); transform: scale(1.1); }
+        input, textarea { background: #0f172a !important; border: 1px solid #334155 !important; color: white !important; outline: none; }
     </style>
 </head>
 <body>
 
     <div id="map-bg"></div>
 
-    <div class="fixed top-6 inset-x-4 z-50">
+    <div class="fixed top-6 inset-x-4 z-[50]">
         <div class="flex gap-2">
             <div class="relative flex-1">
-                <i class="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                <input id="searchInput" type="text" placeholder="Search address..." class="w-full bg-slate-900/90 text-white p-4 pl-12 rounded-2xl border border-white/10 outline-none">
+                <i class="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
+                <input id="searchInput" type="text" placeholder="Search address..." class="w-full bg-slate-900/95 text-white p-4 pl-12 rounded-2xl border border-white/10 shadow-2xl">
             </div>
-            <button onclick="ejecutarBusqueda()" class="bg-blue-600 text-white px-5 rounded-2xl shadow-lg active:scale-90 transition-all">
-                <i class="fa-solid fa-arrow-right"></i>
-            </button>
+            <button onclick="alert('Buscando...')" class="bg-blue-600 text-white px-5 rounded-2xl shadow-lg active:scale-90"><i class="fa-solid fa-arrow-right"></i></button>
             <select id="lang" onchange="cambiarIdioma()" class="bg-slate-800 text-white px-3 rounded-2xl text-[10px] font-bold border border-white/10">
                 <option value="en">EN</option>
                 <option value="es">ES</option>
@@ -38,20 +37,26 @@
         </div>
     </div>
 
-    <div id="fab" onclick="togglePanel()"><i class="fa-solid fa-droplet text-white text-2xl"></i></div>
+    <div id="fab" onclick="abrirPanel()"><i class="fa-solid fa-droplet text-white text-2xl"></i></div>
 
     <div id="side-panel">
-        <div class="w-12 h-1 bg-slate-700 rounded-full mx-auto mb-6"></div>
-        <h2 id="txt-title" class="text-blue-400 font-bold uppercase tracking-widest text-sm mb-6 text-center">Field Analysis</h2>
+        <div class="w-16 h-1.5 bg-slate-700 rounded-full mx-auto mb-6" onclick="cerrarPanel()"></div>
+        
+        <div class="flex justify-between items-center mb-6">
+            <h2 id="txt-title" class="text-blue-400 font-black uppercase tracking-widest text-sm">Field Analysis</h2>
+            <button onclick="cerrarPanel()" class="bg-slate-800 w-10 h-10 rounded-full flex items-center justify-center text-white active:scale-90">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
 
         <div class="grid grid-cols-2 gap-4 mb-6">
-            <div class="space-y-1">
-                <label id="txt-tds" class="text-[10px] text-slate-500 uppercase font-bold ml-1 text-center block">TDS (PPM)</label>
-                <input id="tds" type="number" placeholder="000" class="w-full bg-slate-800 p-4 rounded-2xl text-white text-center text-xl font-bold">
+            <div class="space-y-1 text-center">
+                <label id="txt-tds" class="text-[10px] text-slate-500 uppercase font-bold">TDS (PPM)</label>
+                <input id="tds" type="number" placeholder="000" class="w-full p-4 rounded-2xl text-xl font-bold text-center">
             </div>
-            <div class="space-y-1">
-                <label id="txt-cloro" class="text-[10px] text-slate-500 uppercase font-bold ml-1 text-center block">Chlorine</label>
-                <input id="cloro" type="number" step="0.1" placeholder="0.0" class="w-full bg-slate-800 p-4 rounded-2xl text-white text-center text-xl font-bold">
+            <div class="space-y-1 text-center">
+                <label id="txt-cloro" class="text-[10px] text-slate-500 uppercase font-bold">Chlorine</label>
+                <input id="cloro" type="number" step="0.1" placeholder="0.0" class="w-full p-4 rounded-2xl text-xl font-bold text-center">
             </div>
         </div>
 
@@ -62,9 +67,9 @@
             <button onclick="setStatus('⚠️', this)" class="status-btn">⚠️</button>
         </div>
 
-        <textarea id="notas" class="w-full bg-slate-800 p-4 rounded-2xl text-white text-sm h-24 mb-6" placeholder="Notes..."></textarea>
+        <textarea id="notas" class="w-full p-4 rounded-2xl text-sm h-24 mb-6" placeholder="Notes..."></textarea>
 
-        <button onclick="saveData()" id="save-btn" class="w-full bg-blue-600 py-5 rounded-2xl font-black text-white uppercase tracking-widest">
+        <button onclick="saveData()" id="save-btn" class="w-full bg-blue-600 py-5 rounded-2xl font-black text-white uppercase tracking-widest shadow-xl active:scale-95 transition-all">
             Save Inspection
         </button>
     </div>
@@ -83,7 +88,9 @@
 
         let currentEmoji = "💧";
 
-        function togglePanel() { document.getElementById('side-panel').classList.toggle('open'); }
+        // FUNCIONES DE CONTROL DEL PANEL
+        function abrirPanel() { document.getElementById('side-panel').classList.add('open'); }
+        function cerrarPanel() { document.getElementById('side-panel').classList.remove('open'); }
 
         function setStatus(emoji, btn) {
             currentEmoji = emoji;
@@ -94,7 +101,7 @@
         function cambiarIdioma() {
             const l = document.getElementById('lang').value;
             const t = {
-                es: { title: "Análisis de Campo", tds: "TDS (PPM)", cloro: "Cloro (MG/L)", save: "Guardar Reporte", search: "Buscar dirección...", notes: "Notas..." },
+                es: { title: "Análisis de Campo", tds: "TDS (PPM)", cloro: "Cloro (MG/L)", save: "Guardar Reporte", search: "Buscar...", notes: "Notas..." },
                 en: { title: "Field Analysis", tds: "TDS (PPM)", cloro: "Chlorine", save: "Save Inspection", search: "Search address...", notes: "Notes..." }
             };
             document.getElementById('txt-title').innerText = t[l].title;
@@ -105,12 +112,8 @@
             document.getElementById('notas').placeholder = t[l].notes;
         }
 
-        function ejecutarBusqueda() {
-            const busqueda = document.getElementById('searchInput').value;
-            if(busqueda) alert("Searching for: " + busqueda);
-        }
-
         async function saveData() {
+            const btn = document.getElementById('save-btn');
             const data = {
                 tds: document.getElementById('tds').value,
                 cloro: document.getElementById('cloro').value,
@@ -118,13 +121,17 @@
                 estado: currentEmoji,
                 fecha: firebase.firestore.FieldValue.serverTimestamp()
             };
-            if(!data.tds || !data.cloro) return alert("Error: Missing data");
+            if(!data.tds || !data.cloro) return alert("Faltan datos");
             
+            btn.innerText = "SAVING...";
             try {
                 await db.collection("analisis").add(data);
-                alert("✅ Saved!");
-                togglePanel();
-            } catch (e) { alert("Error"); }
+                alert("✅ Éxito");
+                cerrarPanel(); // Esto cierra el panel automáticamente al terminar
+                btn.innerText = "SAVE INSPECTION";
+                document.getElementById('tds').value = "";
+                document.getElementById('cloro').value = "";
+            } catch (e) { alert("Error"); btn.innerText = "SAVE INSPECTION"; }
         }
     </script>
 </body>
