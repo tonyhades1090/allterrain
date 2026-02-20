@@ -72,16 +72,15 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
-    
-    // AQUÍ ESTÁ TU CORREO SIN PUNTO AL FINAL
     const admins = ["tonyhades@gmail.com"];
 
-    let map, isLoginMode = true, storage = {}, mapMarkers = [];
+    let map, isLoginMode = true, storage = {}, mapMarkers = [], currentCoords, currentId;
 
     auth.onAuthStateChanged(user => {
         if(user) {
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('app-ui').style.display = 'block';
+            db.collection("usuarios").doc(user.uid).set({ email: user.email, lastSeen: new Date().toISOString() }, {merge: true});
             if (admins.includes(user.email.toLowerCase().trim())) showAdminButton();
             initMap();
         }
@@ -90,11 +89,23 @@
     function showAdminButton() {
         if(document.getElementById('admin-btn')) return;
         const btn = document.createElement('button');
-        btn.id = 'admin-btn';
-        btn.className = 'btn-map btn-admin'; 
-        btn.innerHTML = '👤';
-        btn.onclick = () => alert("¡HOLA JEFE! Este es tu panel. Pronto verás aquí a tus técnicos.");
+        btn.id = 'admin-btn'; btn.className = 'btn-map btn-admin'; btn.innerHTML = '👤';
+        btn.onclick = () => abrirPanelGestion();
         document.querySelector('.side-controls').prepend(btn);
+    }
+
+    async function abrirPanelGestion() {
+        let listado = "GESTIÓN DE TÉCNICOS AQUAFILL:\n\n";
+        const snap = await db.collection("usuarios").get();
+        snap.forEach(doc => { listado += `- ${doc.data().email}\n`; });
+        const accion = prompt(listado + "\nEscribe el correo del técnico para ELIMINAR:");
+        if (accion && accion !== "tonyhades@gmail.com") {
+            if(confirm("¿Eliminar a " + accion + "?")) {
+                const q = await db.collection("usuarios").where("email", "==", accion).get();
+                q.forEach(d => d.ref.delete());
+                alert("Usuario borrado.");
+            }
+        }
     }
 
     function initMap() {
@@ -150,17 +161,12 @@
         } catch(e) { alert(e.message); }
     }
 
-    function toggleAuthMode() {
-        isLoginMode = !isLoginMode;
-        document.getElementById('auth-title').innerText = isLoginMode ? 'Iniciar Sesión' : 'Crear Cuenta';
-    }
-
+    function toggleAuthMode() { isLoginMode = !isLoginMode; document.getElementById('auth-title').innerText = isLoginMode ? 'Iniciar Sesión' : 'Crear Cuenta'; }
     function resetPassword() {
         const email = document.getElementById('email').value;
         if(!email) return alert("Escribe tu correo primero");
-        auth.sendPasswordResetEmail(email).then(() => alert("Correo enviado para resetear clave")).catch(e => alert(e.message));
+        auth.sendPasswordResetEmail(email).then(() => alert("Correo enviado")).catch(e => alert(e.message));
     }
-
     function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
     function logout() { auth.signOut(); location.reload(); }
     function goToMe() { navigator.geolocation.getCurrentPosition(p => map.flyTo({center: [p.coords.longitude, p.coords.latitude], zoom: 18})); }
