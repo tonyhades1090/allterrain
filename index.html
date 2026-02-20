@@ -3,25 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>All Terrain Pro</title>
+    <title>All Terrain Pro v3</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { background-color: #020617; color: white; font-family: 'Inter', sans-serif; overflow-x: hidden; }
-        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
-        .status-btn { transition: all 0.2s; border: 2px solid transparent; }
-        .status-btn.active { border-color: #3b82f6; background: rgba(59, 130, 246, 0.2); transform: scale(1.1); }
-        input::placeholder { color: #64748b; }
+        body { background-color: #020617; color: white; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        .card-pro { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.1); border-radius: 3rem; }
+        .status-btn { background: #1e293b; border: 2px solid transparent; transition: 0.2s; font-size: 1.5rem; padding: 1rem; border-radius: 1.25rem; }
+        .status-btn.active { border-color: #3b82f6; background: rgba(59, 130, 246, 0.2); transform: scale(1.05); }
+        input, textarea { background: #0f172a !important; border: 1px solid #334155 !important; color: white !important; outline: none; }
+        input:focus { border-color: #3b82f6 !important; }
     </style>
 </head>
-<body>
+<body class="pb-10">
 
-    <div class="p-4 space-y-4 fixed top-0 inset-x-0 z-50 bg-slate-950/80 backdrop-blur-md">
-        <div class="flex justify-between items-center">
-            <h1 class="text-xl font-black italic text-blue-500 tracking-tighter">ALL TERRAIN</h1>
-            <select id="lang" class="bg-slate-800 text-white text-[10px] p-2 rounded-xl border-none outline-none">
+    <div class="fixed top-0 inset-x-0 z-50 bg-slate-950/90 backdrop-blur-lg p-4 border-b border-white/5">
+        <div class="flex justify-between items-center mb-4">
+            <h1 class="text-xl font-black italic text-blue-500 italic">ALL TERRAIN</h1>
+            <select id="lang" class="bg-blue-600 text-white text-[10px] font-bold px-3 py-2 rounded-full border-none">
                 <option value="es">ESPAÑOL</option>
                 <option value="en">ENGLISH</option>
                 <option value="fr">FRANÇAIS</option>
@@ -35,48 +36,48 @@
             </select>
         </div>
         <div class="relative">
-            <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
-            <input type="text" placeholder="Buscar casa o cliente..." class="w-full bg-slate-900 p-4 pl-12 rounded-2xl border border-slate-800 focus:border-blue-500 outline-none transition-all">
+            <i class="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
+            <input type="text" placeholder="Buscar cliente o número de casa..." class="w-full py-4 pl-12 pr-4 rounded-2xl text-sm">
         </div>
     </div>
 
-    <div class="mt-40 p-4 pb-32">
-        <div class="glass p-6 rounded-[2.5rem] shadow-2xl">
+    <div class="mt-44 px-4">
+        <div class="card-pro p-6 shadow-2xl">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-blue-400 font-bold tracking-widest uppercase text-sm">Nueva Inspección</h2>
-                <span id="house-tag" class="bg-blue-600/20 text-blue-400 px-3 py-1 rounded-full text-xs font-bold">#---</span>
+                <span class="text-blue-400 text-xs font-black tracking-widest uppercase">Análisis de Campo</span>
+                <span id="house-id" class="text-slate-500 text-xs font-mono font-bold">#----</span>
             </div>
 
             <div class="grid grid-cols-2 gap-4 mb-6">
                 <div class="space-y-2">
-                    <label class="text-[10px] text-slate-500 ml-2 font-bold uppercase">TDS (PPM)</label>
-                    <input id="tds" type="number" placeholder="000" class="w-full bg-slate-900 p-5 rounded-3xl text-center text-2xl font-black text-white">
+                    <label class="text-[10px] font-bold text-slate-400 ml-2 uppercase">TDS (PPM)</label>
+                    <input id="tds-val" type="number" placeholder="000" class="w-full py-5 rounded-3xl text-center text-2xl font-black">
                 </div>
                 <div class="space-y-2">
-                    <label class="text-[10px] text-slate-500 ml-2 font-bold uppercase">Cloro (MG/L)</label>
-                    <input id="cloro" type="number" step="0.1" placeholder="0.0" class="w-full bg-slate-900 p-5 rounded-3xl text-center text-2xl font-black text-white">
+                    <label class="text-[10px] font-bold text-slate-400 ml-2 uppercase">Cloro (MG/L)</label>
+                    <input id="cloro-val" type="number" step="0.1" placeholder="0.0" class="w-full py-5 rounded-3xl text-center text-2xl font-black">
                 </div>
             </div>
 
-            <label class="text-[10px] text-slate-500 ml-2 font-bold uppercase mb-2 block">Estado del Sistema</label>
+            <label class="text-[10px] font-bold text-slate-400 ml-2 uppercase mb-3 block">Estado del Agua</label>
             <div class="grid grid-cols-4 gap-3 mb-6">
-                <button onclick="setStatus('💧', this)" class="status-btn bg-slate-900 p-4 rounded-2xl text-2xl">💧</button>
-                <button onclick="setStatus('✅', this)" class="status-btn bg-slate-900 p-4 rounded-2xl text-2xl">✅</button>
-                <button onclick="setStatus('❌', this)" class="status-btn bg-slate-900 p-4 rounded-2xl text-2xl">❌</button>
-                <button onclick="setStatus('⚠️', this)" class="status-btn bg-slate-900 p-4 rounded-2xl text-2xl">⚠️</button>
+                <button onclick="pickStatus('💧', this)" class="status-btn active">💧</button>
+                <button onclick="pickStatus('✅', this)" class="status-btn">✅</button>
+                <button onclick="pickStatus('❌', this)" class="status-btn">❌</button>
+                <button onclick="pickStatus('⚠️', this)" class="status-btn">⚠️</button>
             </div>
 
-            <label class="text-[10px] text-slate-500 ml-2 font-bold uppercase mb-2 block">Observaciones</label>
-            <textarea id="notas" class="w-full bg-slate-900 p-4 rounded-2xl h-28 text-sm outline-none border border-slate-800 mb-6" placeholder="Escribe detalles aquí..."></textarea>
+            <label class="text-[10px] font-bold text-slate-400 ml-2 uppercase mb-2 block">Notas adicionales</label>
+            <textarea id="obs" class="w-full rounded-2xl p-4 h-24 mb-6 text-sm" placeholder="Describa el estado aquí..."></textarea>
 
-            <button onclick="guardarTodo()" id="main-btn" class="w-full bg-blue-600 py-5 rounded-[2rem] font-black text-white tracking-[0.2em] shadow-[0_0_20px_rgba(59,130,246,0.5)] active:scale-95 transition-all">
-                FINALIZAR REPORTE
+            <button onclick="enviarFormulario()" id="save-btn" class="w-full bg-blue-600 py-5 rounded-3xl font-black text-white tracking-widest shadow-lg shadow-blue-900/20 active:scale-95 transition-transform uppercase">
+                Finalizar y Guardar
             </button>
         </div>
     </div>
 
     <script>
-        // Configuración Firebase
+        // CONFIGURACIÓN OFICIAL
         const firebaseConfig = {
           apiKey: "AIzaSyCcX7KNM-w1A-3sgNoFwKxMVO7M7_e1Ab4",
           authDomain: "all-terrain-8755d.firebaseapp.com",
@@ -88,40 +89,40 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        let currentStatus = "💧";
-        document.getElementById('house-tag').innerText = "#" + Math.floor(Math.random()*9000 + 1000);
+        let selectedStatus = "💧";
+        document.getElementById('house-id').innerText = "#" + Math.floor(1000 + Math.random() * 9000);
 
-        function setStatus(emoji, el) {
-            currentStatus = emoji;
+        function pickStatus(emoji, btn) {
+            selectedStatus = emoji;
             document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
-            el.classList.add('active');
+            btn.classList.add('active');
         }
 
-        async function guardarTodo() {
-            const btn = document.getElementById('main-btn');
-            const data = {
-                tds: document.getElementById('tds').value,
-                cloro: document.getElementById('cloro').value,
-                notas: document.getElementById('notas').value,
-                estado: currentStatus,
+        async function enviarFormulario() {
+            const b = document.getElementById('save-btn');
+            const payload = {
+                tds: document.getElementById('tds-val').value,
+                cloro: document.getElementById('cloro-val').value,
+                notas: document.getElementById('obs').value,
+                estado: selectedStatus,
                 idioma: document.getElementById('lang').value,
-                casa: document.getElementById('house-tag').innerText,
+                casa: document.getElementById('house-id').innerText,
                 fecha: firebase.firestore.FieldValue.serverTimestamp()
             };
 
-            if(!data.tds || !data.cloro) return alert("Por favor completa los niveles de TDS y Cloro");
+            if(!payload.tds || !payload.cloro) return alert("Faltan datos de TDS o Cloro");
 
-            btn.innerText = "PROCESANDO...";
-            btn.disabled = true;
+            b.innerText = "GUARDANDO...";
+            b.disabled = true;
 
             try {
-                await db.collection("analisis").add(data);
-                alert("🚀 REPORTE ENVIADO CON ÉXITO");
-                location.reload(); 
+                await db.collection("analisis").add(payload);
+                alert("✅ DATOS GUARDADOS EN LA NUBE");
+                location.reload();
             } catch (e) {
-                alert("Error de conexión: " + e.message);
-                btn.disabled = false;
-                btn.innerText = "FINALIZAR REPORTE";
+                alert("Error: " + e.message);
+                b.disabled = false;
+                b.innerText = "FINALIZAR Y GUARDAR";
             }
         }
     </script>
