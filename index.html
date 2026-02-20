@@ -3,59 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LandMaster Pro - Aquafill</title>
+    <title>Aquafill - LandMaster Pro</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src='https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js'></script>
     <link href='https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css' rel='stylesheet' />
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, sans-serif; background: #000; overflow: hidden; }
-        #login-screen { position: fixed; inset: 0; background: white; z-index: 5000; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .login-card { width: 100%; max-width: 380px; text-align: center; }
-        input, select, textarea { width: 100%; padding: 15px; margin: 8px 0; border: 1px solid #ddd; border-radius: 12px; box-sizing: border-box; font-size: 16px; }
-        .btn-main { width: 100%; padding: 16px; background: #1a73e8; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .btn-link { color: #1a73e8; background: none; border: none; cursor: pointer; margin-top: 15px; font-size: 14px; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', Roboto, sans-serif; background: #000; overflow: hidden; }
+        #login-screen { position: fixed; inset: 0; background: #f8f9fa; z-index: 5000; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .login-card { width: 100%; max-width: 380px; text-align: center; background: white; padding: 30px; border-radius: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        input, select, textarea { width: 100%; padding: 14px; margin: 8px 0; border: 1px solid #e0e0e0; border-radius: 12px; font-size: 16px; outline: none; transition: 0.3s; }
+        input:focus { border-color: #1a73e8; box-shadow: 0 0 0 3px rgba(26,115,232,0.1); }
+        .btn-main { width: 100%; padding: 16px; background: #1a73e8; color: white; border: none; border-radius: 12px; font-weight: 2000; cursor: pointer; margin-top: 10px; font-size: 16px; text-transform: uppercase; }
+        .btn-link { color: #1a73e8; background: none; border: none; cursor: pointer; margin-top: 15px; font-size: 14px; text-decoration: underline; }
         #map { height: 100vh; width: 100vw; position: absolute; }
-        .side-controls { position: absolute; bottom: 30px; right: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 15px; }
-        .btn-map { width: 60px; height: 60px; border-radius: 50%; background: white; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.3); font-size: 26px; display: flex; align-items: center; justify-content: center; }
+        .side-controls { position: absolute; bottom: 30px; right: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 12px; }
+        .btn-map { width: 55px; height: 55px; border-radius: 18px; background: white; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.25); font-size: 24px; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .btn-map:active { transform: scale(0.9); }
         .btn-admin { background: #1a73e8 !important; color: white !important; }
-        #modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 2000; display: none; align-items: center; justify-content: center; }
-        .modal-card { background: white; width: 90%; max-width: 400px; padding: 20px; border-radius: 20px; }
+        #modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 2000; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .modal-card { background: white; width: 100%; max-width: 400px; padding: 25px; border-radius: 28px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+        .prop-info { background: #f1f3f4; padding: 15px; border-radius: 15px; margin-bottom: 15px; text-align: left; }
+        .prop-address { font-weight: bold; color: #1a73e8; display: block; margin-bottom: 5px; }
+        .prop-owner { font-size: 14px; color: #5f6368; font-style: italic; }
     </style>
 </head>
 <body>
     <div id="login-screen">
         <div class="login-card">
-            <h1 style="color:#1a73e8">LandMaster</h1>
-            <div id="auth-title" style="margin-bottom: 20px; font-weight: bold;">Iniciar Sesión</div>
+            <h1 style="color:#1a73e8; margin-bottom: 5px;">Aquafill</h1>
+            <p style="color: #5f6368; margin-bottom: 25px;">LandMaster Control</p>
+            <div id="auth-title" style="margin-bottom: 15px; font-weight: bold; font-size: 18px;">Iniciar Sesión</div>
             <input type="email" id="email" placeholder="Correo electrónico">
             <input type="password" id="password" placeholder="Contraseña">
             <button class="btn-main" onclick="handleAuth()">ENTRAR</button>
             <button class="btn-link" onclick="toggleAuthMode()">No tengo cuenta, registrarme</button>
-            <button class="btn-link" onclick="resetPassword()">¿Olvidaste tu contraseña?</button>
         </div>
     </div>
+
     <div id="app-ui" style="display:none;">
         <div class="side-controls">
-            <button class="btn-map" onclick="goToMe()">🎯</button>
-            <button class="btn-map" onclick="logout()">🚪</button>
+            <button class="btn-map" onclick="goToMe()" title="Mi ubicación">🎯</button>
+            <button class="btn-map" onclick="logout()" title="Cerrar Sesión">🚪</button>
         </div>
     </div>
+
     <div id="modal-overlay">
         <div class="modal-card">
-            <h3>Datos Aquafill</h3>
+            <div class="prop-info">
+                <span class="prop-address" id="m-address">Cargando dirección...</span>
+                <span class="prop-owner" id="m-owner">👤 Dueño: Buscando en registros...</span>
+            </div>
             <select id="f-icon">
-                <option value="💧">💧 Gota</option>
-                <option value="❌">❌ X roja</option>
-                <option value="✅">✅ Check</option>
-                <option value="none">Quitar</option>
+                <option value="💧">💧 Cliente Potencial (Gota)</option>
+                <option value="❌">❌ No interesado</option>
+                <option value="✅">✅ Venta Cerrada</option>
+                <option value="⚠️">⚠️ Volver luego</option>
+                <option value="none">Quitar Marcador</option>
             </select>
-            <input type="number" id="f-tds" placeholder="TDS">
-            <input type="number" id="f-cloro" placeholder="Cloro">
-            <textarea id="f-note" placeholder="Notas..."></textarea>
-            <button class="btn-main" onclick="saveData()">GUARDAR</button>
-            <button class="btn-link" onclick="closeModal()">Cancelar</button>
+            <input type="number" id="f-tds" placeholder="Valor TDS (Calidad agua)">
+            <textarea id="f-note" placeholder="Notas sobre el propietario o la casa..." rows="3"></textarea>
+            <button class="btn-main" onclick="saveData()">GUARDAR REPORTE</button>
+            <button class="btn-link" onclick="closeModal()">Cerrar</button>
         </div>
     </div>
     <div id="map"></div>
@@ -95,16 +105,14 @@
     }
 
     async function abrirPanelGestion() {
-        let listado = "GESTIÓN DE TÉCNICOS AQUAFILL:\n\n";
+        let listado = "TÉCNICOS ACTIVOS:\n\n";
         const snap = await db.collection("usuarios").get();
         snap.forEach(doc => { listado += `- ${doc.data().email}\n`; });
-        const accion = prompt(listado + "\nEscribe el correo del técnico para ELIMINAR:");
-        if (accion && accion !== "tonyhades@gmail.com") {
-            if(confirm("¿Eliminar a " + accion + "?")) {
-                const q = await db.collection("usuarios").where("email", "==", accion).get();
-                q.forEach(d => d.ref.delete());
-                alert("Usuario borrado.");
-            }
+        const accion = prompt(listado + "\nEscribe correo para ELIMINAR o Cancelar:");
+        if (accion && admins[0] !== accion) {
+            const q = await db.collection("usuarios").where("email", "==", accion).get();
+            q.forEach(d => d.ref.delete());
+            alert("Acceso revocado.");
         }
     }
 
@@ -112,27 +120,41 @@
         map = new maplibregl.Map({
             container: 'map',
             style: { "version": 8, "sources": { "gh": { "type": "raster", "tiles": ["https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"], "tileSize": 256 }}, "layers": [{"id":"h","type":"raster","source":"gh"}] },
-            center: [-80.1918, 25.7617], zoom: 18
+            center: [-80.1918, 25.7617], zoom: 19
         });
-        map.on('click', e => openModal(e.lngLat));
+
+        map.on('click', async e => {
+            currentCoords = e.lngLat;
+            currentId = `${e.lngLat.lng.toFixed(6)}|${e.lngLat.lat.toFixed(6)}`;
+            
+            // EFECTO VISUAL: Cargando dirección
+            document.getElementById('m-address').innerText = "Identificando propiedad...";
+            document.getElementById('modal-overlay').style.display = 'flex';
+
+            // BUSCAR DIRECCIÓN REAL MEDIANTE COORDENADAS (Geocoding)
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${e.lngLat.lat}&lon=${e.lngLat.lng}`);
+                const data = await response.json();
+                const addr = data.address;
+                const simplified = `${addr.house_number || ''} ${addr.road || 'Dirección desconocida'}`;
+                document.getElementById('m-address').innerText = simplified;
+            } catch (err) {
+                document.getElementById('m-address').innerText = "Dirección detectada";
+            }
+        });
+
         db.collection("marcadores").onSnapshot(snap => {
             storage = {}; snap.forEach(doc => storage[doc.id] = doc.data());
             renderMarkers();
         });
     }
 
-    function openModal(lngLat, id = null) {
-        currentCoords = lngLat;
-        currentId = id || `${lngLat.lng.toFixed(6)}|${lngLat.lat.toFixed(6)}`;
-        document.getElementById('modal-overlay').style.display = 'flex';
-    }
-
     function saveData() {
         const data = {
             lng: currentCoords.lng, lat: currentCoords.lat,
+            address: document.getElementById('m-address').innerText,
             icon: document.getElementById('f-icon').value,
             tds: document.getElementById('f-tds').value,
-            cloro: document.getElementById('f-cloro').value,
             note: document.getElementById('f-note').value
         };
         if(data.icon === 'none') db.collection("marcadores").doc(currentId).delete();
@@ -145,9 +167,15 @@
         Object.keys(storage).forEach(id => {
             const p = storage[id];
             const el = document.createElement('div');
-            el.innerHTML = p.icon; el.style.fontSize = '30px';
+            el.innerHTML = p.icon; el.style.fontSize = '32px'; el.style.cursor = 'pointer';
             const m = new maplibregl.Marker({element:el}).setLngLat([p.lng, p.lat]).addTo(map);
-            el.onclick = (e) => { e.stopPropagation(); openModal({lng:p.lng, lat:p.lat}, id); };
+            el.onclick = (e) => { 
+                e.stopPropagation();
+                document.getElementById('m-address').innerText = p.address || "Propiedad guardada";
+                document.getElementById('f-tds').value = p.tds || '';
+                document.getElementById('f-note').value = p.note || '';
+                document.getElementById('modal-overlay').style.display = 'flex';
+            };
             mapMarkers.push(m);
         });
     }
@@ -158,18 +186,21 @@
         try {
             if(isLoginMode) await auth.signInWithEmailAndPassword(email, pass);
             else await auth.createUserWithEmailAndPassword(email, pass);
-        } catch(e) { alert(e.message); }
+        } catch(e) { alert("Error: " + e.message); }
     }
 
-    function toggleAuthMode() { isLoginMode = !isLoginMode; document.getElementById('auth-title').innerText = isLoginMode ? 'Iniciar Sesión' : 'Crear Cuenta'; }
-    function resetPassword() {
-        const email = document.getElementById('email').value;
-        if(!email) return alert("Escribe tu correo primero");
-        auth.sendPasswordResetEmail(email).then(() => alert("Correo enviado")).catch(e => alert(e.message));
+    function toggleAuthMode() { 
+        isLoginMode = !isLoginMode; 
+        document.getElementById('auth-title').innerText = isLoginMode ? 'Iniciar Sesión' : 'Registrar Nuevo Técnico'; 
     }
+
     function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
     function logout() { auth.signOut(); location.reload(); }
-    function goToMe() { navigator.geolocation.getCurrentPosition(p => map.flyTo({center: [p.coords.longitude, p.coords.latitude], zoom: 18})); }
+    function goToMe() { 
+        navigator.geolocation.getCurrentPosition(p => {
+            map.flyTo({center: [p.coords.longitude, p.coords.latitude], zoom: 19, speed: 1.5});
+        }, () => alert("Por favor activa el GPS")); 
+    }
 </script>
 </body>
 </html>
