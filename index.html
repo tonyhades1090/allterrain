@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AquaFeel | Intelligence System</title>
+    <title>ALL TERRAIN SYSTEM</title>
     
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
@@ -15,28 +15,29 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #f8fafc; font-family: sans-serif; }
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #f1f5f9; font-family: sans-serif; }
         #map { position: absolute; top: 0; bottom: 0; width: 100%; z-index: 1; display: none; }
         #auth-container { position: fixed; inset: 0; z-index: 5000; background: #0f172a; display: flex; align-items: center; justify-content: center; padding: 20px; }
         .auth-card { background: white; width: 100%; max-width: 380px; padding: 40px; border-radius: 2rem; text-align: center; }
-        input { background: #f1f5f9; border: 1px solid #e2e8f0; width: 100%; padding: 14px; border-radius: 1rem; margin-bottom: 10px; outline: none; color: #1e293b; font-weight: 600; }
+        input, textarea { background: #f8fafc; border: 1px solid #e2e8f0; width: 100%; padding: 14px; border-radius: 1rem; margin-bottom: 10px; outline: none; color: #1e293b; font-weight: 600; }
         
-        .bottom-panel { position: fixed; bottom: 0; left: 0; width: 100%; background: white; border-radius: 2rem 2rem 0 0; z-index: 2000; padding: 25px; transform: translateY(100%); transition: 0.4s cubic-bezier(0, 0, 0.2, 1); box-shadow: 0 -10px 30px rgba(0,0,0,0.1); }
+        .bottom-panel { position: fixed; bottom: 0; left: 0; width: 100%; background: white; border-radius: 2.5rem 2.5rem 0 0; z-index: 2000; padding: 25px; transform: translateY(100%); transition: 0.4s cubic-bezier(0, 0, 0.2, 1); box-shadow: 0 -10px 30px rgba(0,0,0,0.1); }
         .bottom-panel.open { transform: translateY(0); }
         
-        .status-btn { background: #f1f5f9; border: 2px solid transparent; border-radius: 1rem; padding: 10px; font-size: 1.5rem; transition: 0.2s; }
-        .status-btn.active { border-color: #3b82f6; background: #eff6ff; }
-        .pin-circle { width: 40px; height: 40px; border-radius: 50%; border: 3px solid white; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .status-btn { background: #f1f5f9; border: 2px solid transparent; border-radius: 1rem; padding: 12px; font-size: 1.6rem; transition: 0.2s; }
+        .status-btn.active { border-color: #3b82f6; background: #eff6ff; transform: scale(1.1); }
+        .pin-circle { width: 42px; height: 42px; border-radius: 50%; border: 3px solid white; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
     </style>
 </head>
 <body>
 
     <div id="auth-container">
         <div class="auth-card">
-            <h1 class="text-2xl font-black mb-6 text-slate-900">AQUAFEEL LOGIN</h1>
-            <input id="email" type="email" placeholder="Correo">
+            <h1 class="text-3xl font-black mb-2 text-slate-900">ALL TERRAIN</h1>
+            <p class="text-slate-400 text-sm mb-8 font-bold uppercase tracking-widest">Property Intelligence</p>
+            <input id="email" type="email" placeholder="Usuario">
             <input id="pass" type="password" placeholder="Contraseña">
-            <button onclick="handleAuth()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold uppercase tracking-widest shadow-lg">Entrar</button>
+            <button onclick="handleAuth()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold uppercase shadow-lg shadow-blue-200">Entrar al Mapa</button>
         </div>
     </div>
 
@@ -44,23 +45,23 @@
 
     <div id="ui-controls" style="display:none;">
         <div class="fixed top-5 inset-x-4 z-[1000] flex gap-2">
-            <input id="search-input" type="text" placeholder="Buscar dirección o casa..." class="flex-1 bg-white p-4 rounded-2xl shadow-xl font-bold text-slate-800 outline-none">
+            <input id="search-input" type="text" placeholder="Buscar dirección..." class="flex-1 bg-white p-4 rounded-2xl shadow-xl font-bold text-slate-800 outline-none border-none">
             <button onclick="buscarDireccion()" class="bg-blue-600 text-white w-14 rounded-2xl shadow-xl flex items-center justify-center"><i class="fa-solid fa-magnifying-glass"></i></button>
         </div>
 
-        <button id="admin-btn" class="fixed bottom-32 right-6 w-14 h-14 bg-red-600 text-white rounded-full shadow-2xl hidden z-[1000]" onclick="verTodo()"><i class="fa-solid fa-eye"></i></button>
-        <button class="fixed bottom-10 right-6 w-14 h-14 bg-white text-blue-600 rounded-full shadow-2xl z-[1000]" onclick="map.locate({setView:true, maxZoom:19})"><i class="fa-solid fa-crosshairs text-xl"></i></button>
+        <button id="admin-btn" class="fixed bottom-32 right-6 w-14 h-14 bg-red-600 text-white rounded-full shadow-2xl hidden z-[1000]" onclick="verTodo()"><i class="fa-solid fa-eye text-xl"></i></button>
+        <button class="fixed bottom-10 right-6 w-14 h-14 bg-white text-blue-600 rounded-full shadow-2xl z-[1000] flex items-center justify-center" onclick="map.locate({setView:true, maxZoom:19})"><i class="fa-solid fa-crosshairs text-xl"></i></button>
 
         <div id="info-panel" class="bottom-panel">
-            <div class="flex justify-between items-start mb-4">
+            <div class="flex justify-between items-start mb-2">
                 <div>
-                    <h2 id="owner-name" class="font-black text-xl text-blue-600 leading-tight italic">BUSCANDO DUEÑO...</h2>
-                    <p id="display-addr" class="text-slate-500 font-bold text-sm">Dirección de la propiedad</p>
+                    <h2 id="display-addr" class="font-black text-xl text-slate-900 leading-tight">Dirección</h2>
+                    <p class="text-blue-500 font-bold text-[10px] uppercase tracking-tighter">Ficha de Propiedad</p>
                 </div>
-                <button onclick="cerrarPanel()" class="text-slate-300"><i class="fa-solid fa-circle-xmark text-2xl"></i></button>
+                <button onclick="cerrarPanel()" class="text-slate-300"><i class="fa-solid fa-circle-xmark text-3xl"></i></button>
             </div>
 
-            <div class="grid grid-cols-4 gap-2 mb-6">
+            <div class="grid grid-cols-4 gap-2 my-6">
                 <button onclick="setEmoji('✅','#22c55e',this)" class="status-btn active">✅</button>
                 <button onclick="setEmoji('❌','#ef4444',this)" class="status-btn">❌</button>
                 <button onclick="setEmoji('⚠️','#f59e0b',this)" class="status-btn">⚠️</button>
@@ -68,11 +69,19 @@
             </div>
 
             <div class="grid grid-cols-2 gap-3 mb-4">
-                <input id="tds" type="number" placeholder="TDS" class="!mb-0 !bg-slate-50">
-                <input id="cloro" type="number" step="0.1" placeholder="CLORO" class="!mb-0 !bg-slate-50">
+                <div class="bg-slate-50 p-3 rounded-xl">
+                    <label class="text-[9px] font-bold text-slate-400 block mb-1">TDS</label>
+                    <input id="tds" type="number" placeholder="0" class="!bg-transparent !mb-0 !p-0 !border-none !text-xl !font-black">
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl">
+                    <label class="text-[9px] font-bold text-slate-400 block mb-1">CLORO</label>
+                    <input id="cloro" type="number" step="0.1" placeholder="0.0" class="!bg-transparent !mb-0 !p-0 !border-none !text-xl !font-black">
+                </div>
             </div>
 
-            <button onclick="guardar()" class="w-full bg-blue-600 py-4 rounded-xl font-black text-white uppercase tracking-widest shadow-lg active:scale-95 transition-all">Guardar Reporte</button>
+            <textarea id="notas" placeholder="Notas sobre el dueño o la casa..." class="text-sm h-20"></textarea>
+
+            <button onclick="guardar()" class="w-full bg-blue-600 py-4 rounded-xl font-black text-white uppercase shadow-lg active:scale-95 transition-all">Guardar en Base de Datos</button>
         </div>
     </div>
 
@@ -85,7 +94,7 @@
 
         async function handleAuth() {
             const e = document.getElementById('email').value, p = document.getElementById('pass').value;
-            try { await auth.signInWithEmailAndPassword(e,p); } catch(err){ alert(err.message); }
+            try { await auth.signInWithEmailAndPassword(e,p); } catch(err){ alert("Error: Acceso denegado"); }
         }
 
         auth.onAuthStateChanged(user => {
@@ -102,14 +111,13 @@
             if(map) return;
             map = L.map('map', { zoomControl: false }).setView([25.76, -80.19], 15);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 20 }).addTo(map);
-
             map.on('click', e => colocarPin(e.latlng.lat, e.latlng.lng));
         }
 
         async function colocarPin(lat, lng) {
             const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`);
             const data = await res.json();
-            const calle = (data.address.house_number || "") + " " + (data.address.road || "Propiedad Privada");
+            const calle = (data.address.house_number || "") + " " + (data.address.road || "Propiedad");
             
             if(marker) map.removeLayer(marker);
             marker = L.marker([lat, lng]).addTo(map);
@@ -117,22 +125,24 @@
             
             document.getElementById('display-addr').innerText = calle;
             document.getElementById('info-panel').classList.add('open');
-
-            // --- LÓGICA DE BÚSQUEDA TIPO LANDGLIDE ---
-            // Buscamos en tu base de datos si esta dirección ya tiene un dueño registrado
-            const query = await db.collection("propiedades").where("direccion", "==", calle).get();
+            
+            // Intentar cargar datos si ya existen
+            const query = await db.collection("registros").where("direccion", "==", calle).get();
             if(!query.empty) {
-                const doc = query.docs[0].data();
-                document.getElementById('owner-name').innerText = doc.dueño || "DUEÑO DESCONOCIDO";
-                document.getElementById('tds').value = doc.tds || "";
-                document.getElementById('cloro').value = doc.cloro || "";
+                const d = query.docs[0].data();
+                document.getElementById('tds').value = d.tds || "";
+                document.getElementById('cloro').value = d.cloro || "";
+                document.getElementById('notas').value = d.notas || "";
             } else {
-                document.getElementById('owner-name').innerText = "SIN REGISTRO";
+                document.getElementById('tds').value = "";
+                document.getElementById('cloro').value = "";
+                document.getElementById('notas').value = "";
             }
         }
 
         async function buscarDireccion() {
             const q = document.getElementById('search-input').value;
+            if(!q) return;
             const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
             const data = await res.json();
             if(data.length > 0) {
@@ -150,7 +160,7 @@
 
         function updateIcon() {
             if(!marker) return;
-            marker.setIcon(L.divIcon({ className:'', html:`<div class="pin-circle" style="background:${activeColor}">${activeEmoji}</div>`, iconSize:[40,40], iconAnchor:[20,20] }));
+            marker.setIcon(L.divIcon({ className:'', html:`<div class="pin-circle" style="background:${activeColor}">${activeEmoji}</div>`, iconSize:[42,42], iconAnchor:[21,21] }));
         }
 
         function cerrarPanel() { document.getElementById('info-panel').classList.remove('open'); if(marker) map.removeLayer(marker); }
@@ -160,30 +170,32 @@
                 lat: marker.getLatLng().lat,
                 lng: marker.getLatLng().lng,
                 direccion: document.getElementById('display-addr').innerText,
-                dueño: document.getElementById('owner-name').innerText,
                 tds: document.getElementById('tds').value,
                 cloro: document.getElementById('cloro').value,
+                notas: document.getElementById('notas').value,
                 estado: activeEmoji,
                 color: activeColor,
-                analista: auth.currentUser.email,
+                usuario: auth.currentUser.email,
                 fecha: new Date()
             };
-            await db.collection("propiedades").add(d);
-            alert("✅ Información actualizada");
+            await db.collection("registros").add(d);
+            alert("Propiedad Guardada");
             cerrarPanel();
         }
 
         async function verTodo() {
-            const snap = await db.collection("propiedades").get();
+            const snap = await db.collection("registros").get();
             snap.forEach(doc => {
                 const d = doc.data();
                 L.marker([d.lat, d.lng]).addTo(map).setIcon(L.divIcon({ 
                     className:'', 
-                    html:`<div class="pin-circle" style="background:${d.color}; transform:scale(0.8)">${d.estado}</div>`, 
-                    iconSize:[40,40], iconAnchor:[20,20] 
+                    html:`<div class="pin-circle" style="background:${d.color}; transform:scale(0.85)">${d.estado}</div>`, 
+                    iconSize:[42,42], iconAnchor:[21,21] 
                 })).on('click', () => {
                     document.getElementById('display-addr').innerText = d.direccion;
-                    document.getElementById('owner-name').innerText = d.dueño;
+                    document.getElementById('tds').value = d.tds;
+                    document.getElementById('cloro').value = d.cloro;
+                    document.getElementById('notas').value = d.notas;
                     document.getElementById('info-panel').classList.add('open');
                 });
             });
