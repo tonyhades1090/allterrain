@@ -11,67 +11,71 @@
     <link href='https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css' rel='stylesheet' />
     <style>
         body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', sans-serif; background: #000; overflow: hidden; }
-        #login-screen { position: fixed; inset: 0; background: #fff; z-index: 5000; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .login-card { width: 100%; max-width: 350px; text-align: center; }
-        input, select, textarea { width: 100%; padding: 15px; margin: 8px 0; border: 1px solid #ccc; border-radius: 12px; font-size: 16px; box-sizing: border-box; }
-        .btn-main { width: 100%; padding: 16px; background: #1a73e8; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
         #map { height: 100vh; width: 100vw; position: absolute; }
+        
+        /* BARRA DE BÚSQUEDA REGRESADA */
+        .search-container { position: absolute; top: 15px; left: 10px; right: 10px; z-index: 1000; display: flex; gap: 5px; }
+        #search-input { flex: 1; padding: 12px; border-radius: 10px; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.2); font-size: 16px; }
+        .btn-search { padding: 10px 15px; background: #1a73e8; color: white; border: none; border-radius: 10px; font-weight: bold; }
+
+        #login-screen { position: fixed; inset: 0; background: #fff; z-index: 5000; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        input, select, textarea { width: 100%; padding: 15px; margin: 8px 0; border: 1px solid #ccc; border-radius: 12px; font-size: 16px; box-sizing: border-box; }
+        .btn-main { width: 100%; padding: 16px; background: #1a73e8; color: white; border: none; border-radius: 12px; font-weight: bold; }
+        
         .side-controls { position: absolute; bottom: 30px; right: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
         .btn-map { width: 55px; height: 55px; border-radius: 50%; background: white; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3); font-size: 24px; display: flex; align-items: center; justify-content: center; }
+        
         #modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; display: none; align-items: center; justify-content: center; padding: 20px; }
         .modal-card { background: white; width: 100%; max-width: 380px; padding: 20px; border-radius: 25px; text-align: center; }
         .address-box { background: #f0f4f8; padding: 12px; border-radius: 15px; margin-bottom: 10px; font-weight: bold; color: #1a73e8; }
         .owner-box { background: #e8f0fe; padding: 15px; border-radius: 15px; margin-bottom: 15px; border: 2px solid #1a73e8; }
-        .owner-label { display: block; font-size: 12px; color: #666; text-transform: uppercase; margin-bottom: 4px; }
         .owner-name { font-size: 18px; font-weight: 900; color: #1967d2; }
     </style>
 </head>
 <body>
 
     <div id="login-screen">
-        <div class="login-card">
-            <h1 style="color:#1a73e8; font-size: 40px; margin-bottom: 0;">Aquafill</h1>
-            <p style="margin-top:0; color:#666;">LandMaster USA</p>
-            <input type="email" id="email" placeholder="Correo electrónico">
-            <input type="password" id="password" placeholder="Contraseña">
-            <button class="btn-main" onclick="handleAuth()">Entrar al Sistema</button>
+        <div style="width:100%; max-width:350px; text-align:center;">
+            <h1 style="color:#1a73e8;">Aquafill</h1>
+            <input type="email" id="email" placeholder="Email">
+            <input type="password" id="password" placeholder="Clave">
+            <button class="btn-main" onclick="handleAuth()">Entrar</button>
         </div>
     </div>
 
     <div id="app-ui" style="display:none;">
+        <div class="search-container">
+            <input type="text" id="search-input" placeholder="Buscar dirección o ZIP...">
+            <button class="btn-search" onclick="searchAddress()">BUSCAR</button>
+        </div>
         <div class="side-controls">
             <button class="btn-map" onclick="goToMe()">🎯</button>
-            <button class="btn-map" style="background:#1a73e8; color:white" onclick="abrirPanelAdmin()" id="admin-btn-ui" hidden>👤</button>
             <button class="btn-map" onclick="logout()">🚪</button>
         </div>
     </div>
 
     <div id="modal-overlay">
         <div class="modal-card">
-            <div class="address-box" id="m-address">Cargando dirección...</div>
-            
+            <div class="address-box" id="m-address">...</div>
             <div class="owner-box">
-                <span class="owner-label">Propietario Registrado:</span>
+                <span style="font-size:12px; color:#666;">PROPIETARIO:</span><br>
                 <span class="owner-name" id="m-owner">Buscando...</span>
             </div>
-
             <select id="f-icon">
-                <option value="💧">💧 Marcar para Visitar (Latino)</option>
+                <option value="💧">💧 Interesado</option>
                 <option value="✅">✅ Venta Cerrada</option>
-                <option value="❌">❌ No interesado / No Latino</option>
+                <option value="❌">❌ No interesado</option>
                 <option value="none">Quitar Marcador</option>
             </select>
-            <input type="number" id="f-tds" placeholder="Valor TDS (Calidad Agua)">
-            <textarea id="f-note" placeholder="Notas del plan de ataque..."></textarea>
-            
-            <button class="btn-main" onclick="saveData()">GUARDAR EN MI RUTA</button>
-            <button style="background:none; border:none; color:grey; margin-top:15px; cursor:pointer" onclick="closeModal()">Cerrar</button>
+            <input type="number" id="f-tds" placeholder="Valor TDS">
+            <textarea id="f-note" placeholder="Notas..."></textarea>
+            <button class="btn-main" onclick="saveData()">GUARDAR</button>
+            <button style="background:none; border:none; color:grey; margin-top:15px;" onclick="closeModal()">Cerrar</button>
         </div>
     </div>
     <div id="map"></div>
 
 <script>
-    // CONFIGURACIÓN DE TU BASE DE DATOS
     const firebaseConfig = {
         apiKey: "AIzaSyAK9cldIvt1JZJ-fB-1J7Z51FLxxzT3oPg",
         authDomain: "landmaster-aquafill.firebaseapp.com",
@@ -83,16 +87,13 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
-    const admins = ["tonyhades@gmail.com"];
 
     let map, storage = {}, mapMarkers = [], currentCoords, currentId;
 
-    // CONTROL DE SESIÓN
     auth.onAuthStateChanged(user => {
         if(user) {
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('app-ui').style.display = 'block';
-            if (admins.includes(user.email.toLowerCase().trim())) document.getElementById('admin-btn-ui').hidden = false;
             initMap();
         }
     });
@@ -101,41 +102,36 @@
         map = new maplibregl.Map({
             container: 'map',
             style: { "version": 8, "sources": { "gh": { "type": "raster", "tiles": ["https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"], "tileSize": 256 }}, "layers": [{"id":"h","type":"raster","source":"gh"}] },
-            center: [-77.4360, 37.5407], // Virginia por defecto
-            zoom: 18
+            center: [-77.4360, 37.5407],
+            zoom: 17
         });
 
         map.on('click', async e => {
             currentCoords = e.lngLat;
             currentId = `${e.lngLat.lng.toFixed(6)}|${e.lngLat.lat.toFixed(6)}`;
             document.getElementById('modal-overlay').style.display = 'flex';
-            document.getElementById('m-address').innerText = "Identificando propiedad...";
-            document.getElementById('m-owner').innerText = "Buscando en ZIP Code...";
+            
+            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${e.lngLat.lat}&lon=${e.lngLat.lng}`);
+            const data = await res.json();
+            const fullAddr = (data.address.house_number + " " + data.address.road).toUpperCase();
+            document.getElementById('m-address').innerText = fullAddr;
 
-            try {
-                const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${e.lngLat.lat}&lon=${e.lngLat.lng}`);
-                const data = await res.json();
-                const house = data.address.house_number || "";
-                const road = data.address.road || "";
-                const fullAddr = `${house} ${road}`.trim().toUpperCase();
-                
-                document.getElementById('m-address').innerText = fullAddr;
-
-                // BUSCAR DUEÑO EN TU BASE DE DATOS (PLAN DE ATAQUE)
-                const doc = await db.collection("propiedades").doc(fullAddr).get();
-                if (doc.exists) {
-                    document.getElementById('m-owner').innerText = doc.data().propietario;
-                } else {
-                    document.getElementById('m-owner').innerText = "No descargado";
-                }
-            } catch (err) { document.getElementById('m-address').innerText = "Error GPS"; }
+            // Busca el dueño
+            const doc = await db.collection("propiedades").doc(fullAddr).get();
+            document.getElementById('m-owner').innerText = doc.exists ? doc.data().propietario : "No registrado";
         });
 
-        // Cargar marcadores guardados
         db.collection("marcadores").onSnapshot(snap => {
             storage = {}; snap.forEach(doc => storage[doc.id] = doc.data());
             renderMarkers();
         });
+    }
+
+    async function searchAddress() {
+        const q = document.getElementById('search-input').value;
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
+        const data = await res.json();
+        if(data[0]) map.flyTo({center: [data[0].lon, data[0].lat], zoom: 18});
     }
 
     function renderMarkers() {
@@ -145,14 +141,6 @@
             const el = document.createElement('div');
             el.innerHTML = p.icon; el.style.fontSize = '35px';
             const m = new maplibregl.Marker({element:el}).setLngLat([p.lng, p.lat]).addTo(map);
-            el.onclick = (e) => {
-                e.stopPropagation();
-                currentId = id; currentCoords = {lng: p.lng, lat: p.lat};
-                document.getElementById('m-address').innerText = p.address;
-                document.getElementById('f-tds').value = p.tds || '';
-                document.getElementById('f-note').value = p.note || '';
-                document.getElementById('modal-overlay').style.display = 'flex';
-            };
             mapMarkers.push(m);
         });
     }
@@ -179,7 +167,6 @@
     function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
     function logout() { auth.signOut(); location.reload(); }
     function goToMe() { navigator.geolocation.getCurrentPosition(p => map.flyTo({center: [p.coords.longitude, p.coords.latitude], zoom: 19})); }
-    function abrirPanelAdmin() { alert("Panel de control activo para: " + auth.currentUser.email); }
 </script>
 </body>
 </html>
