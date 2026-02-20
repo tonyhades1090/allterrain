@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LandMaster Pro</title>
+    <title>LandMaster - Aquafill Edition</title>
     
     <script src='https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js'></script>
     <link href='https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css' rel='stylesheet' />
     
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #000; overflow: hidden; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, system-ui, sans-serif; background: #000; overflow: hidden; }
         
         /* LOGIN */
         #login-screen {
@@ -17,40 +17,48 @@
             display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;
         }
         .login-card { width: 100%; max-width: 380px; text-align: center; }
-        input { width: 100%; padding: 16px; margin: 10px 0; border: 1px solid #ccc; border-radius: 12px; box-sizing: border-box; font-size: 16px; outline: none; }
-        .btn-main { width: 100%; padding: 16px; background: #1a73e8; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
-        .btn-bio { background: white; border: 2px solid #1a73e8; color: #1a73e8; }
+        input { width: 100%; padding: 16px; margin: 10px 0; border: 1px solid #ccc; border-radius: 12px; box-sizing: border-box; font-size: 16px; }
+        .btn-main { width: 100%; padding: 16px; background: #1a73e8; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; }
 
         /* MAPA */
         #map { height: 100vh; width: 100vw; position: absolute; }
 
-        /* BUSCADOR */
+        /* UI */
         .search-bar {
             position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
             z-index: 1000; width: 90%; max-width: 500px; display: flex;
             background: white; border-radius: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); padding: 4px 15px;
         }
         #search-input { flex: 1; border: none; padding: 12px; outline: none; font-size: 16px; background: transparent; }
-        .search-btn { background: none; border: none; font-size: 20px; color: #1a73e8; cursor: pointer; }
-
-        /* CONTROLES */
+        
         .side-controls {
             position: absolute; bottom: 40px; right: 20px; z-index: 1000;
             display: flex; flex-direction: column; gap: 15px;
         }
         .btn-map {
             width: 60px; height: 60px; border-radius: 50%; background: white;
-            border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            font-size: 26px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.3); font-size: 26px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
         }
-        .active-filter { background: #e8f0fe; border: 2px solid #1a73e8; }
 
-        /* FORMULARIO DE PROPIEDAD */
-        .popup-form { min-width: 240px; padding: 10px; }
-        .popup-form h3 { margin: 0 0 10px 0; font-size: 17px; }
-        select, textarea, input { width: 100%; margin-bottom: 12px; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; box-sizing: border-box; }
-        .btn-save { background: #34a853; color: white; border: none; width: 100%; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .btn-del { background: #ea4335; margin-top: 8px; }
+        /* MODAL CENTRADO (Sustituye al Popup) */
+        #modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+            z-index: 2000; display: none; align-items: center; justify-content: center;
+        }
+        .modal-card {
+            background: white; width: 85%; max-width: 400px; padding: 25px;
+            border-radius: 20px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .modal-card h3 { margin-top: 0; color: #1a73e8; font-size: 20px; }
+        .close-modal { position: absolute; top: 15px; right: 15px; font-size: 24px; cursor: pointer; color: #666; }
+        
+        label { display: block; margin-top: 10px; font-size: 13px; color: #666; font-weight: bold; }
+        select, textarea, .modal-input {
+            width: 100%; margin-top: 5px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; box-sizing: border-box;
+        }
+        .btn-save { background: #34a853; color: white; border: none; width: 100%; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 20px; }
+        .btn-del { background: #ea4335; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -61,10 +69,45 @@
             <input type="email" id="email-login" placeholder="Correo electrónico">
             <input type="password" id="pass-login" placeholder="Contraseña">
             <div style="margin: 10px 0; font-size: 14px; display: flex; align-items: center; gap: 8px;">
-                <input type="checkbox" id="remember-me" style="width: auto;"> Recordar mi correo
+                <input type="checkbox" id="remember-me" style="width: auto;"> Recordar correo
             </div>
             <button class="btn-main" onclick="startApp()">ENTRAR</button>
-            <button class="btn-main btn-bio" onclick="startApp()">FACE ID / HUELLA</button>
+        </div>
+    </div>
+
+    <div id="modal-overlay">
+        <div class="modal-card">
+            <span class="close-modal" onclick="closeModal()">×</span>
+            <h3>Detalles de Propiedad</h3>
+            
+            <label>Icono de Estado</label>
+            <select id="f-icon">
+                <option value="💧">💧 Gota de agua</option>
+                <option value="❌">❌ X roja</option>
+                <option value="✅">✅ Checkmark</option>
+                <option value="⌚">⌚ Reloj / Cronómetro</option>
+                <option value="none">Quitar icono</option>
+            </select>
+
+            <div style="display: flex; gap: 10px;">
+                <div style="flex: 1;">
+                    <label>TDS (PPM)</label>
+                    <input type="number" id="f-tds" class="modal-input" placeholder="0">
+                </div>
+                <div style="flex: 1;">
+                    <label>Cloro (mg/L)</label>
+                    <input type="number" id="f-cloro" class="modal-input" placeholder="0">
+                </div>
+            </div>
+
+            <label>Grosor / Dureza del Agua</label>
+            <input type="text" id="f-hardness" class="modal-input" placeholder="Ej: Dura, Media...">
+
+            <label>Notas de Inspección</label>
+            <textarea id="f-note" rows="3" placeholder="Escriba aquí..."></textarea>
+
+            <button class="btn-save" id="save-btn">GUARDAR CAMBIOS</button>
+            <button class="btn-save btn-del" id="del-btn" style="display:none;">ELIMINAR TODO</button>
         </div>
     </div>
 
@@ -84,24 +127,21 @@
 
 <script>
     let map;
-    let storage = JSON.parse(localStorage.getItem('land_master_db')) || {};
+    let storage = JSON.parse(localStorage.getItem('aquafill_db')) || {};
     let mapMarkers = [];
     let isVisible = true;
+    let currentEditingCoords = null;
+    let currentId = null;
 
-    // Recordar usuario
     window.onload = () => {
         const saved = localStorage.getItem('user_ref');
-        if (saved) {
-            document.getElementById('email-login').value = saved;
-            document.getElementById('remember-me').checked = true;
-        }
+        if (saved) { document.getElementById('email-login').value = saved; document.getElementById('remember-me').checked = true; }
     };
 
     function startApp() {
         const email = document.getElementById('email-login').value;
         if (document.getElementById('remember-me').checked) localStorage.setItem('user_ref', email);
         else localStorage.removeItem('user_ref');
-
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('app-ui').style.display = 'block';
         initMap();
@@ -123,64 +163,62 @@
             },
             center: [-80.1918, 25.7617],
             zoom: 18,
-            pitch: 60,
+            pitch: 0, // VISTA AEREA 2D POR DEFECTO
             bearing: 0,
             antialias: true
         });
 
-        // MOVILIDAD GOOGLE MAPS (Giro/Inclinación 2 dedos)
         map.dragRotate.enable();
         map.touchZoomRotate.enableRotation();
         map.touchPitch.enable();
 
         map.on('load', () => { drawMarkers(); });
-        map.on('click', (e) => { openEditor(e.lngLat); });
+        map.on('click', (e) => { openModal(e.lngLat); });
     }
 
-    function openEditor(lngLat, existingId = null) {
-        const id = existingId || `${lngLat.lng.toFixed(6)}|${lngLat.lat.toFixed(6)}`;
-        const data = storage[id] || { icon: '📍', note: '', water: '' };
+    function openModal(lngLat, existingId = null) {
+        currentEditingCoords = lngLat;
+        currentId = existingId || `${lngLat.lng.toFixed(6)}|${lngLat.lat.toFixed(6)}`;
+        const data = storage[currentId] || { icon: '💧', note: '', tds: '', cloro: '', hardness: '' };
 
-        const div = document.createElement('div');
-        div.className = 'popup-form';
-        div.innerHTML = `
-            <h3>Propiedad</h3>
-            <label>Icono:</label>
-            <select id="f-icon">
-                <option value="💧" ${data.icon === '💧' ? 'selected' : ''}>💧 Gota de agua</option>
-                <option value="❌" ${data.icon === '❌' ? 'selected' : ''}>❌ X roja</option>
-                <option value="✅" ${data.icon === '✅' ? 'selected' : ''}>✅ Checkmark</option>
-                <option value="⌚" ${data.icon === '⌚' ? 'selected' : ''}>⌚ Reloj / Cronómetro</option>
-                <option value="none">Quitar icono</option>
-            </select>
-            <input type="text" id="f-water" placeholder="Tipo de agua..." value="${data.water}">
-            <textarea id="f-note" rows="3" placeholder="Notas...">${data.note}</textarea>
-            <button class="btn-save" onclick="saveData('${id}', ${lngLat.lng}, ${lngLat.lat})">GUARDAR</button>
-            ${existingId ? `<button class="btn-save btn-del" onclick="deleteData('${id}')">BORRAR</button>` : ''}
-        `;
+        document.getElementById('f-icon').value = data.icon;
+        document.getElementById('f-tds').value = data.tds;
+        document.getElementById('f-cloro').value = data.cloro;
+        document.getElementById('f-hardness').value = data.hardness;
+        document.getElementById('f-note').value = data.note;
 
-        new maplibregl.Popup({ closeOnClick: true }).setLngLat(lngLat).setDOMContent(div).addTo(map);
-    }
+        document.getElementById('del-btn').style.display = existingId ? 'block' : 'none';
+        document.getElementById('modal-overlay').style.display = 'flex';
 
-    function saveData(id, lng, lat) {
-        const icon = document.getElementById('f-icon').value;
-        if (icon === 'none') { deleteData(id); return; }
-
-        storage[id] = {
-            lng, lat, icon,
-            water: document.getElementById('f-water').value,
-            note: document.getElementById('f-note').value
+        document.getElementById('save-btn').onclick = () => {
+            const icon = document.getElementById('f-icon').value;
+            if (icon === 'none') { deleteData(currentId); return; }
+            
+            storage[currentId] = {
+                lng: lngLat.lng, lat: lngLat.lat,
+                icon: icon,
+                tds: document.getElementById('f-tds').value,
+                cloro: document.getElementById('f-cloro').value,
+                hardness: document.getElementById('f-hardness').value,
+                note: document.getElementById('f-note').value
+            };
+            saveAndRefresh();
         };
-        localStorage.setItem('land_master_db', JSON.stringify(storage));
+
+        document.getElementById('del-btn').onclick = () => { deleteData(currentId); };
+    }
+
+    function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
+
+    function saveAndRefresh() {
+        localStorage.setItem('aquafill_db', JSON.stringify(storage));
         drawMarkers();
-        map.closePopup();
+        closeModal();
     }
 
     function deleteData(id) {
         delete storage[id];
-        localStorage.setItem('land_master_db', JSON.stringify(storage));
-        drawMarkers();
-        map.closePopup();
+        saveAndRefresh();
     }
 
     function drawMarkers() {
@@ -196,17 +234,14 @@
             el.style.cursor = 'pointer';
 
             const m = new maplibregl.Marker({ element: el }).setLngLat([p.lng, p.lat]).addTo(map);
-            el.onclick = (e) => {
-                e.stopPropagation();
-                openEditor({lng: p.lng, lat: p.lat}, id);
-            };
+            el.onclick = (e) => { e.stopPropagation(); openModal({lng: p.lng, lat: p.lat}, id); };
             mapMarkers.push(m);
         });
     }
 
     function goToCurrentLoc() {
         navigator.geolocation.getCurrentPosition(pos => {
-            map.flyTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: 19, pitch: 70 });
+            map.flyTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: 19, pitch: 0 }); // VISTA AEREA AL REUBICAR
         });
     }
 
@@ -220,7 +255,7 @@
         const q = document.getElementById('search-input').value;
         const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
         const d = await r.json();
-        if (d[0]) map.flyTo({ center: [d[0].lon, d[0].lat], zoom: 19, pitch: 65 });
+        if (d[0]) map.flyTo({ center: [d[0].lon, d[0].lat], zoom: 19, pitch: 0 });
     }
 </script>
 </body>
