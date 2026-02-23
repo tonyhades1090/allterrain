@@ -13,31 +13,31 @@
         .container { max-width: 480px; margin: auto; }
         .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
         h1 { color: var(--blue); text-align: center; letter-spacing: -1px; margin-bottom: 20px; font-size: 28px; }
-        h2 { font-size: 17px; margin-top: 0; color: #333; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px; }
-        label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 11px; color: #666; text-transform: uppercase; }
+        h2 { font-size: 16px; margin-top: 0; color: #333; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 15px; text-transform: uppercase; }
+        label { display: block; font-weight: 600; margin-bottom: 4px; font-size: 11px; color: #666; }
         
-        /* Ajuste de alineación para inputs */
+        /* Inputs Proporcionales */
         input, textarea { 
             width: 100%; 
-            height: 45px; /* Altura fija para que coincidan */
+            height: 45px; 
             padding: 10px; 
-            margin-bottom: 15px; 
+            margin-bottom: 12px; 
             border-radius: 10px; 
             border: 1px solid #d1d1d6; 
             font-size: 15px; 
             box-sizing: border-box; 
-            display: block;
         }
-        textarea { height: auto; }
+        textarea { height: 80px; padding-top: 10px; }
 
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: end; }
+        /* Grillas para alineación */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         
         .btn { width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: 700; font-size: 16px; cursor: pointer; margin-bottom: 10px; display: block; text-align: center; text-decoration: none; }
         .btn-main { background: var(--blue); color: white; }
         .btn-sms { background: var(--green); color: white; }
         .btn-gps { background: #5856d6; color: white; }
         
-        .status-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 15px; }
+        .status-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 5px; }
         .status-btn { height: 45px; border-radius: 10px; border: 2px solid #ddd; background: white; font-size: 10px; font-weight: bold; cursor: pointer; }
         .status-btn.active-ins { background: var(--green); color: white; border-color: var(--green); }
         .status-btn.active-pen { background: var(--orange); color: white; border-color: var(--orange); }
@@ -58,11 +58,11 @@
         <div class="grid-2">
             <div>
                 <label>Nombre</label>
-                <input type="text" id="c-name" placeholder="Nombre">
+                <input type="text" id="c-name" placeholder="Ej: Juan">
             </div>
             <div>
                 <label>Apellido</label>
-                <input type="text" id="c-lastname" placeholder="Apellido">
+                <input type="text" id="c-lastname" placeholder="Ej: Pérez">
             </div>
         </div>
         <div class="grid-2">
@@ -72,11 +72,14 @@
             </div>
             <div>
                 <label>Personas en casa</label>
-                <input type="number" id="c-people" placeholder="Cant.">
+                <input type="number" id="c-people" placeholder="Cantidad">
             </div>
         </div>
-        <label>Dirección Completa</label>
-        <textarea id="c-address" rows="2" placeholder="Calle, Ciudad, Zip..."></textarea>
+        <label>Número de Teléfono</label>
+        <input type="tel" id="c-phone" placeholder="804-000-0000">
+        
+        <label>Dirección del Cliente</label>
+        <textarea id="c-address" placeholder="Calle, Ciudad, Estado, Zip"></textarea>
         <button class="btn btn-gps" onclick="goMaps()">🗺️ VER RUTA EN MAPS</button>
     </div>
 
@@ -85,11 +88,11 @@
         <div class="grid-2">
             <div>
                 <label>Gasto Agua ($)</label>
-                <input type="number" id="cost-water" placeholder="Mensual" oninput="calculate()">
+                <input type="number" id="cost-water" placeholder="Mes" oninput="calculate()">
             </div>
             <div>
                 <label>Gasto Jabón ($)</label>
-                <input type="number" id="cost-soap" placeholder="Mensual" oninput="calculate()">
+                <input type="number" id="cost-soap" placeholder="Mes" oninput="calculate()">
             </div>
         </div>
         <label>Cuota One Drop ($)</label>
@@ -114,6 +117,9 @@
                 <input type="number" id="tds-val" placeholder="000">
             </div>
         </div>
+        
+        <label>¿Presenta Cloro?</label>
+        <input type="text" id="cloro-val" placeholder="SÍ / NO o Nivel">
 
         <label style="margin-top: 10px;">Estado de la Venta</label>
         <div class="status-group">
@@ -121,11 +127,8 @@
             <button class="status-btn" id="st-pen" onclick="setStatus('PENDIENTE')">PENDIENTE</button>
             <button class="status-btn" id="st-no" onclick="setStatus('NO INTERESADO')">NO INTERESADO</button>
         </div>
-
-        <label>Teléfono del Cliente</label>
-        <input type="tel" id="c-phone" placeholder="Celular para SMS">
         
-        <button class="btn btn-main" onclick="generateReport()">📝 GENERAR REPORTE</button>
+        <button class="btn btn-main" style="margin-top:20px;" onclick="generateReport()">📝 GENERAR REPORTE</button>
         <div id="report-preview"></div>
         <button class="btn btn-sms" id="sms-btn" style="display:none;" onclick="sendSMS()">📲 ENVIAR POR SMS</button>
     </div>
@@ -146,7 +149,7 @@
 
     function goMaps() {
         const addr = document.getElementById('c-address').value;
-        if(!addr) return alert("Por favor ingrese la dirección");
+        if(!addr) return alert("Ingrese la dirección");
         window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`, '_blank');
     }
 
@@ -154,11 +157,9 @@
         const water = parseFloat(document.getElementById('cost-water').value) || 0;
         const soap = parseFloat(document.getElementById('cost-soap').value) || 0;
         const fee = parseFloat(document.getElementById('one-fee').value) || 0;
-        
         const totalCurrentYear = (water + soap) * 12;
         const totalOneDropYear = fee * 12;
         const net = totalCurrentYear - totalOneDropYear;
-        
         document.getElementById('net-savings').innerText = `$${net.toLocaleString()}`;
         
         const ctx = document.getElementById('savingsChart').getContext('2d');
@@ -166,33 +167,29 @@
         chart = new Chart(ctx, {
             type: 'bar',
             data: { 
-                labels: ['Gasto Actual', 'One Drop'], 
-                datasets: [{ 
-                    data: [totalCurrentYear, totalOneDropYear], 
-                    backgroundColor: ['#ff3b30', '#007aff'],
-                    borderRadius: 5
-                }] 
+                labels: ['Actual', 'One Drop'], 
+                datasets: [{ data: [totalCurrentYear, totalOneDropYear], backgroundColor: ['#ff3b30', '#007aff'] }] 
             },
-            options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+            options: { plugins: { legend: { display: false } } }
         });
     }
 
     function generateReport() {
         const name = document.getElementById('c-name').value;
         const lastname = document.getElementById('c-lastname').value;
-        const people = document.getElementById('c-people').value;
+        const phone = document.getElementById('c-phone').value;
         const tds = document.getElementById('tds-val').value;
+        const cloro = document.getElementById('cloro-val').value;
         const save = document.getElementById('net-savings').innerText;
         const date = document.getElementById('test-date').value;
         
         if(!currentStatus) return alert("Seleccione un estado de venta");
 
-        const msg = `ONE DROP - REPORTE\nFecha: ${date}\nCliente: ${name} ${lastname}\nOcupantes: ${people}\nEstado: ${currentStatus}\nTDS: ${tds} PPM\nAhorro Anual: ${save}\n\n(Favor de adjuntar la foto del test)`;
+        const msg = `ONE DROP - REPORTE\nFecha: ${date}\nCliente: ${name} ${lastname}\nTel: ${phone}\nTDS: ${tds} PPM\nCloro: ${cloro}\nEstado: ${currentStatus}\nAhorro Anual: ${save}\n\n(Favor de adjuntar la foto del test)`;
         
         document.getElementById('report-preview').innerText = msg;
         document.getElementById('report-preview').style.display = 'block';
         document.getElementById('sms-btn').style.display = 'block';
-        
         navigator.clipboard.writeText(msg);
         alert("Reporte copiado.");
     }
@@ -200,7 +197,7 @@
     function sendSMS() {
         const phone = document.getElementById('c-phone').value;
         const text = document.getElementById('report-preview').innerText;
-        if(!phone) return alert("Ingrese el teléfono");
+        if(!phone) return alert("Ingrese el teléfono del cliente");
         window.location.href = `sms:${phone}?body=${encodeURIComponent(text)}`;
     }
 
