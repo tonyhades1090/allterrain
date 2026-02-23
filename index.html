@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aquafeel Solutions: Contrato Digital</title>
+    <title>Aquafeel Pro: GPS & Contract</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -12,79 +12,75 @@
         body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 15px; padding-bottom: 80px; }
         .container { max-width: 500px; margin: auto; }
         .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        h2 { color: var(--blue); border-bottom: 2px solid var(--accent); padding-bottom: 5px; }
+        h2 { color: var(--blue); border-bottom: 2px solid var(--accent); padding-bottom: 5px; margin-top: 0; }
         label { display: block; font-weight: bold; margin: 10px 0 5px; font-size: 13px; }
         input, select, textarea { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; font-size: 15px; }
         .btn { width: 100%; padding: 15px; border-radius: 10px; border: none; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 10px; display: block; text-align: center; text-decoration: none; }
         .btn-main { background: var(--blue); color: white; }
         .btn-sms { background: var(--green); color: white; }
-        .btn-orange { background: #ff9500; color: white; }
-        #doc-preview { background: #fff; border: 1px solid #000; padding: 15px; font-family: monospace; font-size: 12px; display: none; margin-top: 15px; }
+        .btn-gps { background: #5856d6; color: white; margin-top: 5px; }
+        #doc-preview { background: #f9f9f9; border: 1px dashed #666; padding: 15px; font-family: monospace; font-size: 12px; display: none; margin-top: 15px; white-space: pre-wrap; }
+        .img-container { position: relative; width: 100%; margin-top: 10px; }
+        #img-p { width: 100%; border-radius: 10px; display: none; border: 2px solid var(--accent); }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1 style="text-align:center; color:var(--blue);">AQUA FEEL SOLUTIONS</h1>
-    
-    <a href="https://www.cognitoforms.com/AquafeelSolutions/" target="_blank" class="btn btn-orange">📝 ABRIR COGNITO FORMS</a>
+    <h1 style="text-align:center; color:var(--blue);">AQUA FEEL PRO</h1>
 
     <div class="card">
-        <h2>Contrato / Work Order</h2>
-        <label>Nombre del Comprador</label>
-        <input type="text" id="buyer-name" placeholder="Buyer 1">
+        <h2>Expediente y Ubicación</h2>
+        <label>Nombre del Cliente</label>
+        <input type="text" id="buyer-name" placeholder="Ej: Juan Perez">
         <label>Teléfono Celular</label>
-        <input type="tel" id="buyer-phone" placeholder="Cel Number">
-        <label>Dirección Completa</label>
-        <input type="text" id="buyer-addr" placeholder="Address, City, Zip">
+        <input type="tel" id="buyer-phone" placeholder="Número para SMS">
         
-        <label>Sistema de Purificación</label>
-        <select id="system-model">
-            <option value="Aquafeel System 5-Stage">Aquafeel System (5-Stage RO)</option>
-            <option value="City Water Purification">City Water System</option>
-        </select>
-        
-        <label>Precio de Venta ($)</label>
-        <input type="number" id="cash-price" value="7990">
-        
-        <label>Cuota Mensual Negociada ($)</label>
-        <input type="number" id="monthly-fee" value="180" oninput="runEconomy()">
+        <label>Dirección del Cliente</label>
+        <textarea id="buyer-addr" rows="2" placeholder="Calle, Ciudad, Estado, Zip"></textarea>
+        <button class="btn btn-gps" onclick="openMaps()">📍 IR A GOOGLE MAPS (GPS)</button>
     </div>
 
     <div class="card">
-        <h2>Análisis de Ahorro</h2>
+        <h2>Reporte del Test</h2>
+        <label>Fecha del Test</label>
+        <input type="date" id="test-date">
+        
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
             <div>
-                <label>Gasto Agua ($)</label>
-                <input type="number" id="spend-water" value="80" oninput="runEconomy()">
+                <label>TDS (PPM)</label>
+                <input type="number" id="tds-val" placeholder="000">
             </div>
             <div>
-                <label>Gasto Jabón ($)</label>
-                <input type="number" id="spend-soap" value="40" oninput="runEconomy()">
+                <label>Cloro (PPM)</label>
+                <input type="number" id="cl-val" placeholder="0.0">
             </div>
         </div>
-        <div style="background:#e7f3ff; padding:10px; border-radius:8px; margin-top:10px; text-align:center;">
-            <small>AHORRO ANUAL ESTIMADO:</small><br>
-            <strong id="annual-save" style="font-size:22px; color:var(--green);">$0.00</strong>
+        
+        <label>Evidencia Visual</label>
+        <button class="btn" style="background:#666; color:white;" onclick="document.getElementById('cam').click()">📷 TOMAR FOTO DEL TEST</button>
+        <input type="file" id="cam" capture="camera" accept="image/*" style="display:none" onchange="preview(this)">
+        <div class="img-container">
+            <img id="img-p">
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Análisis Económico</h2>
+        <label>Cuota Mensual Aquafeel ($)</label>
+        <input type="number" id="monthly-fee" value="180" oninput="runEconomy()">
+        
+        <div style="background:#e7f3ff; padding:15px; border-radius:8px; margin-top:10px; text-align:center;">
+            <small>AHORRO NETO ANUAL:</small><br>
+            <strong id="annual-save" style="font-size:24px; color:var(--green);">$0.00</strong>
         </div>
         <canvas id="savingsChart" style="margin-top:15px;"></canvas>
     </div>
 
     <div class="card">
-        <h2>Test de Calidad</h2>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-            <input type="number" id="tds-val" placeholder="TDS">
-            <input type="number" id="cl-val" placeholder="Cloro">
-        </div>
-        <button class="btn" style="background:#666; color:white;" onclick="document.getElementById('cam').click()">📷 FOTO DEL TEST</button>
-        <input type="file" id="cam" capture="camera" accept="image/*" style="display:none" onchange="preview(this)">
-        <img id="img-p" style="width:100%; border-radius:10px; margin-top:10px; display:none;">
-    </div>
-
-    <div class="card">
-        <button class="btn btn-main" onclick="generateSummary()">📄 GENERAR DOCUMENTO DIGITAL</button>
+        <button class="btn btn-main" onclick="generateSummary()">📄 PREPARAR REPORTE DIGITAL</button>
         <div id="doc-preview"></div>
-        <button class="btn btn-sms" onclick="sendSMS()">📲 ENVIAR CONTRATO POR SMS</button>
+        <button class="btn btn-sms" id="sms-btn" style="display:none;" onclick="sendSMS()">📲 ENVIAR POR SMS AL CLIENTE</button>
     </div>
 </div>
 
@@ -94,13 +90,22 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
+    // Establecer fecha de hoy por defecto
+    document.getElementById('test-date').valueAsDate = new Date();
+
+    function openMaps() {
+        const addr = document.getElementById('buyer-addr').value;
+        if(!addr) return alert("Por favor, ingrese una dirección primero.");
+        const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`;
+        window.open(url, '_blank');
+    }
+
     function runEconomy() {
-        const water = parseFloat(document.getElementById('spend-water').value) || 0;
-        const soap = parseFloat(document.getElementById('spend-soap').value) || 0;
         const fee = parseFloat(document.getElementById('monthly-fee').value) || 0;
-        const yearlySave = ((water + soap) * 12) - (fee * 12);
+        const currentYearlyExpense = (80 + 40) * 12; // Base estimada agua + jabon
+        const yearlySave = currentYearlyExpense - (fee * 12);
         document.getElementById('annual-save').innerText = `$${yearlySave.toLocaleString()}`;
-        updateChart((water+soap)*12, fee*12);
+        updateChart(currentYearlyExpense, fee*12);
     }
 
     function updateChart(curr, aqua) {
@@ -116,35 +121,38 @@
     function preview(input) {
         if (input.files && input.files[0]) {
             const reader = new FileReader();
-            reader.onload = e => { document.getElementById('img-p').src = e.target.result; document.getElementById('img-p').style.display = 'block'; };
+            reader.onload = e => { 
+                const img = document.getElementById('img-p');
+                img.src = e.target.result; 
+                img.style.display = 'block'; 
+            };
             reader.readAsDataURL(input.files[0]);
         }
     }
 
     function generateSummary() {
         const name = document.getElementById('buyer-name').value;
-        const addr = document.getElementById('buyer-addr').value;
-        const price = document.getElementById('cash-price').value;
         const tds = document.getElementById('tds-val').value;
+        const date = document.getElementById('test-date').value;
+        const save = document.getElementById('annual-save').innerText;
         
-        const summary = `*** AQUAFEEL SOLUTIONS CONTRACT ***\n` +
-                        `CLIENTE: ${name}\n` +
-                        `DIRECCION: ${addr}\n` +
-                        `SISTEMA: ${document.getElementById('system-model').value}\n` +
-                        `PRECIO TOTAL: $${price}\n` +
-                        `TDS TEST: ${tds} PPM\n` +
-                        `----------------------------------\n` +
-                        `DERECHO A CANCELAR: Usted puede cancelar esta\n` +
-                        `transaccion dentro de los proximos 3 dias habiles.`;
+        const summary = `*AQUAFEEL SOLUTIONS REPORT*\nFECHA: ${date}\nCLIENTE: ${name}\nTDS: ${tds} PPM\nAHORRO ANUAL: ${save}\n\n(Favor de adjuntar la foto del test al enviar este mensaje)`;
         
         document.getElementById('doc-preview').innerText = summary;
         document.getElementById('doc-preview').style.display = 'block';
+        document.getElementById('sms-btn').style.display = 'block';
+        
+        // Copiar al portapapeles automáticamente para facilitar el pegado
+        navigator.clipboard.writeText(summary);
+        alert("Reporte copiado. Al abrir SMS, pegue el texto y adjunte la foto de su galería.");
     }
 
     function sendSMS() {
         const phone = document.getElementById('buyer-phone').value;
         const text = document.getElementById('doc-preview').innerText;
-        if(!phone || !text) { alert("Genere el documento y asegurese de tener el telefono."); return; }
+        if(!phone) return alert("Ingrese el teléfono del cliente.");
+        
+        // Abrir SMS con el texto pegado (en algunos dispositivos)
         window.location.href = `sms:${phone}?body=${encodeURIComponent(text)}`;
     }
 
