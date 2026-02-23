@@ -8,17 +8,16 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <style>
         :root { --blue: #007aff; --green: #34c759; --orange: #ff9500; --red: #ff3b30; --bg: #f2f2f7; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 15px; padding-bottom: 50px; color: #000; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 15px; padding-bottom: 50px; }
         .container { max-width: 450px; margin: auto; }
         .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 15px; }
         h1 { color: var(--blue); text-align: center; letter-spacing: -1px; margin: 10px 0 20px 0; font-size: 28px; font-weight: 800; }
-        h2 { font-size: 15px; margin-top: 0; color: #333; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
+        h2 { font-size: 15px; margin-top: 0; color: #333; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 15px; text-transform: uppercase; }
         label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 11px; color: #666; text-transform: uppercase; }
-        input, textarea { width: 100%; height: 48px; padding: 12px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #d1d1d6; font-size: 16px; background-color: #fff; appearance: none; }
+        input, textarea { width: 100%; height: 48px; padding: 12px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #d1d1d6; font-size: 16px; background-color: #fff; }
         textarea { height: 80px; resize: none; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .btn { width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: 700; font-size: 16px; cursor: pointer; display: block; text-align: center; }
@@ -31,23 +30,19 @@
         .status-btn.active-ins { background: var(--green); color: white; border-color: var(--green); }
         .status-btn.active-pen { background: var(--orange); color: white; border-color: var(--orange); }
         .status-btn.active-no { background: var(--red); color: white; border-color: var(--red); }
-        
-        /* HISTORIAL EXPANDIBLE */
-        #history-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f2f2f7; z-index: 3000; overflow-y: auto; }
-        .hist-card { background: white; margin: 10px; padding: 15px; border-radius: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .hist-header { display: flex; justify-content: space-between; align-items: center; }
-        .hist-details { margin-top: 15px; padding: 12px; background: #f9f9f9; border-radius: 10px; font-size: 13px; line-height: 1.6; display: none; border: 1px solid #eee; }
-        .delete-btn { background: #ffebeb; color: var(--red); border: none; width: 35px; height: 35px; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer; }
-        
         .savings-box { background: #e7f3ff; padding: 15px; border-radius: 15px; text-align: center; margin: 15px 0; border: 1px solid #cce3f5; }
         .val-highlight { font-size: 26px; font-weight: 800; color: var(--green); display: block; }
+        #history-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f2f2f7; z-index: 3000; overflow-y: auto; }
+        .hist-card { background: white; margin: 10px; padding: 15px; border-radius: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .delete-btn { background: #ffebeb; color: var(--red); border: none; width: 35px; height: 35px; border-radius: 10px; font-weight: bold; }
+        .hist-details { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ccc; font-size: 13px; }
     </style>
 </head>
 <body>
 
 <div id="history-modal">
     <div style="padding:20px; background:white; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #ddd; position:sticky; top:0; z-index:10;">
-        <h2 style="margin:0; border:none;">Historial de Clientes</h2>
+        <h2 style="margin:0; border:none;">Historial</h2>
         <button onclick="cerrarHistorial()" style="background:var(--blue); color:white; border:none; padding:8px 15px; border-radius:8px; font-weight:bold;">LISTO</button>
     </div>
     <div id="history-list"></div>
@@ -67,18 +62,18 @@
         </div>
         <label>Teléfono</label><input type="tel" id="c-phone">
         <label>Dirección</label><textarea id="c-address"></textarea>
-        <button class="btn btn-gps" onclick="goMaps()">🗺️ VER EN MAPAS</button>
+        <button class="btn btn-gps" onclick="goMaps()">🗺️ VER EN MAPS</button>
     </div>
 
     <div class="card">
-        <h2>💰 Ahorro Estimado Anual</h2>
+        <h2>💰 Ahorro Estimado</h2>
         <div class="grid-2">
-            <div><label>Gasto Agua</label><input type="number" id="cost-water" oninput="calculate()"></div>
-            <div><label>Gasto Jabón</label><input type="number" id="cost-soap" oninput="calculate()"></div>
+            <div><label>Agua</label><input type="number" id="cost-water" oninput="calculate()"></div>
+            <div><label>Jabón</label><input type="number" id="cost-soap" oninput="calculate()"></div>
         </div>
         <label>Cuota mensual OD ($)</label><input type="number" id="one-fee" value="180" oninput="calculate()">
         <div class="savings-box"><span class="val-highlight" id="net-savings">$0.00</span><small>Ahorro neto anual</small></div>
-        <div style="height: 250px;"><canvas id="savingsChart"></canvas></div>
+        <canvas id="savingsChart" style="max-height: 200px;"></canvas>
     </div>
 
     <div class="card">
@@ -87,7 +82,7 @@
             <div><label>Fecha</label><input type="date" id="test-date"></div>
             <div><label>TDS (PPM)</label><input type="number" id="tds-val"></div>
         </div>
-        <label>Presencia de Cloro</label><input type="text" id="cloro-val">
+        <label>Cloro</label><input type="text" id="cloro-val">
         <div class="status-group">
             <button class="status-btn" id="st-ins" onclick="setStatus('INSTALADO')">INSTALADO</button>
             <button class="status-btn" id="st-pen" onclick="setStatus('PENDIENTE')">PENDIENTE</button>
@@ -109,30 +104,25 @@
 
     function setStatus(v) {
         currentStatus = v;
-        document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active-ins', 'active-pen', 'active-no'));
-        if(v === 'INSTALADO') document.getElementById('st-ins').classList.add('active-ins');
-        if(v === 'PENDIENTE') document.getElementById('st-pen').classList.add('active-pen');
-        if(v === 'NO PASÓ') document.getElementById('st-no').classList.add('active-no');
+        document.getElementById('st-ins').className = 'status-btn' + (v === 'INSTALADO' ? ' active-ins' : '');
+        document.getElementById('st-pen').className = 'status-btn' + (v === 'PENDIENTE' ? ' active-pen' : '');
+        document.getElementById('st-no').className = 'status-btn' + (v === 'NO PASÓ' ? ' active-no' : '');
     }
 
     async function saveData() {
         if(!currentStatus) return alert("Selecciona un estado");
-        const data = {
-            nombre: document.getElementById('c-name').value,
-            apellido: document.getElementById('c-lastname').value,
-            nacimiento: document.getElementById('c-birthday').value,
-            personas: document.getElementById('c-people').value,
+        const docData = {
+            cliente: document.getElementById('c-name').value + " " + document.getElementById('c-lastname').value,
             tel: document.getElementById('c-phone').value,
             dir: document.getElementById('c-address').value,
             tds: document.getElementById('tds-val').value,
-            cloro: document.getElementById('cloro-val').value,
-            ahorroAnual: document.getElementById('net-savings').innerText,
+            ahorro: document.getElementById('net-savings').innerText,
             estado: currentStatus,
             fecha: document.getElementById('test-date').value,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         };
-        await db.collection("reportes").add(data);
-        alert("✅ Guardado correctamente");
+        await db.collection("reportes").add(docData);
+        alert("✅ Guardado");
         document.getElementById('sms-btn').style.display = "block";
     }
 
@@ -145,92 +135,63 @@
         snap.forEach(doc => {
             const d = doc.data();
             list.innerHTML += `
-                <div class="hist-card" id="doc-${doc.id}">
-                    <div class="hist-header">
-                        <div onclick="toggleDetalle('${doc.id}')" style="flex-grow:1;">
-                            <b style="color:var(--blue); font-size:16px;">${d.nombre} ${d.apellido}</b><br>
-                            <small>${d.fecha} | ${d.estado} ▼</small>
+                <div class="hist-card" id="card-${doc.id}">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div onclick="document.getElementById('det-${doc.id}').style.display='block'" style="flex-grow:1">
+                            <b>${d.cliente}</b><br><small>${d.fecha} | ${d.estado}</small>
                         </div>
-                        <button class="delete-btn" onclick="borrarR('${doc.id}')">✕</button>
+                        <button class="delete-btn" onclick="borrarRegistro('${doc.id}')">✕</button>
                     </div>
-                    <div class="hist-details" id="det-${doc.id}">
-                        <p><strong>Teléfono:</strong> ${d.tel || 'N/A'}</p>
-                        <p><strong>Dirección:</strong> ${d.dir || 'N/A'}</p>
-                        <p><strong>Nacimiento:</strong> ${d.nacimiento || 'N/A'}</p>
-                        <p><strong>Personas:</strong> ${d.personas || '0'}</p>
-                        <p><strong>Calidad:</strong> TDS ${d.tds} PPM | Cloro: ${d.cloro}</p>
-                        <p style="color:var(--green); font-weight:bold;">Ahorro: ${d.ahorroAnual}</p>
+                    <div class="hist-details" id="det-${doc.id}" onclick="this.style.display='none'">
+                        <p>Tel: ${d.tel}<br>Dir: ${d.dir}<br>TDS: ${d.tds}<br>Ahorro: ${d.ahorro}</p>
                     </div>
                 </div>`;
         });
     }
 
-    function toggleDetalle(id) {
-        const el = document.getElementById('det-' + id);
-        el.style.display = (el.style.display === 'block') ? 'none' : 'block';
-    }
-
-    async function borrarR(id) {
-        if(confirm("¿Seguro que quieres borrar este reporte?")) {
-            try {
-                await db.collection("reportes").doc(id).delete();
-                document.getElementById('doc-' + id).remove();
-            } catch(e) { alert("Error al borrar"); }
+    async function borrarRegistro(id) {
+        if(confirm("¿Borrar?")) {
+            await db.collection("reportes").doc(id).delete();
+            document.getElementById('card-' + id).remove();
         }
     }
 
     function cerrarHistorial() { document.getElementById('history-modal').style.display = "none"; }
 
     function calculate() {
-        const w = parseFloat(document.getElementById('cost-water').value) || 0;
-        const s = parseFloat(document.getElementById('cost-soap').value) || 0;
-        const f = parseFloat(document.getElementById('one-fee').value) || 0;
-        const net = (w+s)*12 - (f*12);
-        document.getElementById('net-savings').innerText = `$${net.toLocaleString()}`;
-        
+        const w = (parseFloat(document.getElementById('cost-water').value) || 0) * 12;
+        const s = (parseFloat(document.getElementById('cost-soap').value) || 0) * 12;
+        const f = (parseFloat(document.getElementById('one-fee').value) || 0) * 12;
+        const savings = (w + s) - f;
+        document.getElementById('net-savings').innerText = `$${savings.toLocaleString()}`;
+
         const ctx = document.getElementById('savingsChart').getContext('2d');
         if(chart) chart.destroy();
-        
-        Chart.register(ChartDataLabels);
         chart = new Chart(ctx, {
             type: 'bar',
-            data: { 
-                labels: ['Gasto Actual', 'Plan One Drop'], 
-                datasets: [{ 
-                    data: [(w+s)*12, f*12], 
-                    backgroundColor: [var(--red), var(--blue)],
-                    borderRadius: 10
-                }] 
+            data: {
+                labels: ['Actual', 'One Drop'],
+                datasets: [{
+                    label: 'Gasto Anual',
+                    data: [w + s, f],
+                    backgroundColor: ['#ff3b30', '#007aff']
+                }]
             },
-            options: { 
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { 
-                    legend: { display: false },
-                    datalabels: {
-                        color: '#fff',
-                        anchor: 'end',
-                        align: 'bottom',
-                        font: { weight: 'bold', size: 14 },
-                        formatter: (val) => '$' + val.toLocaleString()
-                    }
-                },
-                scales: { 
-                    y: { display: false },
-                    x: { grid: { display: false }, ticks: { font: { weight: 'bold' } } } 
-                } 
+            options: {
+                scales: { y: { beginAtZero: true } },
+                plugins: { legend: { display: false } }
             }
         });
     }
 
     function goMaps() {
         const addr = document.getElementById('c-address').value;
-        if(addr) window.open(`http://googleusercontent.com/maps.google.com/maps?q=${encodeURIComponent(addr)}`, '_blank');
+        if(addr) window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`, '_blank');
     }
 
     function sendSMS() {
         const p = document.getElementById('c-phone').value;
-        const m = `ONE DROP: TDS ${document.getElementById('tds-val').value} PPM. Ahorro Anual: ${document.getElementById('net-savings').innerText}`;
+        const m = `ONE DROP: Ahorro Anual de ${document.getElementById('net-savings').innerText}`;
         window.location.href = `sms:${p}?body=${encodeURIComponent(m)}`;
     }
 </script>
