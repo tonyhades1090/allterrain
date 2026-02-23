@@ -2,230 +2,184 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Allterrain LandMaster Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aqua Fill Pro: Sales & Economy</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <script src='https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js'></script>
-    <link href='https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css' rel='stylesheet' />
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --primary: #1e3c72; --accent: #007AFF; --text: #1c1c1e; }
-        body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, system-ui, sans-serif; background: #f5f5f7; overflow: hidden; }
-        #map { height: 100vh; width: 100vw; position: absolute; }
-
-        /* PANTALLA DE ACCESO */
-        #auth-screen { position: fixed; inset: 0; background: white; z-index: 5000; display: flex; align-items: center; justify-content: center; padding: 30px; }
-        .auth-box { width: 100%; max-width: 340px; text-align: center; }
-        .auth-box h1 { color: var(--primary); font-size: 32px; font-weight: 800; margin-bottom: 30px; letter-spacing: -1px; }
-        input, select, textarea { width: 100%; padding: 16px; margin: 8px 0; border-radius: 12px; font-size: 16px; box-sizing: border-box; background: #f2f2f7; border: none; outline: none; }
-        .btn-primary { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 16px; margin-top: 10px; }
-        .auth-footer { display: flex; justify-content: space-between; font-size: 13px; margin: 12px 0; color: #8e8e93; }
-        .link { color: var(--accent); cursor: pointer; font-weight: 600; }
-
-        /* INTERFAZ DEL MAPA */
-        .top-nav { position: absolute; top: 15px; left: 12px; right: 12px; z-index: 1000; display: flex; gap: 8px; }
-        #search-input { flex: 1; padding: 14px 18px; border-radius: 14px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.15); background: white; font-size: 16px; }
-        
-        .side-menu { position: absolute; bottom: 160px; right: 15px; z-index: 1000; display: flex; flex-direction: column; gap: 12px; }
-        .btn-circle { width: 54px; height: 54px; background: white; border-radius: 50%; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.12); font-size: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-
-        /* PANEL INFERIOR (ESTILO LANDGLIDE) */
-        #data-panel { position: fixed; bottom: 0; left: 0; right: 0; background: white; z-index: 4000; display: none; padding: 25px; border-radius: 24px 24px 0 0; box-shadow: 0 -8px 30px rgba(0,0,0,0.15); }
-        .owner-badge { background: #e8f0fe; color: var(--primary); padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; display: inline-block; margin-bottom: 8px; }
-        .owner-name { font-size: 24px; font-weight: 800; color: var(--text); text-transform: uppercase; line-height: 1.1; }
-        .addr-sub { color: #8e8e93; font-size: 14px; margin-bottom: 15px; font-weight: 500; }
-        .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
-        .btn-delete { background: #ff3b30 !important; }
+        :root { --blue: #0052cc; --green: #28a745; --gray: #8e8e93; --red: #ff3b30; }
+        body { font-family: -apple-system, sans-serif; background: #f5f5f7; color: #1c1c1e; margin: 0; padding: 15px; padding-bottom: 100px; }
+        .container { max-width: 480px; margin: auto; }
+        .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        h1, h2 { color: var(--blue); text-align: center; margin-bottom: 10px; }
+        label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 13px; color: var(--blue); }
+        input, select, textarea { width: 100%; padding: 14px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #d1d1d6; font-size: 16px; box-sizing: border-box; background: #fafafa; }
+        .savings-box { background: #e7f3ff; padding: 15px; border-radius: 15px; text-align: center; margin: 15px 0; border: 1px solid #b3d7ff; }
+        .savings-box h3 { margin: 5px 0; color: var(--green); font-size: 30px; }
+        .btn { width: 100%; padding: 16px; border-radius: 12px; border: none; font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.2s; }
+        .btn-main { background: var(--blue); color: white; }
+        .btn-photo { background: #5856d6; color: white; margin-bottom: 15px; }
+        .btn-outline { background: transparent; border: 2px solid var(--blue); color: var(--blue); margin-top: 10px; }
+        #photo-preview { width: 100%; border-radius: 12px; display: none; margin-bottom: 15px; border: 2px solid var(--blue); }
+        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 15px; border-top: 1px solid #ddd; }
     </style>
 </head>
 <body>
 
-    <div id="auth-screen">
-        <div class="auth-box">
-            <h1>ALLTERRAIN</h1>
-            <input type="email" id="email" placeholder="Email / Correo">
-            <input type="password" id="password" placeholder="Password / Contraseña">
-            
-            <div class="auth-footer">
-                <label><input type="checkbox" id="remember" checked> Recordarme</label>
-                <span class="link" onclick="resetPassword()">¿Olvidaste la clave?</span>
-            </div>
+<div class="container">
+    <h1>AQUA FILL PRO</h1>
 
-            <button class="btn-primary" id="main-auth-btn" onclick="processAuth()">ENTRAR</button>
-            <p style="margin-top:20px; font-size:14px; color:#8e8e93;">
-                <span id="toggle-msg">¿No tienes cuenta?</span> 
-                <span class="link" onclick="toggleMode()" id="toggle-btn">Registrarse</span>
-            </p>
+    <div class="card">
+        <h2>Calculador de Ahorro</h2>
+        <label>Gasto mensual Agua Embotellada ($)</label>
+        <input type="number" id="cost-water" placeholder="Ej: 80" oninput="runEconomy()">
+        
+        <label>Gasto mensual Jabones/Limpieza ($)</label>
+        <input type="number" id="cost-soap" placeholder="Ej: 50" oninput="runEconomy()">
+        
+        <div class="savings-box">
+            <span style="font-size: 13px; font-weight: bold; color: #555;">AHORRO TOTAL ESTIMADO (ANUAL)</span>
+            <h3 id="annual-savings">$0.00</h3>
         </div>
+        <canvas id="savingsChart"></canvas>
     </div>
 
-    <div id="app-canvas" style="display:none;">
-        <div class="top-nav">
-            <input type="text" id="search-input" placeholder="Buscar dirección...">
-            <button class="btn-circle" style="border-radius:14px; width:60px;" onclick="executeSearch()">IR</button>
-        </div>
+    <div class="card">
+        <h2>Reporte de Calidad TDS</h2>
+        <label>TDS Grifo (Agua Dura)</label>
+        <input type="number" id="tds-raw" placeholder="PPM Entrada">
+        <label>TDS Aqua Fill (Agua Pura)</label>
+        <input type="number" id="tds-filtered" value="15">
+        
+        <button class="btn btn-photo" onclick="document.getElementById('camera-input').click()">📷 TOMAR FOTO DEL TEST</button>
+        <input type="file" id="camera-input" accept="image/*" capture="camera" style="display:none" onchange="previewPhoto(this)">
+        <img id="photo-preview" src="">
 
-        <div class="side-menu">
-            <button class="btn-circle" onclick="locateUser()">🎯</button>
-            <button class="btn-circle" onclick="showAllMarkers()">📍</button>
-            <button class="btn-circle" onclick="signUserOut()" style="color:#ff3b30;">🚪</button>
-        </div>
-
-        <div id="data-panel">
-            <div class="owner-badge">PROPIETARIO REGISTRADO</div>
-            <div id="disp-owner" class="owner-name">BUSCANDO...</div>
-            <div id="disp-addr" class="addr-sub">Dirección de la propiedad</div>
-            
-            <select id="field-status">
-                <option value="💧">💧 Interesado</option>
-                <option value="✅">✅ Venta Hecha</option>
-                <option value="❌">❌ No Interesado</option>
-                <option value="🕒">🕒 Volver a llamar</option>
-                <option value="DELETE">🗑️ ELIMINAR MARCADOR</option>
-            </select>
-            <input type="number" id="field-tds" placeholder="Valor TDS (Calidad Agua)">
-            <textarea id="field-notes" placeholder="Notas de la visita..." rows="3"></textarea>
-            
-            <div class="action-grid">
-                <button class="btn-primary" onclick="commitData()">GUARDAR</button>
-                <button class="btn-primary" style="background:#8e8e93;" onclick="hidePanel()">CERRAR</button>
-            </div>
-        </div>
+        <button class="btn btn-outline" onclick="sendWhatsApp()">ENVIAR REPORTE AL CLIENTE</button>
     </div>
 
-    <div id="map"></div>
+    <div class="card">
+        <h2>Perfil del Cliente</h2>
+        <input type="text" id="c-name" placeholder="Nombre completo">
+        <input type="tel" id="c-phone" placeholder="WhatsApp">
+        <input type="number" id="c-people" placeholder="Personas en el hogar">
+        <label>Cumpleaños</label>
+        <input type="date" id="c-bday">
+        
+        <label>Estatus de Venta</label>
+        <select id="c-status" onchange="checkStatus()">
+            <option value="pendiente">Pendiente</option>
+            <option value="instalado">✅ Instalado</option>
+            <option value="no-instalado">❌ No Instalado</option>
+        </select>
+        
+        <div id="reason-box" style="display:none;">
+            <label>¿Por qué no se instaló?</label>
+            <textarea id="c-reason" placeholder="Escriba el motivo..."></textarea>
+        </div>
+
+        <button class="btn btn-main" onclick="saveAll()">GUARDAR TODO EN SISTEMA</button>
+    </div>
+</div>
+
+<div class="nav-bar">
+    <div style="color:var(--blue)">🏠<br>Venta</div>
+    <div style="color:var(--gray)">👥<br>Clientes</div>
+    <div style="color:var(--gray)">📊<br>Metas</div>
+</div>
 
 <script>
     // Configuración Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyAK9cldIvt1JZJ-fB-1J7Z51FLxxzT3oPg",
-        authDomain: "landmaster-aquafill.firebaseapp.com",
         projectId: "landmaster-aquafill",
-        storageBucket: "landmaster-aquafill.firebasestorage.app",
-        messagingSenderId: "917998011849",
-        appId: "1:917998011849:web:3e6eca20719d342fac1418"
+        storageBucket: "landmaster-aquafill.appspot.com"
     };
     firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
     const db = firebase.firestore();
+    let chart;
 
-    let map, activePos, activeId, isLoginMode = true;
-
-    // Gestión de Acceso
-    function toggleMode() {
-        isLoginMode = !isLoginMode;
-        document.getElementById('main-auth-btn').innerText = isLoginMode ? "ENTRAR" : "REGISTRARSE";
-        document.getElementById('toggle-msg').innerText = isLoginMode ? "¿No tienes cuenta?" : "¿Ya tienes cuenta?";
-        document.getElementById('toggle-btn').innerText = isLoginMode ? "Registrarse" : "Entrar";
-    }
-
-    async function processAuth() {
-        const email = document.getElementById('email').value;
-        const pass = document.getElementById('password').value;
-        const remember = document.getElementById('remember').checked;
-        try {
-            await auth.setPersistence(remember ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION);
-            if(isLoginMode) await auth.signInWithEmailAndPassword(email, pass);
-            else await auth.createUserWithEmailAndPassword(email, pass);
-        } catch(e) { alert("Error: " + e.message); }
-    }
-
-    function resetPassword() {
-        const email = document.getElementById('email').value;
-        if(!email) return alert("Escribe tu correo primero");
-        auth.sendPasswordResetEmail(email).then(() => alert("Link de restauración enviado"));
-    }
-
-    auth.onAuthStateChanged(user => {
-        if(user) {
-            document.getElementById('auth-screen').style.display = 'none';
-            document.getElementById('app-canvas').style.display = 'block';
-            loadMap();
-        }
-    });
-
-    // Lógica del Mapa
-    function loadMap() {
-        map = new maplibregl.Map({
-            container: 'map',
-            style: { 
-                "version": 8, 
-                "sources": { "hybrid": { "type": "raster", "tiles": ["https://mt1.google.com/vt/lyrs=y,h&x={x}&y={y}&z={z}"], "tileSize": 256 }},
-                "layers": [{"id":"hybrid","type":"raster","source":"hybrid"}]
-            },
-            center: [-77.488, 37.520], 
-            zoom: 16
-        });
-
-        map.on('click', async e => {
-            activePos = e.lngLat;
-            // Redondeamos ID para facilitar tocar marcadores existentes
-            activeId = `${e.lngLat.lng.toFixed(5)}|${e.lngLat.lat.toFixed(5)}`;
-            
-            document.getElementById('data-panel').style.display = 'block';
-            document.getElementById('disp-owner').innerText = "Buscando...";
-            document.getElementById('field-tds').value = "";
-            document.getElementById('field-notes').value = "";
-            
-            try {
-                const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${e.lngLat.lat}&lon=${e.lngLat.lng}`);
-                const data = await res.json();
-                const house = data.address.house_number || "";
-                const street = (data.address.road || "").replace("Road","RD").replace("Avenue","AVE").replace("Street","ST").toUpperCase();
-                const cleanAddr = `${house} ${street}`.trim();
-                document.getElementById('disp-addr').innerText = cleanAddr;
-
-                // Cruce con base de datos de Propietarios
-                const doc = await db.collection("propiedades").doc(cleanAddr).get();
-                document.getElementById('disp-owner').innerText = doc.exists ? doc.data().propietario : "RESIDENCIA PRIVADA";
-            } catch(err) { document.getElementById('disp-owner').innerText = "RESIDENCIA PRIVADA"; }
-        });
-
-        // Cargar Marcadores en tiempo real
-        db.collection("marcadores").onSnapshot(snap => {
-            document.querySelectorAll('.maplibregl-marker').forEach(m => m.remove());
-            snap.forEach(doc => {
-                const d = doc.data();
-                const markerDiv = document.createElement('div');
-                markerDiv.innerHTML = d.icon;
-                markerDiv.style.fontSize = '32px';
-                markerDiv.style.cursor = 'pointer';
-                new maplibregl.Marker({element: markerDiv}).setLngLat([d.lng, d.lat]).addTo(map);
-            });
-        });
-    }
-
-    async function executeSearch() {
-        const val = document.getElementById('search-input').value;
-        if(!val) return;
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(val + ", Chesterfield, VA")}&limit=1`);
-        const data = await res.json();
-        if(data[0]) map.flyTo({center: [parseFloat(data[0].lon), parseFloat(data[0].lat)], zoom: 19});
-    }
-
-    function commitData() {
-        const status = document.getElementById('field-status').value;
+    function runEconomy() {
+        const water = parseFloat(document.getElementById('cost-water').value) || 0;
+        const soap = parseFloat(document.getElementById('cost-soap').value) || 0;
+        const monthlyTotal = water + soap;
+        const annualSavings = monthlyTotal * 12;
         
-        if (status === "DELETE") {
-            db.collection("marcadores").doc(activeId).delete().then(() => hidePanel());
-        } else {
-            db.collection("marcadores").doc(activeId).set({
-                lng: activePos.lng,
-                lat: activePos.lat,
-                icon: status,
-                tds: document.getElementById('field-tds').value,
-                note: document.getElementById('field-notes').value,
-                editor: auth.currentUser.email,
-                time: new Date().toISOString()
-            }).then(() => hidePanel());
+        document.getElementById('annual-savings').innerText = `$${annualSavings.toLocaleString()}`;
+        updateChart(water, soap);
+    }
+
+    function updateChart(water, soap) {
+        const ctx = document.getElementById('savingsChart').getContext('2d');
+        if(chart) chart.destroy();
+        chart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Agua', 'Jabón', 'Ahorro Aqua Fill'],
+                datasets: [{
+                    data: [water, soap, (water + soap) * 0.7], // Estimación de ahorro del 70%
+                    backgroundColor: ['#007aff', '#5856d6', '#28a745']
+                }]
+            },
+            options: { plugins: { legend: { position: 'bottom' } } }
+        });
+    }
+
+    function previewPhoto(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                const img = document.getElementById('photo-preview');
+                img.src = e.target.result;
+                img.style.display = 'block';
+            };
+            reader.readAsDataURL(input.files[0]);
         }
     }
 
-    function locateUser() { navigator.geolocation.getCurrentPosition(p => map.flyTo({center:[p.coords.longitude, p.coords.latitude], zoom:19})); }
-    function hidePanel() { document.getElementById('data-panel').style.display = 'none'; }
-    function signUserOut() { auth.signOut(); location.reload(); }
-    function showAllMarkers() { map.flyTo({zoom: 12}); }
+    function checkStatus() {
+        const status = document.getElementById('c-status').value;
+        document.getElementById('reason-box').style.display = (status === 'no-instalado') ? 'block' : 'none';
+    }
+
+    function sendWhatsApp() {
+        const name = document.getElementById('c-name').value || "Cliente";
+        const water = document.getElementById('cost-water').value || 0;
+        const soap = document.getElementById('cost-soap').value || 0;
+        const total = (parseFloat(water) + parseFloat(soap)) * 12;
+        const tds = document.getElementById('tds-raw').value || "---";
+
+        const text = `*REPORTE DE SALUD Y ECONOMÍA - AQUA FILL*%0A%0A` +
+                     `Hola *${name}*, este es el resumen de su visita:%0A%0A` +
+                     `🧪 *Calidad de Agua:* ${tds} PPM (Agua Dura)%0A` +
+                     `💧 *Pureza Aqua Fill:* 15 PPM%0A%0A` +
+                     `💰 *Análisis de Ahorro:*%0A` +
+                     `- Gasto en Agua y Jabones: $${(parseFloat(water)+parseFloat(soap))} /mes%0A` +
+                     `- *AHORRO ANUAL ESTIMADO: $${total}*%0A%0A` +
+                     `Un sistema Aqua Fill se paga solo con su ahorro actual.`;
+        
+        window.open(`https://wa.me/${document.getElementById('c-phone').value}?text=${text}`);
+    }
+
+    async function saveAll() {
+        const data = {
+            nombre: document.getElementById('c-name').value,
+            tel: document.getElementById('c-phone').value,
+            status: document.getElementById('c-status').value,
+            motivo: document.getElementById('c-reason').value,
+            ahorro: document.getElementById('annual-savings').innerText,
+            tds: document.getElementById('tds-raw').value,
+            fecha: new Date().toISOString()
+        };
+
+        try {
+            await db.collection("ventas").add(data);
+            alert("¡Datos guardados con éxito en la nube!");
+            location.reload();
+        } catch(e) { alert("Error al guardar: " + e.message); }
+    }
 </script>
 </body>
 </html>
