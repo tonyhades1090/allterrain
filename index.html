@@ -16,21 +16,30 @@
         h2 { font-size: 16px; margin-top: 0; color: #333; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 15px; text-transform: uppercase; }
         label { display: block; font-weight: 600; margin-bottom: 4px; font-size: 11px; color: #666; }
         
-        /* Inputs Proporcionales */
-        input, textarea { 
+        /* Ajuste de Proporción Crítico */
+        input, textarea, select { 
             width: 100%; 
-            height: 45px; 
-            padding: 10px; 
+            height: 50px; /* Altura uniforme para evitar desproporción */
+            padding: 12px; 
             margin-bottom: 12px; 
-            border-radius: 10px; 
+            border-radius: 12px; 
             border: 1px solid #d1d1d6; 
-            font-size: 15px; 
+            font-size: 16px; 
             box-sizing: border-box; 
+            background-color: #fff;
+            appearance: none; /* Quita estilos raros de iOS */
+            -webkit-appearance: none;
         }
-        textarea { height: 80px; padding-top: 10px; }
+        
+        /* Para que el calendario se vea igual de alto */
+        input[type="date"] {
+            display: flex;
+            align-items: center;
+        }
 
-        /* Grillas para alineación */
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        textarea { height: 90px; padding-top: 12px; }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         
         .btn { width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: 700; font-size: 16px; cursor: pointer; margin-bottom: 10px; display: block; text-align: center; text-decoration: none; }
         .btn-main { background: var(--blue); color: white; }
@@ -38,13 +47,13 @@
         .btn-gps { background: #5856d6; color: white; }
         
         .status-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 5px; }
-        .status-btn { height: 45px; border-radius: 10px; border: 2px solid #ddd; background: white; font-size: 10px; font-weight: bold; cursor: pointer; }
+        .status-btn { height: 50px; border-radius: 12px; border: 2px solid #ddd; background: white; font-size: 10px; font-weight: bold; cursor: pointer; }
         .status-btn.active-ins { background: var(--green); color: white; border-color: var(--green); }
         .status-btn.active-pen { background: var(--orange); color: white; border-color: var(--orange); }
         .status-btn.active-no { background: var(--red); color: white; border-color: var(--red); }
 
         .savings-box { background: #e7f3ff; padding: 15px; border-radius: 15px; text-align: center; margin: 15px 0; border: 1px solid #cce3f5; }
-        .val-highlight { font-size: 24px; font-weight: 800; color: var(--green); display: block; }
+        .val-highlight { font-size: 26px; font-weight: 800; color: var(--green); display: block; }
         #report-preview { background: #f8f9fa; padding: 15px; border-radius: 12px; font-family: monospace; font-size: 12px; display: none; margin-top: 15px; white-space: pre-wrap; border: 1px solid #eee; }
     </style>
 </head>
