@@ -42,23 +42,36 @@
         #auth-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; }
         #app-content { display: none; }
         
-        /* Modal Historial */
         #history-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 3000; overflow-y: auto; padding: 20px; box-sizing: border-box; }
         .history-item { border-bottom: 1px solid #eee; padding: 15px 0; font-size: 14px; }
-        .history-item b { color: var(--blue); }
+
+        /* Estilo para Recordar/Registrar */
+        .auth-footer { text-align: center; margin-top: 10px; font-size: 14px; color: #666; }
+        .auth-footer span { color: var(--blue); cursor: pointer; font-weight: bold; }
+        .remember-me { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #666; margin-bottom: 15px; cursor: pointer; }
+        .remember-me input { width: 18px; height: 18px; margin: 0; }
     </style>
 </head>
 <body>
 
 <div id="auth-screen">
     <div class="card" style="width: 90%; max-width: 350px;">
-        <h1>ONE DROP</h1>
+        <h1 id="auth-title">ONE DROP</h1>
         <label>Email</label>
         <input type="email" id="auth-email" placeholder="usuario@onedrop.com">
         <label>Contraseña</label>
         <input type="password" id="auth-pass" placeholder="••••••••">
-        <button class="btn btn-main" onclick="handleLogin()">INICIAR SESIÓN</button>
-        <button class="btn" style="background:none; color:var(--blue); font-size:12px;" onclick="handleReset()">RECUPERAR CONTRASEÑA</button>
+        
+        <label class="remember-me" id="remember-box">
+            <input type="checkbox" id="remember-check"> Recordar mi correo
+        </label>
+
+        <button class="btn btn-main" id="auth-btn" onclick="handleAuth()">INICIAR SESIÓN</button>
+        
+        <div class="auth-footer">
+            <p id="toggle-text">¿No tienes cuenta? <span onclick="toggleAuthMode()">Regístrate</span></p>
+            <p id="reset-link" style="font-size:12px; margin-top:10px;"><span onclick="handleReset()">Recuperar Contraseña</span></p>
+        </div>
     </div>
 </div>
 
@@ -137,7 +150,16 @@
     const auth = firebase.auth();
     const ADMIN_EMAIL = "tonyhades@gmail.com"; 
 
-    let chart, currentStatus = "", currentUser = null;
+    let chart, currentStatus = "", currentUser = null, isLoginMode = true;
+
+    // --- CARGAR CORREO RECORDADO ---
+    window.onload = () => {
+        const savedEmail = localStorage.getItem('onedrop_email');
+        if (savedEmail) {
+            document.getElementById('auth-email').value = savedEmail;
+            document.getElementById('remember-check').checked = true;
+        }
+    }
 
     auth.onAuthStateChanged(user => {
         if (user) {
@@ -150,19 +172,45 @@
         }
     });
 
-    async function handleLogin() {
+    function toggleAuthMode() {
+        isLoginMode = !isLoginMode;
+        document.getElementById('auth-title').innerText = isLoginMode ? "ONE DROP" : "CREAR CUENTA";
+        document.getElementById('auth-btn').innerText = isLoginMode ? "INICIAR SESIÓN" : "REGISTRARME";
+        document.getElementById('toggle-text').innerHTML = isLoginMode ? 
+            '¿No tienes cuenta? <span onclick="toggleAuthMode()">Regístrate</span>' : 
+            '¿Ya tienes cuenta? <span onclick="toggleAuthMode()">Inicia Sesión</span>';
+        document.getElementById('remember-box').style.display = isLoginMode ? 'flex' : 'none';
+        document.getElementById('reset-link').style.display = isLoginMode ? 'block' : 'none';
+    }
+
+    async function handleAuth() {
         const e = document.getElementById('auth-email').value;
         const p = document.getElementById('auth-pass').value;
-        try { await auth.signInWithEmailAndPassword(e, p); } catch(err) { alert("Error: " + err.message); }
+        const remember = document.getElementById('remember-check').checked;
+
+        if (!e || !p) return alert("Completa todos los campos");
+
+        if (remember) localStorage.setItem('onedrop_email', e);
+        else localStorage.removeItem('onedrop_email');
+
+        try {
+            if (isLoginMode) {
+                await auth.signInWithEmailAndPassword(e, p);
+            } else {
+                await auth.createUserWithEmailAndPassword(e, p);
+                alert("¡Cuenta creada con éxito!");
+            }
+        } catch(err) { alert("Error: " + err.message); }
     }
 
     function logout() { auth.signOut(); }
     function handleReset() {
         const email = document.getElementById('auth-email').value;
         if (!email) return alert("Escribe tu email");
-        auth.sendPasswordResetEmail(email).then(() => alert("Enlace de recuperación enviado."));
+        auth.sendPasswordResetEmail(email).then(() => alert("Enlace enviado."));
     }
 
+    // --- LÓGICA DE LA APP (MANTENIDA) ---
     function setStatus(v) {
         currentStatus = v;
         document.getElementById('st-ins').className = 'status-btn' + (v === 'INSTALADO' ? ' active-ins' : '');
@@ -186,13 +234,12 @@
         await db.collection("reportes").add(data);
         alert("✅ Reporte Guardado.");
         
-        const ics = `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:Seguimiento: ${data.cliente}\nDTSTART:${data.fecha.replace(/-/g,'')}T120000\nDESCRIPTION:TDS: ${data.tds} PPM. Ahorro: ${data.ahorro}\nEND:VEVENT\nEND:VCALENDAR`;
+        const ics = `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:Seguimiento: ${data.cliente}\nDTSTART:${data.fecha.replace(/-/g,'')}T120000\nEND:VEVENT\nEND:VCALENDAR`;
         const blob = new Blob([ics], { type: 'text/calendar' });
         const link = document.createElement('a');
         link.href = window.URL.createObjectURL(blob);
-        link.download = "cita_onedrop.ics";
+        link.download = "cita.ics";
         link.click();
-        
         document.getElementById('sms-btn').style.display = 'block';
     }
 
@@ -200,30 +247,17 @@
         document.getElementById('history-modal').style.display = 'block';
         const listDiv = document.getElementById('history-list');
         listDiv.innerHTML = "Cargando...";
-        
         let query = db.collection("reportes").orderBy("timestamp", "desc");
-        
-        // Si NO eres tú, filtrar solo tus propios reportes
-        if (currentUser.email !== ADMIN_EMAIL) {
-            query = query.where("vendedorId", "==", currentUser.uid);
-        }
-
+        if (currentUser.email !== ADMIN_EMAIL) query = query.where("vendedorId", "==", currentUser.uid);
         const snapshot = await query.get();
         listDiv.innerHTML = "";
-        
         snapshot.forEach(doc => {
             const d = doc.data();
-            listDiv.innerHTML += `
-                <div class="history-item">
-                    <b>${d.cliente}</b> - ${d.estado}<br>
-                    <small>Fecha: ${d.fecha} | TDS: ${d.tds} | Ahorro: ${d.ahorro}</small><br>
-                    <small style="color:#888">Vendedor: ${d.vendedorEmail}</small>
-                </div>`;
+            listDiv.innerHTML += `<div class="history-item"><b>${d.cliente}</b> - ${d.estado}<br><small>${d.fecha} | ${d.vendedorEmail}</small></div>`;
         });
     }
 
     function cerrarHistorial() { document.getElementById('history-modal').style.display = 'none'; }
-
     function calculate() {
         const w = parseFloat(document.getElementById('cost-water').value) || 0;
         const s = parseFloat(document.getElementById('cost-soap').value) || 0;
@@ -245,7 +279,6 @@
         const msg = `ONE DROP - Reporte: TDS ${document.getElementById('tds-val').value} PPM. Ahorro Anual: ${document.getElementById('net-savings').innerText}`;
         window.location.href = `sms:${phone}?body=${encodeURIComponent(msg)}`;
     }
-    
     document.getElementById('test-date').valueAsDate = new Date();
     calculate();
 </script>
