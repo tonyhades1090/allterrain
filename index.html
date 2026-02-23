@@ -11,7 +11,7 @@
     <style>
         :root { --blue: #007aff; --green: #34c759; --orange: #ff9500; --red: #ff3b30; --bg: #f2f2f7; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 15px; padding-bottom: 50px; color: #000; overflow-x: hidden; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 15px; padding-bottom: 50px; overflow-x: hidden; }
         .container { max-width: 450px; margin: auto; }
         .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 15px; }
         h1 { color: var(--blue); text-align: center; letter-spacing: -1px; margin: 10px 0 20px 0; font-size: 28px; font-weight: 800; }
@@ -37,10 +37,21 @@
         .status-btn.active-ins { background: var(--green); color: white; border-color: var(--green); }
         .status-btn.active-pen { background: var(--orange); color: white; border-color: var(--orange); }
         .status-btn.active-no { background: var(--red); color: white; border-color: var(--red); }
+        
+        /* DISEÑO DE HISTORIAL REPARADO */
         #history-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f2f2f7; z-index: 3000; overflow-y: auto; }
-        .hist-item-wrapper { position: relative; background: var(--red); margin-bottom: 1px; overflow: hidden; height: 75px; }
-        .hist-item-content { background: white; padding: 15px 20px; position: relative; z-index: 2; transition: transform 0.2s ease-out; height: 100%; display: flex; flex-direction: column; justify-content: center; }
-        .hist-del-btn { position: absolute; right: 0; top: 0; height: 100%; width: 100px; background: var(--red); color: white; border: none; font-weight: 800; z-index: 1; font-size: 14px; }
+        .hist-item-wrapper { position: relative; background: var(--red); margin-bottom: 2px; overflow: hidden; height: 85px; }
+        .hist-item-content { 
+            background: white; padding: 15px 20px; position: relative; z-index: 2; 
+            transition: transform 0.2s ease-out; height: 100%; display: flex; flex-direction: column; justify-content: center;
+            touch-action: pan-x; /* Optimiza el deslizamiento lateral */
+        }
+        .hist-del-btn { 
+            position: absolute; right: 0; top: 0; height: 100%; width: 100px; 
+            background: var(--red); color: white; border: none; font-weight: 900; 
+            z-index: 1; font-size: 14px; cursor: pointer;
+        }
+
         #auth-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; }
         #app-content { display: none; }
         .savings-box { background: #e7f3ff; padding: 15px; border-radius: 15px; text-align: center; margin: 15px 0; border: 1px solid #cce3f5; }
@@ -62,9 +73,7 @@
         </div>
         <button class="btn btn-main" onclick="handleAuth()">INICIAR SESIÓN</button>
         <div style="text-align:center; font-size:13px; margin-top:20px; color:#666;">
-            ¿No tienes cuenta? <span style="color:var(--blue); font-weight:bold;" onclick="toggleAuthMode()" id="toggle-link">Regístrate</span>
-            <br><br>
-            <span style="color:var(--blue); font-size:11px;" onclick="handleReset()">Recuperar Contraseña</span>
+            ¿No tienes cuenta? <span style="color:var(--blue); font-weight:bold; cursor:pointer;" onclick="toggleAuthMode()" id="toggle-link">Regístrate</span>
         </div>
     </div>
 </div>
@@ -95,7 +104,7 @@
         </div>
         <label>Teléfono</label><input type="tel" id="c-phone">
         <label>Dirección</label><textarea id="c-address"></textarea>
-        <button class="btn btn-gps" onclick="goMaps()">🗺️ VER EN MAPAS</button>
+        <button class="btn btn-gps" onclick="goMaps()">🗺️ VER EN MAPS</button>
     </div>
 
     <div class="card">
@@ -163,7 +172,6 @@
 
     function toggleAuthMode() { isLoginMode = !isLoginMode; document.getElementById('toggle-link').innerText = isLoginMode ? "Regístrate" : "Inicia Sesión"; }
     function logout() { auth.signOut(); }
-    function handleReset() { const e = document.getElementById('auth-email').value; if(e) auth.sendPasswordResetEmail(e).then(() => alert("Email enviado")); }
 
     function setStatus(v) {
         currentStatus = v;
@@ -197,8 +205,11 @@
             const d = doc.data(), id = doc.id;
             list.innerHTML += `
                 <div class="hist-item-wrapper" id="wrap-${id}">
-                    <button class="hist-del-btn" onclick="eliminarDefinitivo('${id}')">BORRAR</button>
-                    <div class="hist-item-content" ontouchstart="ts(event,'${id}')" ontouchmove="tm(event,'${id}')" ontouchend="te(event,'${id}')">
+                    <button class="hist-del-btn" onclick="eliminarF(${id})">BORRAR</button>
+                    <div class="hist-item-content" id="content-${id}" 
+                         ontouchstart="ts(event,'${id}')" 
+                         ontouchmove="tm(event,'${id}')" 
+                         ontouchend="te(event,'${id}')">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <b style="color:var(--blue); font-size:16px;">${d.cliente}</b>
                             <span style="font-size:11px; color:#888;">${d.fecha}</span>
@@ -211,26 +222,37 @@
         });
     }
 
+    // --- LÓGICA DE SWIPE REFORZADA ---
     let sx = 0;
     function ts(e, id) { sx = e.touches[0].clientX; }
     function tm(e, id) {
         let m = sx - e.touches[0].clientX;
-        if (m > 0 && m < 120) e.currentTarget.style.transform = `translateX(-${m}px)`;
+        if (m > 0 && m < 120) {
+            document.getElementById('content-'+id).style.transform = `translateX(-${m}px)`;
+        }
     }
     function te(e, id) {
         let f = sx - e.changedTouches[0].clientX;
-        e.currentTarget.style.transform = f > 70 ? "translateX(-100px)" : "translateX(0)";
+        let el = document.getElementById('content-'+id);
+        if (f > 60) el.style.transform = "translateX(-100px)";
+        else el.style.transform = "translateX(0)";
     }
 
-    async function eliminarDefinitivo(id) {
-        // Sin confirmación para que sea rápido como pediste, o puedes añadirla si prefieres
+    // --- FUNCIÓN DE ELIMINACIÓN CORREGIDA ---
+    async function eliminarF(id) {
+        // 'id' aquí es el ID de Firebase. Lo pasamos como string.
+        const idStr = id.id || id; 
         try {
-            await db.collection("reportes").doc(id).delete();
-            const el = document.getElementById(`wrap-${id}`);
-            el.style.height = "0";
-            el.style.opacity = "0";
-            setTimeout(() => el.remove(), 300);
-        } catch(e) { alert("Error al borrar"); }
+            await db.collection("reportes").doc(idStr).delete();
+            const wrapper = document.getElementById(`wrap-${idStr}`);
+            wrapper.style.transition = "0.3s";
+            wrapper.style.height = "0";
+            wrapper.style.opacity = "0";
+            setTimeout(() => wrapper.remove(), 300);
+        } catch(e) {
+            console.error(e);
+            alert("No se pudo borrar. Intenta de nuevo.");
+        }
     }
 
     function cerrarHistorial() { document.getElementById('history-modal').style.display = "none"; }
@@ -250,7 +272,7 @@
 
     function goMaps() {
         const addr = document.getElementById('c-address').value;
-        if(addr) window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`, '_blank');
+        if(addr) window.open("https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(addr), '_blank');
         else alert("Escribe una dirección");
     }
 
