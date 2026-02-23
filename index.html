@@ -21,8 +21,9 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 15px; }
         
+        /* PANTALLAS */
         #auth-screen { display: none; flex-direction: column; align-items: center; justify-content: center; height: 90vh; }
-        #app-screen { display: none; max-width: 450px; margin: auto; }
+        #app-screen { display: none; max-width: 450px; margin: auto; padding-bottom: 40px; }
 
         .auth-card { background: white; padding: 30px; border-radius: 25px; width: 100%; max-width: 350px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; }
         .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 15px; }
@@ -30,30 +31,38 @@
         .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .logout-btn { color: var(--red); font-weight: 700; font-size: 13px; cursor: pointer; border: 1px solid var(--red); padding: 5px 12px; border-radius: 8px; }
 
-        h1 { color: var(--blue); font-weight: 800; margin: 0; }
-        input, textarea { width: 100%; height: 48px; padding: 12px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #d1d1d6; font-size: 16px; background: #fff; }
+        h1 { color: var(--blue); font-weight: 800; margin: 0; letter-spacing: -1px; }
+        h2 { font-size: 14px; color: #333; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 15px; text-transform: uppercase; }
         
-        .btn { width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: 700; font-size: 16px; cursor: pointer; margin-bottom: 10px; }
-        .btn-blue { background: var(--blue); color: white; }
-        .btn-link { background: none; color: var(--blue); font-size: 13px; padding: 5px; }
+        label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 11px; color: #666; text-transform: uppercase; }
+        input, textarea { width: 100%; height: 48px; padding: 12px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #d1d1d6; font-size: 16px; background: #fff; }
+        textarea { height: 80px; resize: none; }
         
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .btn { width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: 700; font-size: 16px; cursor: pointer; display: block; text-align: center; text-decoration: none; }
+        .btn-blue { background: var(--blue); color: white; }
+        .btn-gps { background: #5856d6; color: white; margin-top: 5px; }
+        .btn-sms { background: var(--green); color: white; margin-top: 15px; }
+        .btn-link { background: none; color: var(--blue); font-size: 13px; padding: 5px; margin-top: 5px; }
+        
         .status-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-        .status-btn { height: 45px; border-radius: 10px; border: 1px solid #ddd; background: #f9f9f9; font-size: 9px; font-weight: 800; }
-        .active-ins { background: var(--green) !important; color: white; }
-        .active-pen { background: var(--orange) !important; color: white; }
-        .active-no { background: var(--red) !important; color: white; }
+        .status-btn { height: 45px; border-radius: 10px; border: 1px solid #ddd; background: #f9f9f9; font-size: 9px; font-weight: 800; color: #666; }
+        .active-ins { background: var(--green) !important; color: white; border-color: var(--green); }
+        .active-pen { background: var(--orange) !important; color: white; border-color: var(--orange); }
+        .active-no { background: var(--red) !important; color: white; border-color: var(--red); }
+
+        .savings-box { background: #e7f3ff; padding: 15px; border-radius: 15px; text-align: center; margin: 15px 0; border: 1px solid #cce3f5; }
 
         #history-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f2f2f7; z-index: 5000; overflow-y: auto; }
-        .hist-card { background: white; margin: 10px; padding: 15px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; }
-        .hist-details { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ccc; font-size: 13px; }
+        .hist-card { background: white; margin: 10px; padding: 15px; border-radius: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .hist-details { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ccc; font-size: 13px; color: #444; }
     </style>
 </head>
 <body>
 
 <div id="auth-screen">
     <div class="auth-card">
-        <h1 id="auth-title" style="margin-bottom:20px;">ONE DROP</h1>
+        <h1 style="margin-bottom:20px;">ONE DROP</h1>
         <input type="email" id="auth-email" placeholder="Email">
         <input type="password" id="auth-pass" placeholder="Password">
         
@@ -78,46 +87,55 @@
     <div class="card">
         <h2>👤 Client Info</h2>
         <div class="grid-2">
-            <input type="text" id="c-name" placeholder="Name">
-            <input type="text" id="c-lastname" placeholder="Last Name">
+            <div><label>First Name</label><input type="text" id="c-name"></div>
+            <div><label>Last Name</label><input type="text" id="c-lastname"></div>
         </div>
-        <input type="tel" id="c-phone" placeholder="Phone">
-        <textarea id="c-address" placeholder="Address"></textarea>
+        <div class="grid-2">
+            <div><label>Birthday</label><input type="date" id="c-birthday"></div>
+            <div><label>People</label><input type="number" id="c-people"></div>
+        </div>
+        <label>Phone</label><input type="tel" id="c-phone">
+        <label>Address</label><textarea id="c-address"></textarea>
+        <button class="btn btn-gps" onclick="goMaps()">🗺️ VIEW ON MAPS</button>
     </div>
 
     <div class="card">
         <h2>💰 Yearly Savings</h2>
         <div class="grid-2">
-            <input type="number" id="cost-water" placeholder="Water $" oninput="calculate()">
-            <input type="number" id="cost-soap" placeholder="Soap $" oninput="calculate()">
+            <div><label>Water Cost</label><input type="number" id="cost-water" oninput="calculate()"></div>
+            <div><label>Soap Cost</label><input type="number" id="cost-soap" oninput="calculate()"></div>
         </div>
-        <div style="text-align:center; padding:15px; background:#e7f3ff; border-radius:15px; margin-bottom:10px;">
-            <span style="font-size:24px; font-weight:800; color:var(--green);" id="net-savings">$0.00</span>
+        <label>Monthly Fee ($)</label><input type="number" id="one-fee" value="180" oninput="calculate()">
+        <div class="savings-box">
+            <span style="font-size:26px; font-weight:800; color:var(--green);" id="net-savings">$0.00</span><br>
+            <small>Net Annual Savings</small>
         </div>
-        <canvas id="savingsChart"></canvas>
+        <canvas id="savingsChart" style="max-height: 250px;"></canvas>
     </div>
 
     <div class="card">
         <h2>🧪 Tech Report</h2>
         <div class="grid-2">
-            <input type="date" id="test-date">
-            <input type="number" id="tds-val" placeholder="TDS">
+            <div><label>Date</label><input type="date" id="test-date"></div>
+            <div><label>TDS (PPM)</label><input type="number" id="tds-val"></div>
         </div>
+        <label>Chlorine Presence</label><input type="text" id="cloro-val">
         <div class="status-group">
             <button class="status-btn" id="st-ins" onclick="setStatus('INSTALLED')">INSTALLED</button>
             <button class="status-btn" id="st-pen" onclick="setStatus('PENDING')">PENDING</button>
             <button class="status-btn" id="st-no" onclick="setStatus('REJECTED')">REJECTED</button>
         </div>
-        <div class="grid-2" style="margin-top:20px;">
-            <button class="btn btn-blue" onclick="saveData()">SAVE</button>
-            <button class="btn btn-blue" style="background:#8e8e93;" onclick="abrirHistorial()">HISTORY</button>
+        <div class="grid-2" style="margin-top:25px;">
+            <button class="btn btn-blue" onclick="saveData()">SAVE DATA</button>
+            <button class="btn" style="background:#8e8e93; color:white;" onclick="abrirHistorial()">HISTORY</button>
         </div>
+        <button class="btn btn-sms" id="sms-btn" style="display:none;" onclick="sendSMS()">📲 SEND SMS</button>
     </div>
 </div>
 
 <div id="history-modal">
-    <div style="padding:20px; background:white; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #ddd;">
-        <h2 style="margin:0;">History</h2>
+    <div style="padding:20px; background:white; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #ddd; position:sticky; top:0; z-index:10;">
+        <h2 style="margin:0; border:none;">Client History</h2>
         <button onclick="cerrarHistorial()" style="background:var(--blue); color:white; border:none; padding:8px 15px; border-radius:8px; font-weight:bold;">DONE</button>
     </div>
     <div id="history-list"></div>
@@ -130,7 +148,7 @@
     const auth = firebase.auth();
     let chart, currentStatus = "", isSignUp = false;
 
-    // CONTROL DE SESIÓN Y PANTALLAS
+    // CONTROL DE SESIÓN
     auth.onAuthStateChanged(user => {
         if (user) {
             document.getElementById('auth-screen').style.display = 'none';
@@ -160,13 +178,13 @@
 
     function forgotPassword() {
         const email = document.getElementById('auth-email').value;
-        if(!email) return alert("Please enter your email first");
+        if(!email) return alert("Please enter your email");
         auth.sendPasswordResetEmail(email).then(() => alert("Reset email sent!")).catch(e => alert(e.message));
     }
 
-    function logout() { auth.signOut(); }
+    function logout() { if(confirm("Logout?")) auth.signOut(); }
 
-    // FUNCIONES DE LA APP
+    // FUNCIONES APP
     function setStatus(v) {
         currentStatus = v;
         document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active-ins', 'active-pen', 'active-no'));
@@ -176,7 +194,7 @@
     }
 
     async function saveData() {
-        if(!currentStatus) return alert("Select status");
+        if(!currentStatus) return alert("Please select a status");
         await db.collection("reportes").add({
             nombre: document.getElementById('c-name').value,
             apellido: document.getElementById('c-lastname').value,
@@ -186,9 +204,11 @@
             ahorro: document.getElementById('net-savings').innerText,
             estado: currentStatus,
             fecha: document.getElementById('test-date').value,
+            personas: document.getElementById('c-people').value,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
-        alert("Saved!");
+        alert("✅ Data Saved Successfully");
+        document.getElementById('sms-btn').style.display = "block";
     }
 
     async function abrirHistorial() {
@@ -200,13 +220,17 @@
             const d = doc.data();
             list.innerHTML += `
                 <div class="hist-card" id="card-${doc.id}">
-                    <div onclick="toggleDetalle('${doc.id}')" style="flex-grow:1;">
-                        <b>${d.nombre} ${d.apellido}</b><br><small>${d.fecha} | ${d.estado}</small>
-                        <div class="hist-details" id="det-${doc.id}">
-                            TDS: ${d.tds} | Savings: ${d.ahorro}<br>Tel: ${d.tel}
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div onclick="toggleDetalle('${doc.id}')" style="flex-grow:1; cursor:pointer;">
+                            <b style="color:var(--blue);">${d.nombre} ${d.apellido}</b><br>
+                            <small>${d.fecha} | ${d.estado} ▼</small>
                         </div>
+                        <button style="border:none; color:var(--red); background:none; font-size:22px; cursor:pointer;" onclick="borrarRegistro('${doc.id}')">✕</button>
                     </div>
-                    <button style="border:none; color:red; background:none; font-size:20px;" onclick="borrarRegistro('${doc.id}')">✕</button>
+                    <div class="hist-details" id="det-${doc.id}">
+                        <p><strong>Tel:</strong> ${d.tel}<br><strong>Address:</strong> ${d.dir}<br>
+                        <strong>TDS:</strong> ${d.tds} PPM | <strong>Savings:</strong> ${d.ahorro}</p>
+                    </div>
                 </div>`;
         });
     }
@@ -217,9 +241,9 @@
     }
 
     async function borrarRegistro(id) {
-        if(confirm("Delete?")) {
+        if(confirm("Delete this record?")) {
             await db.collection("reportes").doc(id).delete();
-            document.getElementById('card-'+id).remove();
+            document.getElementById('card-' + id).remove();
         }
     }
 
@@ -228,15 +252,35 @@
     function calculate() {
         const w = (parseFloat(document.getElementById('cost-water').value) || 0) * 12;
         const s = (parseFloat(document.getElementById('cost-soap').value) || 0) * 12;
-        const f = 180 * 12;
-        document.getElementById('net-savings').innerText = `$${((w+s)-f).toLocaleString()}`;
+        const f = (parseFloat(document.getElementById('one-fee').value) || 0) * 12;
+        const net = (w + s) - f;
+        document.getElementById('net-savings').innerText = `$${net.toLocaleString()}`;
+        
         const ctx = document.getElementById('savingsChart').getContext('2d');
         if(chart) chart.destroy();
         chart = new Chart(ctx, {
             type: 'bar',
-            data: { labels: ['Current', 'One Drop'], datasets: [{ data: [w+s, f], backgroundColor: ['#ff3b30', '#007aff'] }] },
-            options: { plugins: { legend: { display: false } } }
+            data: {
+                labels: ['Current Cost', 'One Drop Plan'],
+                datasets: [{
+                    data: [w + s, f],
+                    backgroundColor: ['#ff3b30', '#007aff'],
+                    borderRadius: 8
+                }]
+            },
+            options: { responsive: true, plugins: { legend: { display: false } } }
         });
+    }
+
+    function goMaps() {
+        const addr = document.getElementById('c-address').value;
+        if(addr) window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`, '_blank');
+    }
+
+    function sendSMS() {
+        const p = document.getElementById('c-phone').value;
+        const m = `ONE DROP: Your estimated annual savings: ${document.getElementById('net-savings').innerText}. Water Quality TDS: ${document.getElementById('tds-val').value} PPM.`;
+        window.location.href = `sms:${p}?body=${encodeURIComponent(m)}`;
     }
     document.getElementById('test-date').valueAsDate = new Date();
 </script>
