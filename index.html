@@ -12,10 +12,25 @@
         body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 15px; padding-bottom: 50px; }
         .container { max-width: 480px; margin: auto; }
         .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        h1 { color: var(--blue); text-align: center; letter-spacing: -1px; margin-bottom: 20px; }
-        h2 { font-size: 18px; margin-top: 0; color: #333; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px; }
-        label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 12px; color: #666; text-transform: uppercase; }
-        input, textarea { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 10px; border: 1px solid #d1d1d6; font-size: 15px; box-sizing: border-box; }
+        h1 { color: var(--blue); text-align: center; letter-spacing: -1px; margin-bottom: 20px; font-size: 28px; }
+        h2 { font-size: 17px; margin-top: 0; color: #333; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px; }
+        label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 11px; color: #666; text-transform: uppercase; }
+        
+        /* Ajuste de alineación para inputs */
+        input, textarea { 
+            width: 100%; 
+            height: 45px; /* Altura fija para que coincidan */
+            padding: 10px; 
+            margin-bottom: 15px; 
+            border-radius: 10px; 
+            border: 1px solid #d1d1d6; 
+            font-size: 15px; 
+            box-sizing: border-box; 
+            display: block;
+        }
+        textarea { height: auto; }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: end; }
         
         .btn { width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: 700; font-size: 16px; cursor: pointer; margin-bottom: 10px; display: block; text-align: center; text-decoration: none; }
         .btn-main { background: var(--blue); color: white; }
@@ -23,12 +38,11 @@
         .btn-gps { background: #5856d6; color: white; }
         
         .status-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 15px; }
-        .status-btn { padding: 10px 5px; border-radius: 10px; border: 2px solid #ddd; background: white; font-size: 10px; font-weight: bold; cursor: pointer; }
+        .status-btn { height: 45px; border-radius: 10px; border: 2px solid #ddd; background: white; font-size: 10px; font-weight: bold; cursor: pointer; }
         .status-btn.active-ins { background: var(--green); color: white; border-color: var(--green); }
         .status-btn.active-pen { background: var(--orange); color: white; border-color: var(--orange); }
         .status-btn.active-no { background: var(--red); color: white; border-color: var(--red); }
 
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .savings-box { background: #e7f3ff; padding: 15px; border-radius: 15px; text-align: center; margin: 15px 0; border: 1px solid #cce3f5; }
         .val-highlight { font-size: 24px; font-weight: 800; color: var(--green); display: block; }
         #report-preview { background: #f8f9fa; padding: 15px; border-radius: 12px; font-family: monospace; font-size: 12px; display: none; margin-top: 15px; white-space: pre-wrap; border: 1px solid #eee; }
@@ -58,7 +72,7 @@
             </div>
             <div>
                 <label>Personas en casa</label>
-                <input type="number" id="c-people" placeholder="Cantidad">
+                <input type="number" id="c-people" placeholder="Cant.">
             </div>
         </div>
         <label>Dirección Completa</label>
@@ -71,11 +85,11 @@
         <div class="grid-2">
             <div>
                 <label>Gasto Agua ($)</label>
-                <input type="number" id="cost-water" placeholder="Mes" oninput="calculate()">
+                <input type="number" id="cost-water" placeholder="Mensual" oninput="calculate()">
             </div>
             <div>
                 <label>Gasto Jabón ($)</label>
-                <input type="number" id="cost-soap" placeholder="Mes" oninput="calculate()">
+                <input type="number" id="cost-soap" placeholder="Mensual" oninput="calculate()">
             </div>
         </div>
         <label>Cuota One Drop ($)</label>
@@ -90,13 +104,18 @@
 
     <div class="card">
         <h2>🧪 Reporte Técnico</h2>
-        <label>Fecha del Test</label>
-        <input type="date" id="test-date">
-        
-        <label>Resultado TDS (PPM)</label>
-        <input type="number" id="tds-val" placeholder="Ej: 250">
+        <div class="grid-2">
+            <div>
+                <label>Fecha del Test</label>
+                <input type="date" id="test-date">
+            </div>
+            <div>
+                <label>TDS (PPM)</label>
+                <input type="number" id="tds-val" placeholder="000">
+            </div>
+        </div>
 
-        <label>Estado de la Venta</label>
+        <label style="margin-top: 10px;">Estado de la Venta</label>
         <div class="status-group">
             <button class="status-btn" id="st-ins" onclick="setStatus('INSTALADO')">INSTALADO</button>
             <button class="status-btn" id="st-pen" onclick="setStatus('PENDIENTE')">PENDIENTE</button>
@@ -104,7 +123,7 @@
         </div>
 
         <label>Teléfono del Cliente</label>
-        <input type="tel" id="c-phone" placeholder="Para envío de SMS">
+        <input type="tel" id="c-phone" placeholder="Celular para SMS">
         
         <button class="btn btn-main" onclick="generateReport()">📝 GENERAR REPORTE</button>
         <div id="report-preview"></div>
@@ -116,7 +135,6 @@
     let chart;
     let currentStatus = "";
 
-    // Inicializar fechas
     document.getElementById('test-date').valueAsDate = new Date();
 
     function setStatus(val) {
@@ -169,14 +187,14 @@
         
         if(!currentStatus) return alert("Seleccione un estado de venta");
 
-        const msg = `ONE DROP - REPORTE DE VISITA\n--------------------------\nFecha: ${date}\nCliente: ${name} ${lastname}\nOcupantes: ${people}\nEstado: ${currentStatus}\nTDS: ${tds} PPM\nAhorro Anual Est.: ${save}\n\n(Favor de adjuntar la foto del test)`;
+        const msg = `ONE DROP - REPORTE\nFecha: ${date}\nCliente: ${name} ${lastname}\nOcupantes: ${people}\nEstado: ${currentStatus}\nTDS: ${tds} PPM\nAhorro Anual: ${save}\n\n(Favor de adjuntar la foto del test)`;
         
         document.getElementById('report-preview').innerText = msg;
         document.getElementById('report-preview').style.display = 'block';
         document.getElementById('sms-btn').style.display = 'block';
         
         navigator.clipboard.writeText(msg);
-        alert("Reporte copiado al portapapeles.");
+        alert("Reporte copiado.");
     }
 
     function sendSMS() {
