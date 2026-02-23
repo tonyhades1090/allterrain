@@ -4,45 +4,65 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>One Drop</title>
+
+    <link rel="icon" type="image/png" href="https://i.ibb.co/S76pM5N8/one-drop-icon.png">
+    <link rel="apple-touch-icon" href="https://i.ibb.co/S76pM5N8/one-drop-icon.png">
+    
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="One Drop">
+    <meta name="theme-color" content="#007aff">
+
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <style>
         :root { --blue: #007aff; --green: #34c759; --orange: #ff9500; --red: #ff3b30; --bg: #f2f2f7; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 15px; padding-bottom: 50px; }
         .container { max-width: 450px; margin: auto; }
         .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 15px; }
+        
         h1 { color: var(--blue); text-align: center; letter-spacing: -1px; margin: 10px 0 20px 0; font-size: 28px; font-weight: 800; }
         h2 { font-size: 15px; margin-top: 0; color: #333; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 15px; text-transform: uppercase; }
+        
         label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 11px; color: #666; text-transform: uppercase; }
         input, textarea { width: 100%; height: 48px; padding: 12px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #d1d1d6; font-size: 16px; background-color: #fff; }
         textarea { height: 80px; resize: none; }
+        
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .btn { width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: 700; font-size: 16px; cursor: pointer; display: block; text-align: center; }
         .btn-main { background: var(--blue); color: white; }
         .btn-historial { background: #8e8e93; color: white; }
         .btn-gps { background: #5856d6; color: white; margin-top: 5px; }
         .btn-sms { background: var(--green); color: white; margin-top: 15px; }
+
+        /* ESTADOS */
         .status-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
         .status-btn { height: 45px; border-radius: 10px; border: 1px solid #ddd; background: #f9f9f9; font-size: 9px; font-weight: 800; color: #666; }
         .status-btn.active-ins { background: var(--green); color: white; border-color: var(--green); }
         .status-btn.active-pen { background: var(--orange); color: white; border-color: var(--orange); }
         .status-btn.active-no { background: var(--red); color: white; border-color: var(--red); }
+
+        /* AHORRO */
         .savings-box { background: #e7f3ff; padding: 15px; border-radius: 15px; text-align: center; margin: 15px 0; border: 1px solid #cce3f5; }
         .val-highlight { font-size: 26px; font-weight: 800; color: var(--green); display: block; }
+
+        /* HISTORIAL MODAL */
         #history-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f2f2f7; z-index: 3000; overflow-y: auto; }
         .hist-card { background: white; margin: 10px; padding: 15px; border-radius: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .delete-btn { background: #ffebeb; color: var(--red); border: none; width: 35px; height: 35px; border-radius: 10px; font-weight: bold; }
-        .hist-details { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ccc; font-size: 13px; }
+        .delete-btn { background: #ffebeb; color: var(--red); border: none; width: 35px; height: 35px; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        .hist-details { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ccc; font-size: 13px; color: #444; }
     </style>
 </head>
 <body>
 
 <div id="history-modal">
     <div style="padding:20px; background:white; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #ddd; position:sticky; top:0; z-index:10;">
-        <h2 style="margin:0; border:none;">Historial</h2>
+        <h2 style="margin:0; border:none;">Historial de Clientes</h2>
         <button onclick="cerrarHistorial()" style="background:var(--blue); color:white; border:none; padding:8px 15px; border-radius:8px; font-weight:bold;">LISTO</button>
     </div>
     <div id="history-list"></div>
@@ -50,6 +70,7 @@
 
 <div id="app-content" class="container">
     <h1>ONE DROP</h1>
+
     <div class="card">
         <h2>👤 Datos del Cliente</h2>
         <div class="grid-2">
@@ -66,14 +87,17 @@
     </div>
 
     <div class="card">
-        <h2>💰 Ahorro Estimado</h2>
+        <h2>💰 Comparativa de Gasto Anual</h2>
         <div class="grid-2">
-            <div><label>Agua</label><input type="number" id="cost-water" oninput="calculate()"></div>
-            <div><label>Jabón</label><input type="number" id="cost-soap" oninput="calculate()"></div>
+            <div><label>Agua Mensual</label><input type="number" id="cost-water" oninput="calculate()"></div>
+            <div><label>Jabón Mensual</label><input type="number" id="cost-soap" oninput="calculate()"></div>
         </div>
         <label>Cuota mensual OD ($)</label><input type="number" id="one-fee" value="180" oninput="calculate()">
-        <div class="savings-box"><span class="val-highlight" id="net-savings">$0.00</span><small>Ahorro neto anual</small></div>
-        <canvas id="savingsChart" style="max-height: 200px;"></canvas>
+        <div class="savings-box">
+            <span class="val-highlight" id="net-savings">$0.00</span>
+            <small>Ahorro neto anual</small>
+        </div>
+        <canvas id="savingsChart" style="max-height: 250px;"></canvas>
     </div>
 
     <div class="card">
@@ -97,11 +121,14 @@
 </div>
 
 <script>
+    // CONFIGURACIÓN FIREBASE
     const firebaseConfig = { apiKey: "AIzaSyAK9cldIvt1JZJ-fB-1J7Z51FLxxzT3oPg", projectId: "landmaster-aquafill" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+    
     let chart, currentStatus = "";
 
+    // FUNCIÓN PARA BOTONES DE ESTADO
     function setStatus(v) {
         currentStatus = v;
         document.getElementById('st-ins').className = 'status-btn' + (v === 'INSTALADO' ? ' active-ins' : '');
@@ -109,48 +136,66 @@
         document.getElementById('st-no').className = 'status-btn' + (v === 'NO PASÓ' ? ' active-no' : '');
     }
 
+    // GUARDAR EN FIREBASE
     async function saveData() {
-        if(!currentStatus) return alert("Selecciona un estado");
+        if(!currentStatus) return alert("Por favor, selecciona un estado");
         const docData = {
-            cliente: document.getElementById('c-name').value + " " + document.getElementById('c-lastname').value,
+            nombre: document.getElementById('c-name').value,
+            apellido: document.getElementById('c-lastname').value,
             tel: document.getElementById('c-phone').value,
             dir: document.getElementById('c-address').value,
             tds: document.getElementById('tds-val').value,
             ahorro: document.getElementById('net-savings').innerText,
             estado: currentStatus,
             fecha: document.getElementById('test-date').value,
+            nacimiento: document.getElementById('c-birthday').value,
+            personas: document.getElementById('c-people').value,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         };
-        await db.collection("reportes").add(docData);
-        alert("✅ Guardado");
-        document.getElementById('sms-btn').style.display = "block";
+        try {
+            await db.collection("reportes").add(docData);
+            alert("✅ Reporte guardado con éxito");
+            document.getElementById('sms-btn').style.display = "block";
+        } catch(e) { alert("Error al guardar"); }
     }
 
+    // HISTORIAL CON DETALLES Y BORRADO
     async function abrirHistorial() {
         document.getElementById('history-modal').style.display = "block";
         const list = document.getElementById('history-list');
-        list.innerHTML = "<p style='padding:20px'>Cargando...</p>";
+        list.innerHTML = "<p style='padding:20px'>Cargando historial...</p>";
+        
         const snap = await db.collection("reportes").orderBy("timestamp", "desc").get();
         list.innerHTML = "";
+        
         snap.forEach(doc => {
             const d = doc.data();
             list.innerHTML += `
                 <div class="hist-card" id="card-${doc.id}">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div onclick="document.getElementById('det-${doc.id}').style.display='block'" style="flex-grow:1">
-                            <b>${d.cliente}</b><br><small>${d.fecha} | ${d.estado}</small>
+                        <div onclick="toggleDetalle('${doc.id}')" style="flex-grow:1; cursor:pointer;">
+                            <b style="color:var(--blue); font-size:16px;">${d.nombre} ${d.apellido}</b><br>
+                            <small>${d.fecha} | ${d.estado} ▼</small>
                         </div>
                         <button class="delete-btn" onclick="borrarRegistro('${doc.id}')">✕</button>
                     </div>
-                    <div class="hist-details" id="det-${doc.id}" onclick="this.style.display='none'">
-                        <p>Tel: ${d.tel}<br>Dir: ${d.dir}<br>TDS: ${d.tds}<br>Ahorro: ${d.ahorro}</p>
+                    <div class="hist-details" id="det-${doc.id}">
+                        <strong>Tel:</strong> ${d.tel}<br>
+                        <strong>Dir:</strong> ${d.dir}<br>
+                        <strong>TDS:</strong> ${d.tds} PPM | <strong>Personas:</strong> ${d.personas}<br>
+                        <strong>Ahorro Anual:</strong> <span style="color:var(--green); font-weight:bold;">${d.ahorro}</span>
                     </div>
                 </div>`;
         });
     }
 
+    function toggleDetalle(id) {
+        const el = document.getElementById('det-' + id);
+        el.style.display = (el.style.display === 'block') ? 'none' : 'block';
+    }
+
     async function borrarRegistro(id) {
-        if(confirm("¿Borrar?")) {
+        if(confirm("¿Estás seguro de que quieres eliminar este reporte?")) {
             await db.collection("reportes").doc(id).delete();
             document.getElementById('card-' + id).remove();
         }
@@ -158,6 +203,7 @@
 
     function cerrarHistorial() { document.getElementById('history-modal').style.display = "none"; }
 
+    // GRÁFICA ORIGINAL VERTICAL
     function calculate() {
         const w = (parseFloat(document.getElementById('cost-water').value) || 0) * 12;
         const s = (parseFloat(document.getElementById('cost-soap').value) || 0) * 12;
@@ -170,14 +216,15 @@
         chart = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: ['Actual', 'One Drop'],
+                labels: ['Gasto Actual', 'Plan One Drop'],
                 datasets: [{
-                    label: 'Gasto Anual',
                     data: [w + s, f],
-                    backgroundColor: ['#ff3b30', '#007aff']
+                    backgroundColor: ['#ff3b30', '#007aff'],
+                    borderRadius: 10
                 }]
             },
             options: {
+                responsive: true,
                 scales: { y: { beginAtZero: true } },
                 plugins: { legend: { display: false } }
             }
@@ -191,9 +238,12 @@
 
     function sendSMS() {
         const p = document.getElementById('c-phone').value;
-        const m = `ONE DROP: Ahorro Anual de ${document.getElementById('net-savings').innerText}`;
+        const m = `ONE DROP: Su ahorro anual estimado es de ${document.getElementById('net-savings').innerText}. Calidad de agua TDS: ${document.getElementById('tds-val').value} PPM.`;
         window.location.href = `sms:${p}?body=${encodeURIComponent(m)}`;
     }
+
+    // Inicializar fecha hoy
+    document.getElementById('test-date').valueAsDate = new Date();
 </script>
 </body>
 </html>
