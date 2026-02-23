@@ -14,36 +14,27 @@
         body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 15px; padding-bottom: 50px; color: #000; }
         .container { max-width: 450px; margin: auto; }
         .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 15px; }
-        
         h1 { color: var(--blue); text-align: center; letter-spacing: -1px; margin: 10px 0 20px 0; font-size: 28px; font-weight: 800; }
         h2 { font-size: 15px; margin-top: 0; color: #333; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
-        
         label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 11px; color: #666; text-transform: uppercase; }
-        input, textarea { 
-            width: 100%; height: 48px; padding: 12px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #d1d1d6; 
-            font-size: 16px; background-color: #fff; appearance: none;
-        }
+        input, textarea { width: 100%; height: 48px; padding: 12px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #d1d1d6; font-size: 16px; background-color: #fff; appearance: none; }
         textarea { height: 80px; resize: none; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        
-        .btn { width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: 700; font-size: 16px; cursor: pointer; display: block; text-align: center; transition: 0.2s; }
+        .btn { width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: 700; font-size: 16px; cursor: pointer; display: block; text-align: center; }
         .btn-main { background: var(--blue); color: white; }
         .btn-historial { background: #8e8e93; color: white; }
         .btn-gps { background: #5856d6; color: white; margin-top: 5px; }
         .btn-sms { background: var(--green); color: white; margin-top: 15px; }
-        
-        /* BOTONES ESTADO */
         .status-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
         .status-btn { height: 45px; border-radius: 10px; border: 1px solid #ddd; background: #f9f9f9; font-size: 9px; font-weight: 800; color: #666; }
         .status-btn.active-ins { background: var(--green); color: white; border-color: var(--green); }
         .status-btn.active-pen { background: var(--orange); color: white; border-color: var(--orange); }
         .status-btn.active-no { background: var(--red); color: white; border-color: var(--red); }
-
-        /* HISTORIAL */
         #history-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f2f2f7; z-index: 3000; overflow-y: auto; }
-        .hist-card { background: white; margin: 10px; padding: 15px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .hist-card { background: white; margin: 10px; padding: 15px; border-radius: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .hist-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .hist-details { margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ccc; font-size: 13px; line-height: 1.6; display: none; }
         .delete-btn { background: #ffebeb; color: var(--red); border: none; width: 35px; height: 35px; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer; }
-
         .savings-box { background: #e7f3ff; padding: 15px; border-radius: 15px; text-align: center; margin: 15px 0; border: 1px solid #cce3f5; }
         .val-highlight { font-size: 26px; font-weight: 800; color: var(--green); display: block; }
     </style>
@@ -52,7 +43,7 @@
 
 <div id="history-modal">
     <div style="padding:20px; background:white; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #ddd; position:sticky; top:0; z-index:10;">
-        <h2 style="margin:0; border:none;">Historial</h2>
+        <h2 style="margin:0; border:none;">Historial Detallado</h2>
         <button onclick="cerrarHistorial()" style="background:var(--blue); color:white; border:none; padding:8px 15px; border-radius:8px; font-weight:bold;">LISTO</button>
     </div>
     <div id="history-list"></div>
@@ -60,7 +51,6 @@
 
 <div id="app-content" class="container">
     <h1>ONE DROP</h1>
-
     <div class="card">
         <h2>👤 Datos del Cliente</h2>
         <div class="grid-2">
@@ -94,7 +84,6 @@
             <div><label>TDS (PPM)</label><input type="number" id="tds-val"></div>
         </div>
         <label>Presencia de Cloro</label><input type="text" id="cloro-val">
-        <label>Estado de Venta</label>
         <div class="status-group">
             <button class="status-btn" id="st-ins" onclick="setStatus('INSTALADO')">INSTALADO</button>
             <button class="status-btn" id="st-pen" onclick="setStatus('PENDIENTE')">PENDIENTE</button>
@@ -112,7 +101,6 @@
     const firebaseConfig = { apiKey: "AIzaSyAK9cldIvt1JZJ-fB-1J7Z51FLxxzT3oPg", projectId: "landmaster-aquafill" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    
     let chart, currentStatus = "";
 
     function setStatus(v) {
@@ -125,13 +113,21 @@
 
     async function saveData() {
         if(!currentStatus) return alert("Selecciona un estado");
-        await db.collection("reportes").add({
-            cliente: document.getElementById('c-name').value + " " + document.getElementById('c-lastname').value,
+        const data = {
+            nombre: document.getElementById('c-name').value,
+            apellido: document.getElementById('c-lastname').value,
+            nacimiento: document.getElementById('c-birthday').value,
+            personas: document.getElementById('c-people').value,
+            tel: document.getElementById('c-phone').value,
+            dir: document.getElementById('c-address').value,
             tds: document.getElementById('tds-val').value,
+            cloro: document.getElementById('cloro-val').value,
+            ahorroAnual: document.getElementById('net-savings').innerText,
             estado: currentStatus,
             fecha: document.getElementById('test-date').value,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
+        };
+        await db.collection("reportes").add(data);
         alert("✅ Guardado correctamente");
         document.getElementById('sms-btn').style.display = "block";
     }
@@ -146,21 +142,36 @@
             const d = doc.data();
             list.innerHTML += `
                 <div class="hist-card" id="doc-${doc.id}">
-                    <div>
-                        <b style="color:var(--blue);">${d.cliente}</b><br>
-                        <small>${d.fecha} | TDS: ${d.tds} | ${d.estado}</small>
+                    <div class="hist-header">
+                        <div onclick="toggleDetalle('${doc.id}')" style="flex-grow:1;">
+                            <b style="color:var(--blue); font-size:16px;">${d.nombre} ${d.apellido}</b><br>
+                            <small>${d.fecha} | ${d.estado} ▼</small>
+                        </div>
+                        <button class="delete-btn" onclick="borrarR('${doc.id}')">✕</button>
                     </div>
-                    <button class="delete-btn" onclick="confirmarBorrado('${doc.id}')">✕</button>
+                    <div class="hist-details" id="det-${doc.id}">
+                        <p><strong>Tel:</strong> ${d.tel || 'N/A'}</p>
+                        <p><strong>Dir:</strong> ${d.dir || 'N/A'}</p>
+                        <p><strong>Nacimiento:</strong> ${d.nacimiento || 'N/A'}</p>
+                        <p><strong>Personas:</strong> ${d.personas || '0'}</p>
+                        <p><strong>TDS:</strong> ${d.tds} PPM | <strong>Cloro:</strong> ${d.cloro}</p>
+                        <p style="color:var(--green); font-weight:bold;">Ahorro: ${d.ahorroAnual}</p>
+                    </div>
                 </div>`;
         });
     }
 
-    async function confirmarBorrado(id) {
-        if(confirm("¿Seguro que quieres borrar este registro?")) {
+    function toggleDetalle(id) {
+        const el = document.getElementById('det-' + id);
+        el.style.display = (el.style.display === 'block') ? 'none' : 'block';
+    }
+
+    async function borrarR(id) {
+        if(confirm("¿Borrar este reporte?")) {
             try {
                 await db.collection("reportes").doc(id).delete();
-                document.getElementById('doc-'+id).remove();
-            } catch(e) { alert("Error al borrar"); }
+                document.getElementById('doc-' + id).remove();
+            } catch(e) { alert("Error"); }
         }
     }
 
@@ -172,7 +183,6 @@
         const f = parseFloat(document.getElementById('one-fee').value) || 0;
         const net = (w+s)*12 - (f*12);
         document.getElementById('net-savings').innerText = `$${net.toLocaleString()}`;
-        
         const ctx = document.getElementById('savingsChart').getContext('2d');
         if(chart) chart.destroy();
         chart = new Chart(ctx, {
@@ -184,7 +194,7 @@
 
     function goMaps() {
         const addr = document.getElementById('c-address').value;
-        if(addr) window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`, '_blank');
+        if(addr) window.open(`http://googleusercontent.com/maps.google.com/maps?q=${encodeURIComponent(addr)}`, '_blank');
     }
 
     function sendSMS() {
