@@ -3,27 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aqua Fill: Sales Intelligence</title>
+    <title>Aqua Fill Pro: Sales Master</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --blue: #0052cc; --green: #34c759; --red: #ff3b30; --bg: #f2f2f7; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); color: #1c1c1e; margin: 0; padding: 15px; padding-bottom: 100px; }
+        :root { --blue: #0052cc; --green: #34c759; --orange: #ff9500; --bg: #f2f2f7; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); color: #1c1c1e; margin: 0; padding: 15px; padding-bottom: 110px; }
         .container { max-width: 480px; margin: auto; }
-        .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .card { background: white; padding: 20px; border-radius: 22px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
         h1, h2 { color: var(--blue); text-align: center; margin-bottom: 10px; }
         label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 13px; color: #48484a; }
         input, select, textarea { width: 100%; padding: 14px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #d1d1d6; font-size: 16px; box-sizing: border-box; background: #fafafa; }
         
         .result-card { background: #f8f9ff; padding: 15px; border-radius: 15px; border-left: 5px solid var(--blue); margin: 15px 0; }
-        .val-highlight { font-size: 24px; font-weight: 800; color: var(--green); display: block; }
-        .compare-row { display: flex; justify-content: space-between; margin-top: 10px; font-size: 14px; }
+        .val-highlight { font-size: 26px; font-weight: 800; color: var(--green); display: block; }
         
-        .btn { width: 100%; padding: 16px; border-radius: 12px; border: none; font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.2s; }
+        .btn { width: 100%; padding: 16px; border-radius: 12px; border: none; font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.2s; margin-bottom: 10px; }
         .btn-main { background: var(--blue); color: white; }
-        .btn-outline { background: transparent; border: 2px solid var(--blue); color: var(--blue); margin-top: 10px; }
-        #photo-preview { width: 100%; border-radius: 12px; display: none; margin: 15px 0; border: 2px solid var(--blue); }
+        .btn-form { background: var(--orange); color: white; text-decoration: none; display: block; text-align: center; }
+        .btn-outline { background: transparent; border: 2px solid var(--blue); color: var(--blue); }
+        
+        #photo-preview { width: 100%; border-radius: 12px; display: none; margin: 15px 0; border: 3px solid var(--blue); }
         .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 15px; border-top: 1px solid #ddd; z-index: 1000; }
     </style>
 </head>
@@ -32,6 +33,8 @@
 <div class="container">
     <h1>AQUA FILL PRO</h1>
 
+    <a href="https://www.cognitoforms.com/AquafeelSolutions/" target="_blank" class="btn btn-form">📝 ABRIR FORMULARIO AQUAFILL</a>
+
     <div class="card">
         <h2>Análisis de Ahorro</h2>
         <label>Gasto mensual Agua Embotellada ($)</label>
@@ -39,20 +42,19 @@
         
         <label>Gasto mensual Jabones/Limpieza ($)</label>
         <input type="number" id="cost-soap" placeholder="Ej: 50" oninput="calculateROI()">
+
+        <label style="color:var(--orange)">Cuota Mensual Aqua Fill ($)</label>
+        <input type="number" id="aqua-fee" value="180" oninput="calculateROI()">
         
         <div class="result-card">
-            <span style="font-size: 12px; color: #666;">AHORRO NETO ESTIMADO (1er AÑO):</span>
+            <span style="font-size: 12px; color: #666;">AHORRO NETO ANUAL ESTIMADO:</span>
             <span class="val-highlight" id="net-savings">$0.00</span>
-            <div class="compare-row">
-                <span>Gasto Actual: <b id="total-expense" style="color:var(--red)">$0</b>/año</span>
-                <span>Cuota Aqua Fill: <b style="color:var(--blue)">$180</b>/mes</span>
-            </div>
         </div>
         <canvas id="savingsChart"></canvas>
     </div>
 
     <div class="card">
-        <h2>Reporte Técnico de Agua</h2>
+        <h2>Reporte Técnico</h2>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
             <div>
                 <label>TDS (Dureza)</label>
@@ -60,28 +62,29 @@
             </div>
             <div>
                 <label>Cloro (PPM)</label>
-                <input type="number" id="chlorine-val" placeholder="PPM" step="0.1">
+                <input type="number" id="chlorine-val" placeholder="PPM">
             </div>
         </div>
         
-        <button class="btn" style="background:#5856d6; color:white;" onclick="document.getElementById('camera-input').click()">📷 FOTO DEL TEST</button>
+        <label>Capturar Foto del Test (TDS/Cloro)</label>
+        <button class="btn" style="background:#5856d6; color:white;" onclick="document.getElementById('camera-input').click()">📷 TOMAR FOTO DEL TEST</button>
         <input type="file" id="camera-input" accept="image/*" capture="camera" style="display:none" onchange="previewPhoto(this)">
         <img id="photo-preview" src="">
 
-        <button class="btn btn-outline" onclick="sendWhatsApp()">ENVIAR REPORTE DIGITAL</button>
+        <button class="btn btn-outline" onclick="sendWhatsApp()">📤 ENVIAR REPORTE POR WHATSAPP</button>
     </div>
 
     <div class="card">
-        <h2>Datos del Cliente</h2>
+        <h2>Expediente del Cliente</h2>
         <input type="text" id="c-name" placeholder="Nombre completo">
         <input type="tel" id="c-phone" placeholder="Teléfono / WhatsApp">
-        <input type="text" id="c-address" placeholder="Dirección Completa">
+        <input type="text" id="c-address" placeholder="Dirección completa">
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
             <input type="number" id="c-people" placeholder="Personas">
             <input type="date" id="c-bday">
         </div>
         
-        <label>Estatus Final</label>
+        <label>Estatus de la Visita</label>
         <select id="c-status" onchange="toggleReason()">
             <option value="pendiente">Pendiente</option>
             <option value="instalado">✅ Instalado ($8,000)</option>
@@ -89,16 +92,16 @@
         </select>
         
         <div id="reason-box" style="display:none;">
-            <textarea id="c-reason" placeholder="Razón por la cual no se instaló..."></textarea>
+            <textarea id="c-reason" placeholder="Escriba la razón de no venta..."></textarea>
         </div>
 
-        <button class="btn btn-main" onclick="saveToCloud()">GUARDAR EXPEDIENTE</button>
+        <button class="btn btn-main" onclick="saveToCloud()">💾 GUARDAR EN BASE DE DATOS</button>
     </div>
 </div>
 
 <div class="nav-bar">
-    <div style="color:var(--blue); font-weight:bold;">🏠 Venta</div>
-    <div style="color:#8e8e93;">👥 Clientes</div>
+    <div style="color:var(--blue); font-weight:bold;">🏠 Inicio</div>
+    <div style="color:#8e8e93;" onclick="alert('Próximamente: Lista de Clientes')">👥 Clientes</div>
 </div>
 
 <script>
@@ -110,19 +113,14 @@
     function calculateROI() {
         const water = parseFloat(document.getElementById('cost-water').value) || 0;
         const soap = parseFloat(document.getElementById('cost-soap').value) || 0;
-        const currentMonthly = water + soap;
-        const currentYearly = currentMonthly * 12;
+        const fee = parseFloat(document.getElementById('aqua-fee').value) || 0;
         
-        const aquaFillMonthly = 180;
-        const aquaFillYearly = aquaFillMonthly * 12;
+        const currentYearly = (water + soap) * 12;
+        const aquaYearly = fee * 12;
+        const netSavings = currentYearly - aquaYearly;
         
-        // Ahorro anual real comparado con la cuota de $180
-        const netSavings = currentYearly - aquaFillYearly;
-        
-        document.getElementById('total-expense').innerText = `$${currentYearly.toLocaleString()}`;
         document.getElementById('net-savings').innerText = `$${netSavings.toLocaleString()}`;
-        
-        updateChart(currentYearly, aquaFillYearly);
+        updateChart(currentYearly, aquaYearly);
     }
 
     function updateChart(current, aqua) {
@@ -163,34 +161,33 @@
     function sendWhatsApp() {
         const name = document.getElementById('c-name').value || "Cliente";
         const tds = document.getElementById('tds-val').value || "---";
-        const chlorine = document.getElementById('chlorine-val').value || "0";
+        const chlorine = document.getElementById('chlorine-val').value || "---";
         const savings = document.getElementById('net-savings').innerText;
 
-        const text = `*CERTIFICADO DE SALUD AGUA - AQUA FILL*%0A%0A` +
-                     `Hola *${name}*, este es su reporte técnico:%0A%0A` +
-                     `🧪 *Test de Calidad:*%0A` +
-                     `- TDS (Dureza): ${tds} PPM%0A` +
-                     `- Cloro: ${chlorine} PPM%0A%0A` +
-                     `💰 *Impacto Económico:*%0A` +
-                     `Usted ahorraría aproximadamente *${savings}* anuales al sustituir sus gastos actuales por el sistema Aqua Fill.%0A%0A` +
-                     `_¡Invierta en su salud y su bolsillo!_`;
+        const text = `*RESULTADOS DEL TEST DE AGUA - AQUA FILL*%0A%0A` +
+                     `Hola *${name}*, le adjunto la foto de su test y los resultados registrados:%0A%0A` +
+                     `🧪 *TDS (Dureza):* ${tds} PPM%0A` +
+                     `🧪 *Cloro:* ${chlorine} PPM%0A` +
+                     `💰 *Ahorro Anual con Aqua Fill:* ${savings}%0A%0A` +
+                     `_¡Compare los colores en la foto adjunta!_`;
         
+        // El técnico debe seleccionar la foto de la galería después de que se abra WhatsApp
         window.open(`https://wa.me/${document.getElementById('c-phone').value}?text=${text}`);
     }
 
     async function saveToCloud() {
         const data = {
             nombre: document.getElementById('c-name').value,
+            tel: document.getElementById('c-phone').value,
             direccion: document.getElementById('c-address').value,
+            cuota: document.getElementById('aqua-fee').value,
             status: document.getElementById('c-status').value,
-            ahorro_calculado: document.getElementById('net-savings').innerText,
-            tds: document.getElementById('tds-val').value,
-            cloro: document.getElementById('chlorine-val').value,
+            ahorro: document.getElementById('net-savings').innerText,
             fecha: new Date().toISOString()
         };
         try {
-            await db.collection("ventas_pro").add(data);
-            alert("✅ Expediente guardado correctamente.");
+            await db.collection("ventas_v3").add(data);
+            alert("✅ ¡Expediente guardado con éxito!");
             location.reload();
         } catch(e) { alert("Error: " + e.message); }
     }
