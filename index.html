@@ -11,20 +11,21 @@
     <style>
         :root { --blue: #007aff; --green: #34c759; --orange: #ff9500; --red: #ff3b30; --bg: #f2f2f7; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 15px; padding-bottom: 50px; overflow-x: hidden; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 15px; padding-bottom: 50px; }
         .container { max-width: 450px; margin: auto; }
         .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 15px; }
         h1 { color: var(--blue); text-align: center; letter-spacing: -1px; margin: 10px 0 20px 0; font-size: 28px; font-weight: 800; }
-        h2 { font-size: 15px; margin: 0 0 15px 0; color: #333; border-bottom: 1px solid #eee; padding-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        h2 { font-size: 15px; margin: 0 0 15px 0; color: #333; border-bottom: 1px solid #eee; padding-bottom: 8px; text-transform: uppercase; }
         label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 11px; color: #666; text-transform: uppercase; }
-        input, textarea { width: 100%; height: 48px; padding: 12px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #d1d1d6; font-size: 16px; background-color: #fff; appearance: none; }
-        textarea { height: 80px; resize: none; }
+        input, textarea { width: 100%; height: 48px; padding: 12px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #d1d1d6; font-size: 16px; background-color: #fff; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .btn { width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: 700; font-size: 16px; cursor: pointer; display: block; text-align: center; }
         .btn-main { background: var(--blue); color: white; }
         .btn-historial { background: #8e8e93; color: white; }
         .btn-gps { background: #5856d6; color: white; margin-top: 5px; }
         .btn-sms { background: var(--green); color: white; margin-top: 15px; }
+        
+        /* LOGIN SWITCH */
         .switch-box { display: flex; align-items: center; justify-content: space-between; background: #fff; padding: 12px; border-radius: 12px; border: 1px solid #d1d1d6; margin-bottom: 20px; }
         .switch { position: relative; width: 46px; height: 26px; }
         .switch input { opacity: 0; width: 0; height: 0; }
@@ -32,29 +33,23 @@
         .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
         input:checked + .slider { background-color: var(--blue); }
         input:checked + .slider:before { transform: translateX(20px); }
+
+        /* STATUS */
         .status-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
         .status-btn { height: 45px; border-radius: 10px; border: 1px solid #ddd; background: #f9f9f9; font-size: 9px; font-weight: 800; color: #666; }
         .status-btn.active-ins { background: var(--green); color: white; border-color: var(--green); }
         .status-btn.active-pen { background: var(--orange); color: white; border-color: var(--orange); }
         .status-btn.active-no { background: var(--red); color: white; border-color: var(--red); }
-        
-        /* DISEÑO DE HISTORIAL REPARADO */
+
+        /* HISTORIAL NUEVO (SIN SWIPE, BOTÓN DIRECTO) */
         #history-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f2f2f7; z-index: 3000; overflow-y: auto; }
-        .hist-item-wrapper { position: relative; background: var(--red); margin-bottom: 2px; overflow: hidden; height: 85px; }
-        .hist-item-content { 
-            background: white; padding: 15px 20px; position: relative; z-index: 2; 
-            transition: transform 0.2s ease-out; height: 100%; display: flex; flex-direction: column; justify-content: center;
-            touch-action: pan-x; /* Optimiza el deslizamiento lateral */
-        }
-        .hist-del-btn { 
-            position: absolute; right: 0; top: 0; height: 100%; width: 100px; 
-            background: var(--red); color: white; border: none; font-weight: 900; 
-            z-index: 1; font-size: 14px; cursor: pointer;
-        }
+        .hist-card { background: white; margin: 10px; padding: 15px; border-radius: 15px; position: relative; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .hist-info { flex-grow: 1; }
+        .delete-icon { background: #ffebeb; color: var(--red); border: none; width: 40px; height: 40px; border-radius: 10px; font-weight: bold; font-size: 18px; display: flex; align-items: center; justify-content: center; margin-left: 10px; flex-shrink: 0; }
 
         #auth-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; }
         #app-content { display: none; }
-        .savings-box { background: #e7f3ff; padding: 15px; border-radius: 15px; text-align: center; margin: 15px 0; border: 1px solid #cce3f5; }
+        .savings-box { background: #e7f3ff; padding: 15px; border-radius: 15px; text-align: center; margin: 15px 0; }
         .val-highlight { font-size: 26px; font-weight: 800; color: var(--green); display: block; }
     </style>
 </head>
@@ -103,7 +98,7 @@
             <div><label>Personas</label><input type="number" id="c-people"></div>
         </div>
         <label>Teléfono</label><input type="tel" id="c-phone">
-        <label>Dirección</label><textarea id="c-address"></textarea>
+        <label>Dirección</label><textarea id="c-address" style="width: 100%; height: 60px; border-radius: 12px; border: 1px solid #d1d1d6; padding: 10px;"></textarea>
         <button class="btn btn-gps" onclick="goMaps()">🗺️ VER EN MAPS</button>
     </div>
 
@@ -204,54 +199,22 @@
         snap.forEach(doc => {
             const d = doc.data(), id = doc.id;
             list.innerHTML += `
-                <div class="hist-item-wrapper" id="wrap-${id}">
-                    <button class="hist-del-btn" onclick="eliminarF(${id})">BORRAR</button>
-                    <div class="hist-item-content" id="content-${id}" 
-                         ontouchstart="ts(event,'${id}')" 
-                         ontouchmove="tm(event,'${id}')" 
-                         ontouchend="te(event,'${id}')">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <b style="color:var(--blue); font-size:16px;">${d.cliente}</b>
-                            <span style="font-size:11px; color:#888;">${d.fecha}</span>
-                        </div>
-                        <div style="font-size:12px; margin-top:4px; color:#444;">
-                            ${d.estado} | TDS: ${d.tds} | <b>${d.vendedorEmail.split('@')[0]}</b>
-                        </div>
+                <div class="hist-card" id="card-${id}">
+                    <div class="hist-info">
+                        <b style="color:var(--blue); font-size:16px;">${d.cliente}</b><br>
+                        <small>${d.fecha} | ${d.estado} | <b>${d.vendedorEmail.split('@')[0]}</b></small>
                     </div>
+                    <button class="delete-icon" onclick="borrarRegistro('${id}')">✕</button>
                 </div>`;
         });
     }
 
-    // --- LÓGICA DE SWIPE REFORZADA ---
-    let sx = 0;
-    function ts(e, id) { sx = e.touches[0].clientX; }
-    function tm(e, id) {
-        let m = sx - e.touches[0].clientX;
-        if (m > 0 && m < 120) {
-            document.getElementById('content-'+id).style.transform = `translateX(-${m}px)`;
-        }
-    }
-    function te(e, id) {
-        let f = sx - e.changedTouches[0].clientX;
-        let el = document.getElementById('content-'+id);
-        if (f > 60) el.style.transform = "translateX(-100px)";
-        else el.style.transform = "translateX(0)";
-    }
-
-    // --- FUNCIÓN DE ELIMINACIÓN CORREGIDA ---
-    async function eliminarF(id) {
-        // 'id' aquí es el ID de Firebase. Lo pasamos como string.
-        const idStr = id.id || id; 
-        try {
-            await db.collection("reportes").doc(idStr).delete();
-            const wrapper = document.getElementById(`wrap-${idStr}`);
-            wrapper.style.transition = "0.3s";
-            wrapper.style.height = "0";
-            wrapper.style.opacity = "0";
-            setTimeout(() => wrapper.remove(), 300);
-        } catch(e) {
-            console.error(e);
-            alert("No se pudo borrar. Intenta de nuevo.");
+    async function borrarRegistro(id) {
+        if(confirm("¿Seguro que quieres borrar este reporte?")) {
+            try {
+                await db.collection("reportes").doc(id).delete();
+                document.getElementById(`card-${id}`).remove();
+            } catch(e) { alert("Error al borrar"); }
         }
     }
 
@@ -272,7 +235,7 @@
 
     function goMaps() {
         const addr = document.getElementById('c-address').value;
-        if(addr) window.open("https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(addr), '_blank');
+        if(addr) window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`, '_blank');
         else alert("Escribe una dirección");
     }
 
