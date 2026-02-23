@@ -8,22 +8,24 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --blue: #007aff; --dark: #1c1c1e; --green: #34c759; --bg: #f2f2f7; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--dark); margin: 0; padding: 15px; padding-bottom: 50px; }
+        :root { --blue: #007aff; --green: #34c759; --orange: #ff9500; --bg: #f2f2f7; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 15px; padding-bottom: 50px; }
         .container { max-width: 480px; margin: auto; }
         .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        h1 { text-align: center; color: var(--blue); font-size: 28px; letter-spacing: -1px; }
-        h2 { font-size: 18px; margin-top: 0; color: #3a3a3c; }
-        label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 13px; color: #8e8e93; }
-        input, textarea { width: 100%; padding: 14px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #d1d1d6; font-size: 16px; box-sizing: border-box; background: #fafafa; }
+        h1 { color: var(--blue); text-align: center; letter-spacing: -1px; }
+        h2 { font-size: 18px; margin-top: 0; }
+        label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 13px; }
+        input, select, textarea { width: 100%; padding: 14px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #d1d1d6; font-size: 16px; box-sizing: border-box; }
         
-        .btn { width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: 700; font-size: 16px; cursor: pointer; margin-bottom: 10px; display: block; text-align: center; text-decoration: none; }
-        .btn-blue { background: var(--blue); color: white; }
-        .btn-green { background: var(--green); color: white; }
-        .btn-gps { background: #5856d6; color: white; }
+        .btn { width: 100%; padding: 16px; border-radius: 12px; border: none; font-weight: 700; font-size: 16px; cursor: pointer; margin-bottom: 10px; display: block; text-align: center; text-decoration: none; }
+        .btn-pdf { background: #555; color: white; }
+        .btn-sms { background: var(--green); color: white; }
+        .btn-main { background: var(--blue); color: white; }
+        .btn-form { background: #5856d6; color: white; }
         
-        .result-box { background: #f8f9ff; padding: 15px; border-radius: 15px; text-align: center; border: 1px solid #e5e5ea; }
-        #report-preview { background: #f2f2f7; padding: 15px; border-radius: 12px; font-family: monospace; font-size: 13px; display: none; margin-top: 15px; white-space: pre-wrap; }
+        #photo-preview { width: 100%; border-radius: 12px; display: none; margin: 15px 0; border: 3px solid var(--blue); }
+        .savings-box { background: #e7f3ff; padding: 15px; border-radius: 15px; text-align: center; margin: 15px 0; }
+        .val-highlight { font-size: 26px; font-weight: 800; color: var(--green); display: block; }
     </style>
 </head>
 <body>
@@ -31,98 +33,109 @@
 <div class="container">
     <h1>ONE DROP</h1>
 
-    <div class="card">
-        <h2>📍 Ubicación</h2>
-        <label>Dirección del Cliente</label>
-        <textarea id="c-addr" rows="2" placeholder="Calle, Ciudad, Zip..."></textarea>
-        <button class="btn btn-gps" onclick="openGPS()">🗺️ ABRIR GOOGLE MAPS</button>
-    </div>
+    <button class="btn btn-form" onclick="goMaps()">📍 NAVEGAR DIRECCIÓN (GPS)</button>
+    <button class="btn btn-pdf" onclick="openPDF()">📄 ABRIR DOCUMENTO DE REGISTRO</button>
 
     <div class="card">
-        <h2>💰 Análisis Económico</h2>
-        <label>Cuota Mensual Deseada ($)</label>
+        <h2>Análisis Económico</h2>
+        <label>Gasto Agua + Jabón ($)</label>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <input type="number" id="cost-water" placeholder="Agua" oninput="calculate()">
+            <input type="number" id="cost-soap" placeholder="Jabón" oninput="calculate()">
+        </div>
+        <label>Cuota Mensual Pactada ($)</label>
         <input type="number" id="monthly-fee" value="180" oninput="calculate()">
         
-        <div class="result-box">
-            <span style="font-size: 12px; color: #666;">AHORRO NETO ANUAL:</span><br>
-            <span id="save-val" style="font-size: 26px; font-weight: 800; color: var(--green);">$0.00</span>
+        <div class="savings-box">
+            <span style="font-size: 12px;">AHORRO NETO ANUAL:</span>
+            <span class="val-highlight" id="net-savings">$0.00</span>
         </div>
-        <canvas id="savingsChart" style="margin-top:15px;"></canvas>
+        <canvas id="savingsChart"></canvas>
     </div>
 
     <div class="card">
-        <h2>📩 Reporte Final</h2>
-        <label>Fecha del Test</label>
-        <input type="date" id="test-date">
+        <h2>Reporte Técnico</h2>
+        <label>Datos del Test</label>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <input type="number" id="tds-val" placeholder="TDS">
+            <input type="number" id="chlorine-val" placeholder="Cloro">
+        </div>
         
-        <label>Nombre del Cliente</label>
-        <input type="text" id="c-name" placeholder="Nombre">
+        <label>Número de Celular del Cliente</label>
+        <input type="tel" id="c-phone" placeholder="Ej: 8045551234">
         
-        <label>Número de Teléfono</label>
-        <input type="tel" id="c-phone" placeholder="Celular para SMS">
-        
-        <label>TDS (PPM)</label>
-        <input type="number" id="tds-val" placeholder="Resultado del test">
+        <button class="btn btn-sms" onclick="sendSMSReport()">📲 ENVIAR REPORTE POR SMS</button>
+    </div>
 
-        <button class="btn btn-blue" onclick="generateReport()">📝 GENERAR REPORTE</button>
-        <div id="report-preview"></div>
-        <button class="btn btn-green" id="sms-btn" style="display:none;" onclick="sendSMS()">📲 ENVIAR POR SMS</button>
+    <div class="card">
+        <h2>Expediente</h2>
+        <input type="text" id="c-name" placeholder="Nombre del Cliente">
+        <textarea id="c-address" placeholder="Dirección para GPS"></textarea>
+        <button class="btn btn-main" onclick="saveToCloud()">💾 GUARDAR EN NUBE</button>
     </div>
 </div>
 
 <script>
-    let chart;
     const firebaseConfig = { apiKey: "AIzaSyAK9cldIvt1JZJ-fB-1J7Z51FLxxzT3oPg", projectId: "landmaster-aquafill" };
     firebase.initializeApp(firebaseConfig);
-    
-    // Fecha de hoy por defecto
-    document.getElementById('test-date').valueAsDate = new Date();
+    const db = firebase.firestore();
+    let chart;
 
-    function openGPS() {
-        const addr = document.getElementById('c-addr').value;
-        if(!addr) return alert("Por favor ingrese una dirección.");
+    function goMaps() {
+        const addr = document.getElementById('c-address').value;
+        if(!addr) return alert("Ingrese la dirección en el expediente primero.");
         window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`, '_blank');
     }
 
+    function openPDF() {
+        alert("Abriendo Documento...");
+        // window.open('LINK_DEL_PDF', '_blank');
+    }
+
     function calculate() {
+        const water = parseFloat(document.getElementById('cost-water').value) || 0;
+        const soap = parseFloat(document.getElementById('cost-soap').value) || 0;
         const fee = parseFloat(document.getElementById('monthly-fee').value) || 0;
-        const currentYearly = (80 + 40) * 12; // Estimado base agua/jabon
-        const savings = currentYearly - (fee * 12);
-        document.getElementById('save-val').innerText = `$${savings.toLocaleString()}`;
-        
+        const net = ((water + soap) * 12) - (fee * 12);
+        document.getElementById('net-savings').innerText = `$${net.toLocaleString()}`;
+        updateChart((water+soap)*12, fee*12);
+    }
+
+    function updateChart(curr, prop) {
         const ctx = document.getElementById('savingsChart').getContext('2d');
         if(chart) chart.destroy();
         chart = new Chart(ctx, {
             type: 'bar',
-            data: {
-                labels: ['Gasto Actual', 'Plan Mensual'],
-                datasets: [{ data: [currentYearly, fee*12], backgroundColor: ['#ff3b30', '#007aff'], borderRadius: 8 }]
+            data: { 
+                labels: ['Gasto Actual', 'Propuesta One Drop'], 
+                datasets: [{ data: [curr, prop], backgroundColor: ['#ff3b30', '#007aff'] }] 
             },
             options: { plugins: { legend: { display: false } } }
         });
     }
 
-    function generateReport() {
+    function sendSMSReport() {
+        const phone = document.getElementById('c-phone').value;
         const name = document.getElementById('c-name').value;
         const tds = document.getElementById('tds-val').value;
-        const date = document.getElementById('test-date').value;
-        const save = document.getElementById('save-val').innerText;
+        const savings = document.getElementById('net-savings').innerText;
         
-        const msg = `ONE DROP REPORT\nFECHA: ${date}\nCLIENTE: ${name}\nTDS: ${tds} PPM\nAHORRO ANUAL: ${save}\n\n(Adjunto foto del test a continuación)`;
+        if(!phone) { alert("Ponga el número del cliente"); return; }
+
+        const message = `ONE DROP - Hola ${name}, su reporte: TDS ${tds} PPM. Ahorro Anual Est.: ${savings}. Favor de adjuntar la foto del test a continuación.`;
         
-        document.getElementById('report-preview').innerText = msg;
-        document.getElementById('report-preview').style.display = 'block';
-        document.getElementById('sms-btn').style.display = 'block';
-        
-        navigator.clipboard.writeText(msg);
-        alert("Reporte copiado. Péguelo en el SMS y adjunte la foto de su galería.");
+        window.location.href = `sms:${phone}?body=${encodeURIComponent(message)}`;
     }
 
-    function sendSMS() {
-        const phone = document.getElementById('c-phone').value;
-        const text = document.getElementById('report-preview').innerText;
-        if(!phone) return alert("Falta el número de teléfono.");
-        window.location.href = `sms:${phone}?body=${encodeURIComponent(text)}`;
+    async function saveToCloud() {
+        const data = {
+            nombre: document.getElementById('c-name').value,
+            tel: document.getElementById('c-phone').value,
+            ahorro: document.getElementById('net-savings').innerText,
+            fecha: new Date().toISOString()
+        };
+        await db.collection("ventas_completas").add(data);
+        alert("✅ Guardado con éxito.");
     }
 
     calculate();
