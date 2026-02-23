@@ -6,6 +6,7 @@
     <title>One Drop</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root { --blue: #007aff; --green: #34c759; --orange: #ff9500; --red: #ff3b30; --bg: #f2f2f7; }
@@ -16,99 +17,77 @@
         h2 { font-size: 16px; margin-top: 0; color: #333; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 15px; text-transform: uppercase; }
         label { display: block; font-weight: 600; margin-bottom: 4px; font-size: 11px; color: #666; }
         
-        /* Ajuste de Proporción Crítico */
-        input, textarea, select { 
-            width: 100%; 
-            height: 50px; /* Altura uniforme para evitar desproporción */
-            padding: 12px; 
-            margin-bottom: 12px; 
-            border-radius: 12px; 
-            border: 1px solid #d1d1d6; 
-            font-size: 16px; 
-            box-sizing: border-box; 
-            background-color: #fff;
-            appearance: none; /* Quita estilos raros de iOS */
-            -webkit-appearance: none;
+        input, textarea { 
+            width: 100%; height: 50px; padding: 12px; margin-bottom: 12px; border-radius: 12px; border: 1px solid #d1d1d6; 
+            font-size: 16px; box-sizing: border-box; background-color: #fff; appearance: none;
         }
-        
-        /* Para que el calendario se vea igual de alto */
-        input[type="date"] {
-            display: flex;
-            align-items: center;
-        }
-
         textarea { height: 90px; padding-top: 12px; }
-
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         
         .btn { width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: 700; font-size: 16px; cursor: pointer; margin-bottom: 10px; display: block; text-align: center; text-decoration: none; }
         .btn-main { background: var(--blue); color: white; }
         .btn-sms { background: var(--green); color: white; }
         .btn-gps { background: #5856d6; color: white; }
+        .btn-historial { background: #8e8e93; color: white; }
         
-        .status-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 5px; }
+        .status-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
         .status-btn { height: 50px; border-radius: 12px; border: 2px solid #ddd; background: white; font-size: 10px; font-weight: bold; cursor: pointer; }
         .status-btn.active-ins { background: var(--green); color: white; border-color: var(--green); }
         .status-btn.active-pen { background: var(--orange); color: white; border-color: var(--orange); }
         .status-btn.active-no { background: var(--red); color: white; border-color: var(--red); }
 
+        #auth-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+        #app-content { display: none; }
         .savings-box { background: #e7f3ff; padding: 15px; border-radius: 15px; text-align: center; margin: 15px 0; border: 1px solid #cce3f5; }
         .val-highlight { font-size: 26px; font-weight: 800; color: var(--green); display: block; }
-        #report-preview { background: #f8f9fa; padding: 15px; border-radius: 12px; font-family: monospace; font-size: 12px; display: none; margin-top: 15px; white-space: pre-wrap; border: 1px solid #eee; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>ONE DROP</h1>
+<div id="auth-screen">
+    <div class="card" style="width: 90%; max-width: 350px;">
+        <h1>ONE DROP</h1>
+        <label>Email</label>
+        <input type="email" id="auth-email" placeholder="usuario@onedrop.com">
+        <label>Contraseña</label>
+        <input type="password" id="auth-pass" placeholder="••••••••">
+        <button class="btn btn-main" onclick="handleLogin()">INICIAR SESIÓN</button>
+        <button class="btn" style="background:none; color:var(--blue); font-size:12px;" onclick="handleReset()">RECUPERAR CONTRASEÑA</button>
+    </div>
+</div>
+
+<div id="app-content" class="container">
+    <div style="display:flex; justify-content: space-between; align-items: center;">
+        <h1>ONE DROP</h1>
+        <button onclick="logout()" style="background:none; border:none; color:var(--red); font-weight:bold;">SALIR</button>
+    </div>
 
     <div class="card">
         <h2>👤 Datos del Cliente</h2>
         <div class="grid-2">
-            <div>
-                <label>Nombre</label>
-                <input type="text" id="c-name" placeholder="Ej: Juan">
-            </div>
-            <div>
-                <label>Apellido</label>
-                <input type="text" id="c-lastname" placeholder="Ej: Pérez">
-            </div>
+            <div><label>Nombre</label><input type="text" id="c-name"></div>
+            <div><label>Apellido</label><input type="text" id="c-lastname"></div>
         </div>
         <div class="grid-2">
-            <div>
-                <label>Cumpleaños</label>
-                <input type="date" id="c-birthday">
-            </div>
-            <div>
-                <label>Personas en casa</label>
-                <input type="number" id="c-people" placeholder="Cantidad">
-            </div>
+            <div><label>Cumpleaños</label><input type="date" id="c-birthday"></div>
+            <div><label>Personas en casa</label><input type="number" id="c-people"></div>
         </div>
         <label>Número de Teléfono</label>
-        <input type="tel" id="c-phone" placeholder="804-000-0000">
-        
+        <input type="tel" id="c-phone">
         <label>Dirección del Cliente</label>
-        <textarea id="c-address" placeholder="Calle, Ciudad, Estado, Zip"></textarea>
+        <textarea id="c-address"></textarea>
         <button class="btn btn-gps" onclick="goMaps()">🗺️ VER RUTA EN MAPS</button>
     </div>
 
     <div class="card">
         <h2>💰 Comparativa de Gastos</h2>
         <div class="grid-2">
-            <div>
-                <label>Gasto Agua ($)</label>
-                <input type="number" id="cost-water" placeholder="Mes" oninput="calculate()">
-            </div>
-            <div>
-                <label>Gasto Jabón ($)</label>
-                <input type="number" id="cost-soap" placeholder="Mes" oninput="calculate()">
-            </div>
+            <div><label>Gasto Agua ($)</label><input type="number" id="cost-water" oninput="calculate()"></div>
+            <div><label>Gasto Jabón ($)</label><input type="number" id="cost-soap" oninput="calculate()"></div>
         </div>
         <label>Cuota One Drop ($)</label>
         <input type="number" id="one-fee" value="180" oninput="calculate()">
-        
         <div class="savings-box">
-            <span style="font-size: 11px; color: #555;">AHORRO PROYECTADO AL AÑO:</span>
             <span class="val-highlight" id="net-savings">$0.00</span>
         </div>
         <canvas id="savingsChart"></canvas>
@@ -117,99 +96,113 @@
     <div class="card">
         <h2>🧪 Reporte Técnico</h2>
         <div class="grid-2">
-            <div>
-                <label>Fecha del Test</label>
-                <input type="date" id="test-date">
-            </div>
-            <div>
-                <label>TDS (PPM)</label>
-                <input type="number" id="tds-val" placeholder="000">
-            </div>
+            <div><label>Fecha del Test</label><input type="date" id="test-date"></div>
+            <div><label>TDS (PPM)</label><input type="number" id="tds-val"></div>
         </div>
-        
         <label>¿Presenta Cloro?</label>
-        <input type="text" id="cloro-val" placeholder="SÍ / NO o Nivel">
-
-        <label style="margin-top: 10px;">Estado de la Venta</label>
+        <input type="text" id="cloro-val">
+        <label>Estado de la Venta</label>
         <div class="status-group">
             <button class="status-btn" id="st-ins" onclick="setStatus('INSTALADO')">INSTALADO</button>
             <button class="status-btn" id="st-pen" onclick="setStatus('PENDIENTE')">PENDIENTE</button>
             <button class="status-btn" id="st-no" onclick="setStatus('NO INTERESADO')">NO INTERESADO</button>
         </div>
         
-        <button class="btn btn-main" style="margin-top:20px;" onclick="generateReport()">📝 GENERAR REPORTE</button>
-        <div id="report-preview"></div>
-        <button class="btn btn-sms" id="sms-btn" style="display:none;" onclick="sendSMS()">📲 ENVIAR POR SMS</button>
+        <div class="grid-2" style="margin-top:20px;">
+            <button class="btn btn-main" onclick="saveData()">📝 GENERAR</button>
+            <button class="btn btn-historial" onclick="verHistorial()">📋 HISTORIAL</button>
+        </div>
+        <button class="btn btn-sms" id="sms-btn" style="display:none;" onclick="sendSMS()">📲 ENVIAR SMS</button>
     </div>
 </div>
 
 <script>
-    let chart;
-    let currentStatus = "";
+    const firebaseConfig = { apiKey: "AIzaSyAK9cldIvt1JZJ-fB-1J7Z51FLxxzT3oPg", projectId: "landmaster-aquafill" };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+    const ADMIN_EMAIL = "tu-correo@administrador.com"; // CAMBIA ESTO POR TU CORREO
 
-    document.getElementById('test-date').valueAsDate = new Date();
+    let chart, currentStatus = "", currentUser = null;
 
-    function setStatus(val) {
-        currentStatus = val;
-        document.getElementById('st-ins').className = 'status-btn' + (val === 'INSTALADO' ? ' active-ins' : '');
-        document.getElementById('st-pen').className = 'status-btn' + (val === 'PENDIENTE' ? ' active-pen' : '');
-        document.getElementById('st-no').className = 'status-btn' + (val === 'NO INTERESADO' ? ' active-no' : '');
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            currentUser = user;
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('app-content').style.display = 'block';
+        } else {
+            document.getElementById('auth-screen').style.display = 'flex';
+            document.getElementById('app-content').style.display = 'none';
+        }
+    });
+
+    async function handleLogin() {
+        const e = document.getElementById('auth-email').value;
+        const p = document.getElementById('auth-pass').value;
+        try { await auth.signInWithEmailAndPassword(e, p); } catch(err) { alert("Error: " + err.message); }
     }
 
-    function goMaps() {
-        const addr = document.getElementById('c-address').value;
-        if(!addr) return alert("Ingrese la dirección");
-        window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`, '_blank');
+    function logout() { auth.signOut(); }
+
+    function setStatus(v) {
+        currentStatus = v;
+        document.getElementById('st-ins').className = 'status-btn' + (v === 'INSTALADO' ? ' active-ins' : '');
+        document.getElementById('st-pen').className = 'status-btn' + (v === 'PENDIENTE' ? ' active-pen' : '');
+        document.getElementById('st-no').className = 'status-btn' + (v === 'NO INTERESADO' ? ' active-no' : '');
+    }
+
+    async function saveData() {
+        if(!currentStatus) return alert("Selecciona un estado");
+        const data = {
+            vendedor: currentUser.email,
+            cliente: document.getElementById('c-name').value + " " + document.getElementById('c-lastname').value,
+            tel: document.getElementById('c-phone').value,
+            tds: document.getElementById('tds-val').value,
+            estado: currentStatus,
+            fecha: document.getElementById('test-date').value,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        await db.collection("reportes").add(data);
+        alert("Guardado. Se generará el evento de calendario.");
+        
+        // Generar Calendario
+        const ics = `BEGIN:VCALENDAR\nBEGIN:VEVENT\nSUMMARY:Seguimiento: ${data.cliente}\nDTSTART:${data.fecha.replace(/-/g,'')}T120000\nEND:VEVENT\nEND:VCALENDAR`;
+        const link = document.createElement('a');
+        link.href = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(ics);
+        link.download = "cita.ics";
+        link.click();
+        
+        document.getElementById('sms-btn').style.display = 'block';
+    }
+
+    function verHistorial() {
+        if(currentUser.email === ADMIN_EMAIL) {
+            alert("Accediendo como Administrador: Verás todos los reportes del equipo.");
+        } else {
+            alert("Accediendo a tu historial personal.");
+        }
+        // Aquí podrías redireccionar a una tabla con los datos de Firebase
     }
 
     function calculate() {
-        const water = parseFloat(document.getElementById('cost-water').value) || 0;
-        const soap = parseFloat(document.getElementById('cost-soap').value) || 0;
-        const fee = parseFloat(document.getElementById('one-fee').value) || 0;
-        const totalCurrentYear = (water + soap) * 12;
-        const totalOneDropYear = fee * 12;
-        const net = totalCurrentYear - totalOneDropYear;
+        const w = parseFloat(document.getElementById('cost-water').value) || 0;
+        const s = parseFloat(document.getElementById('cost-soap').value) || 0;
+        const f = parseFloat(document.getElementById('one-fee').value) || 0;
+        const net = (w+s)*12 - (f*12);
         document.getElementById('net-savings').innerText = `$${net.toLocaleString()}`;
-        
         const ctx = document.getElementById('savingsChart').getContext('2d');
         if(chart) chart.destroy();
         chart = new Chart(ctx, {
             type: 'bar',
-            data: { 
-                labels: ['Actual', 'One Drop'], 
-                datasets: [{ data: [totalCurrentYear, totalOneDropYear], backgroundColor: ['#ff3b30', '#007aff'] }] 
-            },
+            data: { labels: ['Actual', 'One Drop'], datasets: [{ data: [(w+s)*12, f*12], backgroundColor: ['#ff3b30', '#007aff'] }] },
             options: { plugins: { legend: { display: false } } }
         });
     }
 
-    function generateReport() {
-        const name = document.getElementById('c-name').value;
-        const lastname = document.getElementById('c-lastname').value;
-        const phone = document.getElementById('c-phone').value;
-        const tds = document.getElementById('tds-val').value;
-        const cloro = document.getElementById('cloro-val').value;
-        const save = document.getElementById('net-savings').innerText;
-        const date = document.getElementById('test-date').value;
-        
-        if(!currentStatus) return alert("Seleccione un estado de venta");
-
-        const msg = `ONE DROP - REPORTE\nFecha: ${date}\nCliente: ${name} ${lastname}\nTel: ${phone}\nTDS: ${tds} PPM\nCloro: ${cloro}\nEstado: ${currentStatus}\nAhorro Anual: ${save}\n\n(Favor de adjuntar la foto del test)`;
-        
-        document.getElementById('report-preview').innerText = msg;
-        document.getElementById('report-preview').style.display = 'block';
-        document.getElementById('sms-btn').style.display = 'block';
-        navigator.clipboard.writeText(msg);
-        alert("Reporte copiado.");
-    }
-
-    function sendSMS() {
-        const phone = document.getElementById('c-phone').value;
-        const text = document.getElementById('report-preview').innerText;
-        if(!phone) return alert("Ingrese el teléfono del cliente");
-        window.location.href = `sms:${phone}?body=${encodeURIComponent(text)}`;
-    }
-
+    function goMaps() { window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(document.getElementById('c-address').value)}`, '_blank'); }
+    function handleReset() { /* lógica reset */ }
+    
+    document.getElementById('test-date').valueAsDate = new Date();
     calculate();
 </script>
 </body>
