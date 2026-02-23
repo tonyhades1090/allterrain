@@ -14,28 +14,29 @@
         body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, system-ui, sans-serif; background: #f5f5f7; overflow: hidden; }
         #map { height: 100vh; width: 100vw; position: absolute; }
 
-        /* PANTALLA DE ACCESO PROFESIONAL */
+        /* PANTALLA DE ACCESO */
         #auth-screen { position: fixed; inset: 0; background: white; z-index: 5000; display: flex; align-items: center; justify-content: center; padding: 30px; }
         .auth-box { width: 100%; max-width: 340px; text-align: center; }
         .auth-box h1 { color: var(--primary); font-size: 32px; font-weight: 800; margin-bottom: 30px; letter-spacing: -1px; }
-        input, select, textarea { width: 100%; padding: 16px; margin: 8px 0; border: 1px solid #d1d1d6; border-radius: 12px; font-size: 16px; box-sizing: border-box; background: #f2f2f7; border: none; }
+        input, select, textarea { width: 100%; padding: 16px; margin: 8px 0; border-radius: 12px; font-size: 16px; box-sizing: border-box; background: #f2f2f7; border: none; outline: none; }
         .btn-primary { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 16px; margin-top: 10px; }
         .auth-footer { display: flex; justify-content: space-between; font-size: 13px; margin: 12px 0; color: #8e8e93; }
         .link { color: var(--accent); cursor: pointer; font-weight: 600; }
 
-        /* INTERFAZ DE MAPA LIMPIA (ESTILO LANDGLIDE) */
+        /* INTERFAZ DEL MAPA */
         .top-nav { position: absolute; top: 15px; left: 12px; right: 12px; z-index: 1000; display: flex; gap: 8px; }
         #search-input { flex: 1; padding: 14px 18px; border-radius: 14px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.15); background: white; font-size: 16px; }
         
-        .side-menu { position: absolute; bottom: 140px; right: 15px; z-index: 1000; display: flex; flex-direction: column; gap: 12px; }
+        .side-menu { position: absolute; bottom: 160px; right: 15px; z-index: 1000; display: flex; flex-direction: column; gap: 12px; }
         .btn-circle { width: 54px; height: 54px; background: white; border-radius: 50%; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.12); font-size: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
-        /* PANEL INFERIOR DINÁMICO */
-        #data-panel { position: fixed; bottom: 0; left: 0; right: 0; background: white; z-index: 4000; display: none; padding: 25px; border-radius: 24px 24px 0 0; box-shadow: 0 -8px 30px rgba(0,0,0,0.15); transition: 0.3s; }
+        /* PANEL INFERIOR (ESTILO LANDGLIDE) */
+        #data-panel { position: fixed; bottom: 0; left: 0; right: 0; background: white; z-index: 4000; display: none; padding: 25px; border-radius: 24px 24px 0 0; box-shadow: 0 -8px 30px rgba(0,0,0,0.15); }
         .owner-badge { background: #e8f0fe; color: var(--primary); padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; display: inline-block; margin-bottom: 8px; }
         .owner-name { font-size: 24px; font-weight: 800; color: var(--text); text-transform: uppercase; line-height: 1.1; }
         .addr-sub { color: #8e8e93; font-size: 14px; margin-bottom: 15px; font-weight: 500; }
         .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+        .btn-delete { background: #ff3b30 !important; }
     </style>
 </head>
 <body>
@@ -47,22 +48,22 @@
             <input type="password" id="password" placeholder="Password / Contraseña">
             
             <div class="auth-footer">
-                <label><input type="checkbox" id="remember" checked> Remember me</label>
-                <span class="link" onclick="resetPassword()">Forgot? / Olvidé</span>
+                <label><input type="checkbox" id="remember" checked> Recordarme</label>
+                <span class="link" onclick="resetPassword()">¿Olvidaste la clave?</span>
             </div>
 
-            <button class="btn-primary" id="main-auth-btn" onclick="processAuth()">SIGN IN / ENTRAR</button>
+            <button class="btn-primary" id="main-auth-btn" onclick="processAuth()">ENTRAR</button>
             <p style="margin-top:20px; font-size:14px; color:#8e8e93;">
-                <span id="toggle-msg">Don't have account?</span> 
-                <span class="link" onclick="toggleMode()" id="toggle-btn">Sign Up / Registro</span>
+                <span id="toggle-msg">¿No tienes cuenta?</span> 
+                <span class="link" onclick="toggleMode()" id="toggle-btn">Registrarse</span>
             </p>
         </div>
     </div>
 
     <div id="app-canvas" style="display:none;">
         <div class="top-nav">
-            <input type="text" id="search-input" placeholder="Search address or owner...">
-            <button class="btn-circle" style="border-radius:14px; width:60px;" onclick="executeSearch()">GO</button>
+            <input type="text" id="search-input" placeholder="Buscar dirección...">
+            <button class="btn-circle" style="border-radius:14px; width:60px;" onclick="executeSearch()">IR</button>
         </div>
 
         <div class="side-menu">
@@ -72,22 +73,23 @@
         </div>
 
         <div id="data-panel">
-            <div class="owner-badge">REGISTERED OWNER</div>
-            <div id="disp-owner" class="owner-name">OWNER NAME</div>
-            <div id="disp-addr" class="addr-sub">Address details</div>
+            <div class="owner-badge">PROPIETARIO REGISTRADO</div>
+            <div id="disp-owner" class="owner-name">BUSCANDO...</div>
+            <div id="disp-addr" class="addr-sub">Dirección de la propiedad</div>
             
             <select id="field-status">
-                <option value="💧">💧 Interesado / Interested</option>
-                <option value="✅">✅ Venta / Sold</option>
-                <option value="❌">❌ No Interesado / Not Int.</option>
-                <option value="🕒">🕒 Volver / Call Back</option>
+                <option value="💧">💧 Interesado</option>
+                <option value="✅">✅ Venta Hecha</option>
+                <option value="❌">❌ No Interesado</option>
+                <option value="🕒">🕒 Volver a llamar</option>
+                <option value="DELETE">🗑️ ELIMINAR MARCADOR</option>
             </select>
-            <input type="number" id="field-tds" placeholder="TDS Value (Water Thickness)">
-            <textarea id="field-notes" placeholder="Additional notes / Notas..." rows="3"></textarea>
+            <input type="number" id="field-tds" placeholder="Valor TDS (Calidad Agua)">
+            <textarea id="field-notes" placeholder="Notas de la visita..." rows="3"></textarea>
             
             <div class="action-grid">
-                <button class="btn-primary" onclick="commitData()">SAVE DATA</button>
-                <button class="btn-primary" style="background:#8e8e93;" onclick="hidePanel()">CLOSE</button>
+                <button class="btn-primary" onclick="commitData()">GUARDAR</button>
+                <button class="btn-primary" style="background:#8e8e93;" onclick="hidePanel()">CERRAR</button>
             </div>
         </div>
     </div>
@@ -95,7 +97,7 @@
     <div id="map"></div>
 
 <script>
-    // Configuración Firebase (Fija y Analizada)
+    // Configuración Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyAK9cldIvt1JZJ-fB-1J7Z51FLxxzT3oPg",
         authDomain: "landmaster-aquafill.firebaseapp.com",
@@ -110,12 +112,12 @@
 
     let map, activePos, activeId, isLoginMode = true;
 
-    // LÓGICA DE ACCESO
+    // Gestión de Acceso
     function toggleMode() {
         isLoginMode = !isLoginMode;
-        document.getElementById('main-auth-btn').innerText = isLoginMode ? "SIGN IN / ENTRAR" : "SIGN UP / REGISTRARSE";
-        document.getElementById('toggle-msg').innerText = isLoginMode ? "Don't have account?" : "Have account?";
-        document.getElementById('toggle-btn').innerText = isLoginMode ? "Sign Up / Registro" : "Sign In / Entrar";
+        document.getElementById('main-auth-btn').innerText = isLoginMode ? "ENTRAR" : "REGISTRARSE";
+        document.getElementById('toggle-msg').innerText = isLoginMode ? "¿No tienes cuenta?" : "¿Ya tienes cuenta?";
+        document.getElementById('toggle-btn').innerText = isLoginMode ? "Registrarse" : "Entrar";
     }
 
     async function processAuth() {
@@ -126,13 +128,13 @@
             await auth.setPersistence(remember ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION);
             if(isLoginMode) await auth.signInWithEmailAndPassword(email, pass);
             else await auth.createUserWithEmailAndPassword(email, pass);
-        } catch(e) { alert("Auth Error: " + e.message); }
+        } catch(e) { alert("Error: " + e.message); }
     }
 
     function resetPassword() {
         const email = document.getElementById('email').value;
-        if(!email) return alert("Enter email first");
-        auth.sendPasswordResetEmail(email).then(() => alert("Reset link sent to email"));
+        if(!email) return alert("Escribe tu correo primero");
+        auth.sendPasswordResetEmail(email).then(() => alert("Link de restauración enviado"));
     }
 
     auth.onAuthStateChanged(user => {
@@ -143,7 +145,7 @@
         }
     });
 
-    // LÓGICA DE MAPA E INFORMACIÓN
+    // Lógica del Mapa
     function loadMap() {
         map = new maplibregl.Map({
             container: 'map',
@@ -158,22 +160,29 @@
 
         map.on('click', async e => {
             activePos = e.lngLat;
-            activeId = `${e.lngLat.lng.toFixed(6)}|${e.lngLat.lat.toFixed(6)}`;
-            document.getElementById('data-panel').style.display = 'block';
-            document.getElementById('disp-owner').innerText = "Analyzing...";
+            // Redondeamos ID para facilitar tocar marcadores existentes
+            activeId = `${e.lngLat.lng.toFixed(5)}|${e.lngLat.lat.toFixed(5)}`;
             
-            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${e.lngLat.lat}&lon=${e.lngLat.lng}`);
-            const data = await res.json();
-            const house = data.address.house_number || "";
-            const street = (data.address.road || "").replace("Road","RD").replace("Avenue","AVE").replace("Street","ST").toUpperCase();
-            const cleanAddr = `${house} ${street}`.trim();
-            document.getElementById('disp-addr').innerText = cleanAddr;
+            document.getElementById('data-panel').style.display = 'block';
+            document.getElementById('disp-owner').innerText = "Buscando...";
+            document.getElementById('field-tds').value = "";
+            document.getElementById('field-notes').value = "";
+            
+            try {
+                const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${e.lngLat.lat}&lon=${e.lngLat.lng}`);
+                const data = await res.json();
+                const house = data.address.house_number || "";
+                const street = (data.address.road || "").replace("Road","RD").replace("Avenue","AVE").replace("Street","ST").toUpperCase();
+                const cleanAddr = `${house} ${street}`.trim();
+                document.getElementById('disp-addr').innerText = cleanAddr;
 
-            const doc = await db.collection("propiedades").doc(cleanAddr).get();
-            document.getElementById('disp-owner').innerText = doc.exists ? doc.data().propietario : "PRIVATE RESIDENCE";
+                // Cruce con base de datos de Propietarios
+                const doc = await db.collection("propiedades").doc(cleanAddr).get();
+                document.getElementById('disp-owner').innerText = doc.exists ? doc.data().propietario : "RESIDENCIA PRIVADA";
+            } catch(err) { document.getElementById('disp-owner').innerText = "RESIDENCIA PRIVADA"; }
         });
 
-        // Sincronización de marcadores en tiempo real
+        // Cargar Marcadores en tiempo real
         db.collection("marcadores").onSnapshot(snap => {
             document.querySelectorAll('.maplibregl-marker').forEach(m => m.remove());
             snap.forEach(doc => {
@@ -189,27 +198,34 @@
 
     async function executeSearch() {
         const val = document.getElementById('search-input').value;
+        if(!val) return;
         const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(val + ", Chesterfield, VA")}&limit=1`);
         const data = await res.json();
-        if(data[0]) map.flyTo({center: [parseFloat(data[0].lon), parseFloat(data[0].lat)], zoom: 18});
+        if(data[0]) map.flyTo({center: [parseFloat(data[0].lon), parseFloat(data[0].lat)], zoom: 19});
     }
 
     function commitData() {
-        db.collection("marcadores").doc(activeId).set({
-            lng: activePos.lng, lat: activePos.lat,
-            icon: document.getElementById('field-status').value,
-            tds: document.getElementById('field-tds').value,
-            note: document.getElementById('field-notes').value,
-            editor: auth.currentUser.email,
-            time: new Date().toISOString()
-        });
-        hidePanel();
+        const status = document.getElementById('field-status').value;
+        
+        if (status === "DELETE") {
+            db.collection("marcadores").doc(activeId).delete().then(() => hidePanel());
+        } else {
+            db.collection("marcadores").doc(activeId).set({
+                lng: activePos.lng,
+                lat: activePos.lat,
+                icon: status,
+                tds: document.getElementById('field-tds').value,
+                note: document.getElementById('field-notes').value,
+                editor: auth.currentUser.email,
+                time: new Date().toISOString()
+            }).then(() => hidePanel());
+        }
     }
 
-    function locateUser() { navigator.geolocation.getCurrentPosition(p => map.flyTo({center:[p.coords.longitude, p.coords.latitude], zoom:18})); }
+    function locateUser() { navigator.geolocation.getCurrentPosition(p => map.flyTo({center:[p.coords.longitude, p.coords.latitude], zoom:19})); }
     function hidePanel() { document.getElementById('data-panel').style.display = 'none'; }
     function signUserOut() { auth.signOut(); location.reload(); }
-    function showAllMarkers() { map.flyTo({zoom: 11}); }
+    function showAllMarkers() { map.flyTo({zoom: 12}); }
 </script>
 </body>
 </html>
