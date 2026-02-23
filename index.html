@@ -10,70 +10,92 @@
     <script src='https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js'></script>
     <link href='https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css' rel='stylesheet' />
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica; background: #e5e5e7; overflow: hidden; }
+        :root { --primary: #1e3c72; --accent: #007AFF; --text: #1c1c1e; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, system-ui, sans-serif; background: #f5f5f7; overflow: hidden; }
         #map { height: 100vh; width: 100vw; position: absolute; }
+
+        /* PANTALLA DE ACCESO PROFESIONAL */
+        #auth-screen { position: fixed; inset: 0; background: white; z-index: 5000; display: flex; align-items: center; justify-content: center; padding: 30px; }
+        .auth-box { width: 100%; max-width: 340px; text-align: center; }
+        .auth-box h1 { color: var(--primary); font-size: 32px; font-weight: 800; margin-bottom: 30px; letter-spacing: -1px; }
+        input, select, textarea { width: 100%; padding: 16px; margin: 8px 0; border: 1px solid #d1d1d6; border-radius: 12px; font-size: 16px; box-sizing: border-box; background: #f2f2f7; border: none; }
+        .btn-primary { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 16px; margin-top: 10px; }
+        .auth-footer { display: flex; justify-content: space-between; font-size: 13px; margin: 12px 0; color: #8e8e93; }
+        .link { color: var(--accent); cursor: pointer; font-weight: 600; }
+
+        /* INTERFAZ DE MAPA LIMPIA (ESTILO LANDGLIDE) */
+        .top-nav { position: absolute; top: 15px; left: 12px; right: 12px; z-index: 1000; display: flex; gap: 8px; }
+        #search-input { flex: 1; padding: 14px 18px; border-radius: 14px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.15); background: white; font-size: 16px; }
         
-        /* ESTILO LANDGLIDE: BUSCADOR FLOTANTE */
-        .search-box { position: absolute; top: 15px; left: 15px; right: 15px; z-index: 1000; background: white; border-radius: 8px; display: flex; align-items: center; padding: 5px 15px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
-        #search-input { flex: 1; border: none; padding: 12px; font-size: 16px; outline: none; }
-        .btn-search { background: none; border: none; font-size: 20px; cursor: pointer; color: #555; }
+        .side-menu { position: absolute; bottom: 140px; right: 15px; z-index: 1000; display: flex; flex-direction: column; gap: 12px; }
+        .btn-circle { width: 54px; height: 54px; background: white; border-radius: 50%; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.12); font-size: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
-        /* PANEL DE INFORMACIÓN INFERIOR (Como en tu foto) */
-        #info-panel { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(30, 60, 114, 0.95); color: white; padding: 20px; z-index: 3000; display: none; border-radius: 20px 20px 0 0; box-shadow: 0 -5px 15px rgba(0,0,0,0.3); animation: slideUp 0.3s ease-out; }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        .owner-title { font-size: 18px; font-weight: 800; text-transform: uppercase; margin-bottom: 5px; color: #fff; }
-        .address-sub { font-size: 14px; color: #cbd5e0; margin-bottom: 15px; }
-
-        /* BOTONES LATERALES */
-        .side-btns { position: absolute; bottom: 120px; right: 15px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
-        .circle-btn { width: 50px; height: 50px; background: white; border-radius: 50%; border: none; box-shadow: 0 2px 5px rgba(0,0,0,0.2); font-size: 20px; display: flex; align-items: center; justify-content: center; }
-
-        #login-screen { position: fixed; inset: 0; background: white; z-index: 5000; display: flex; align-items: center; justify-content: center; padding: 30px; }
-        .login-box { width: 100%; max-width: 320px; text-align: center; }
-        .login-input { width: 100%; padding: 15px; margin: 10px 0; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; }
-        .btn-login { width: 100%; padding: 15px; background: #1e3c72; color: white; border: none; border-radius: 10px; font-weight: bold; }
+        /* PANEL INFERIOR DINÁMICO */
+        #data-panel { position: fixed; bottom: 0; left: 0; right: 0; background: white; z-index: 4000; display: none; padding: 25px; border-radius: 24px 24px 0 0; box-shadow: 0 -8px 30px rgba(0,0,0,0.15); transition: 0.3s; }
+        .owner-badge { background: #e8f0fe; color: var(--primary); padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; display: inline-block; margin-bottom: 8px; }
+        .owner-name { font-size: 24px; font-weight: 800; color: var(--text); text-transform: uppercase; line-height: 1.1; }
+        .addr-sub { color: #8e8e93; font-size: 14px; margin-bottom: 15px; font-weight: 500; }
+        .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
     </style>
 </head>
 <body>
 
-    <div id="login-screen">
-        <form class="login-box" onsubmit="event.preventDefault(); handleAuth();">
-            <h2 style="color:#1e3c72; margin-bottom:30px;">ALLTERRAIN PRO</h2>
-            <input type="email" id="email" class="login-input" placeholder="Email" required>
-            <input type="password" id="password" class="login-input" placeholder="Contraseña" required>
-            <button type="submit" class="btn-login">ENTRAR</button>
-        </form>
+    <div id="auth-screen">
+        <div class="auth-box">
+            <h1>ALLTERRAIN</h1>
+            <input type="email" id="email" placeholder="Email / Correo">
+            <input type="password" id="password" placeholder="Password / Contraseña">
+            
+            <div class="auth-footer">
+                <label><input type="checkbox" id="remember" checked> Remember me</label>
+                <span class="link" onclick="resetPassword()">Forgot? / Olvidé</span>
+            </div>
+
+            <button class="btn-primary" id="main-auth-btn" onclick="processAuth()">SIGN IN / ENTRAR</button>
+            <p style="margin-top:20px; font-size:14px; color:#8e8e93;">
+                <span id="toggle-msg">Don't have account?</span> 
+                <span class="link" onclick="toggleMode()" id="toggle-btn">Sign Up / Registro</span>
+            </p>
+        </div>
     </div>
 
-    <div id="app-ui" style="display:none;">
-        <div class="search-box">
-            <input type="text" id="search-input" placeholder="Owner, address, or parcel ID">
-            <button class="btn-search" onclick="searchAddress()">🔍</button>
+    <div id="app-canvas" style="display:none;">
+        <div class="top-nav">
+            <input type="text" id="search-input" placeholder="Search address or owner...">
+            <button class="btn-circle" style="border-radius:14px; width:60px;" onclick="executeSearch()">GO</button>
         </div>
 
-        <div class="side-btns">
-            <button class="circle-btn" onclick="goToMe()">🎯</button>
-            <button class="circle-btn" onclick="logout()">🚪</button>
+        <div class="side-menu">
+            <button class="btn-circle" onclick="locateUser()">🎯</button>
+            <button class="btn-circle" onclick="showAllMarkers()">📍</button>
+            <button class="btn-circle" onclick="signUserOut()" style="color:#ff3b30;">🚪</button>
         </div>
 
-        <div id="info-panel">
-            <div class="owner-title" id="m-owner">Cargando...</div>
-            <div class="address-sub" id="m-address">Dirección</div>
-            <div style="display: flex; gap: 10px; margin-top: 10px;">
-                <select id="f-icon" style="flex:1; padding:10px; border-radius:8px;">
-                    <option value="💧">💧 Interesado</option>
-                    <option value="✅">✅ Vendido</option>
-                    <option value="❌">❌ No</option>
-                </select>
-                <button onclick="saveData()" style="flex:1; background:#fff; color:#1e3c72; border:none; border-radius:8px; font-weight:bold;">GUARDAR</button>
+        <div id="data-panel">
+            <div class="owner-badge">REGISTERED OWNER</div>
+            <div id="disp-owner" class="owner-name">OWNER NAME</div>
+            <div id="disp-addr" class="addr-sub">Address details</div>
+            
+            <select id="field-status">
+                <option value="💧">💧 Interesado / Interested</option>
+                <option value="✅">✅ Venta / Sold</option>
+                <option value="❌">❌ No Interesado / Not Int.</option>
+                <option value="🕒">🕒 Volver / Call Back</option>
+            </select>
+            <input type="number" id="field-tds" placeholder="TDS Value (Water Thickness)">
+            <textarea id="field-notes" placeholder="Additional notes / Notas..." rows="3"></textarea>
+            
+            <div class="action-grid">
+                <button class="btn-primary" onclick="commitData()">SAVE DATA</button>
+                <button class="btn-primary" style="background:#8e8e93;" onclick="hidePanel()">CLOSE</button>
             </div>
-            <button onclick="closePanel()" style="width:100%; background:none; border:none; color:#cbd5e0; margin-top:15px; font-size:12px;">CERRAR</button>
         </div>
     </div>
 
     <div id="map"></div>
 
 <script>
+    // Configuración Firebase (Fija y Analizada)
     const firebaseConfig = {
         apiKey: "AIzaSyAK9cldIvt1JZJ-fB-1J7Z51FLxxzT3oPg",
         authDomain: "landmaster-aquafill.firebaseapp.com",
@@ -85,71 +107,109 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
-    let map, currentCoords, currentId;
 
-    async function handleAuth() {
+    let map, activePos, activeId, isLoginMode = true;
+
+    // LÓGICA DE ACCESO
+    function toggleMode() {
+        isLoginMode = !isLoginMode;
+        document.getElementById('main-auth-btn').innerText = isLoginMode ? "SIGN IN / ENTRAR" : "SIGN UP / REGISTRARSE";
+        document.getElementById('toggle-msg').innerText = isLoginMode ? "Don't have account?" : "Have account?";
+        document.getElementById('toggle-btn').innerText = isLoginMode ? "Sign Up / Registro" : "Sign In / Entrar";
+    }
+
+    async function processAuth() {
+        const email = document.getElementById('email').value;
+        const pass = document.getElementById('password').value;
+        const remember = document.getElementById('remember').checked;
         try {
-            await auth.signInWithEmailAndPassword(document.getElementById('email').value, document.getElementById('password').value);
-        } catch(e) { alert("Error"); }
+            await auth.setPersistence(remember ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION);
+            if(isLoginMode) await auth.signInWithEmailAndPassword(email, pass);
+            else await auth.createUserWithEmailAndPassword(email, pass);
+        } catch(e) { alert("Auth Error: " + e.message); }
+    }
+
+    function resetPassword() {
+        const email = document.getElementById('email').value;
+        if(!email) return alert("Enter email first");
+        auth.sendPasswordResetEmail(email).then(() => alert("Reset link sent to email"));
     }
 
     auth.onAuthStateChanged(user => {
         if(user) {
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('app-ui').style.display = 'block';
-            initMap();
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('app-canvas').style.display = 'block';
+            loadMap();
         }
     });
 
-    function initMap() {
+    // LÓGICA DE MAPA E INFORMACIÓN
+    function loadMap() {
         map = new maplibregl.Map({
             container: 'map',
             style: { 
                 "version": 8, 
-                "sources": { 
-                    "osm": { "type": "raster", "tiles": ["https://mt1.google.com/vt/lyrs=y,h&x={x}&y={y}&z={z}"], "tileSize": 256 }
-                }, 
-                "layers": [{"id":"osm","type":"raster","source":"osm"}] 
+                "sources": { "hybrid": { "type": "raster", "tiles": ["https://mt1.google.com/vt/lyrs=y,h&x={x}&y={y}&z={z}"], "tileSize": 256 }},
+                "layers": [{"id":"hybrid","type":"raster","source":"hybrid"}]
             },
-            center: [-77.4687, 37.4085],
-            zoom: 17
+            center: [-77.488, 37.520], 
+            zoom: 16
         });
 
         map.on('click', async e => {
-            currentCoords = e.lngLat;
-            currentId = `${e.lngLat.lng.toFixed(6)}|${e.lngLat.lat.toFixed(6)}`;
-            document.getElementById('info-panel').style.display = 'block';
-            document.getElementById('m-owner').innerText = "Buscando...";
+            activePos = e.lngLat;
+            activeId = `${e.lngLat.lng.toFixed(6)}|${e.lngLat.lat.toFixed(6)}`;
+            document.getElementById('data-panel').style.display = 'block';
+            document.getElementById('disp-owner').innerText = "Analyzing...";
             
             const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${e.lngLat.lat}&lon=${e.lngLat.lng}`);
             const data = await res.json();
-            const road = (data.address.road || "").replace("Road", "RD").replace("Avenue", "AVE").toUpperCase();
-            const fullAddr = ((data.address.house_number || "") + " " + road).trim();
-            document.getElementById('m-address').innerText = fullAddr;
-            
-            const doc = await db.collection("propiedades").doc(fullAddr).get();
-            document.getElementById('m-owner').innerText = doc.exists ? doc.data().propietario : "DUEÑO PRIVADO";
+            const house = data.address.house_number || "";
+            const street = (data.address.road || "").replace("Road","RD").replace("Avenue","AVE").replace("Street","ST").toUpperCase();
+            const cleanAddr = `${house} ${street}`.trim();
+            document.getElementById('disp-addr').innerText = cleanAddr;
+
+            const doc = await db.collection("propiedades").doc(cleanAddr).get();
+            document.getElementById('disp-owner').innerText = doc.exists ? doc.data().propietario : "PRIVATE RESIDENCE";
+        });
+
+        // Sincronización de marcadores en tiempo real
+        db.collection("marcadores").onSnapshot(snap => {
+            document.querySelectorAll('.maplibregl-marker').forEach(m => m.remove());
+            snap.forEach(doc => {
+                const d = doc.data();
+                const markerDiv = document.createElement('div');
+                markerDiv.innerHTML = d.icon;
+                markerDiv.style.fontSize = '32px';
+                markerDiv.style.cursor = 'pointer';
+                new maplibregl.Marker({element: markerDiv}).setLngLat([d.lng, d.lat]).addTo(map);
+            });
         });
     }
 
-    async function searchAddress() {
-        const q = document.getElementById('search-input').value;
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q + ", Chesterfield, VA")}&limit=1`);
+    async function executeSearch() {
+        const val = document.getElementById('search-input').value;
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(val + ", Chesterfield, VA")}&limit=1`);
         const data = await res.json();
         if(data[0]) map.flyTo({center: [parseFloat(data[0].lon), parseFloat(data[0].lat)], zoom: 18});
     }
 
-    function saveData() {
-        db.collection("marcadores").doc(currentId).set({ 
-            lng: currentCoords.lng, lat: currentCoords.lat, 
-            icon: document.getElementById('f-icon').value,
-            address: document.getElementById('m-address').innerText
+    function commitData() {
+        db.collection("marcadores").doc(activeId).set({
+            lng: activePos.lng, lat: activePos.lat,
+            icon: document.getElementById('field-status').value,
+            tds: document.getElementById('field-tds').value,
+            note: document.getElementById('field-notes').value,
+            editor: auth.currentUser.email,
+            time: new Date().toISOString()
         });
-        closePanel();
+        hidePanel();
     }
-    function closePanel() { document.getElementById('info-panel').style.display = 'none'; }
-    function logout() { auth.signOut(); location.reload(); }
-    function goToMe() { navigator.geolocation.getCurrentPosition(p => map.flyTo({center: [p.coords.longitude, p.coords.latitude], zoom: 19})); }
+
+    function locateUser() { navigator.geolocation.getCurrentPosition(p => map.flyTo({center:[p.coords.longitude, p.coords.latitude], zoom:18})); }
+    function hidePanel() { document.getElementById('data-panel').style.display = 'none'; }
+    function signUserOut() { auth.signOut(); location.reload(); }
+    function showAllMarkers() { map.flyTo({zoom: 11}); }
 </script>
 </body>
 </html>
