@@ -10,62 +10,56 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root { --blue: #007aff; --green: #34c759; --orange: #ff9500; --red: #ff3b30; --bg: #f2f2f7; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 15px; padding-bottom: 50px; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 15px; padding-bottom: 50px; overflow-x: hidden; }
         .container { max-width: 480px; margin: auto; }
         .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
         h1 { color: var(--blue); text-align: center; letter-spacing: -1px; margin-bottom: 20px; font-size: 28px; }
         h2 { font-size: 16px; margin-top: 0; color: #333; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 15px; text-transform: uppercase; }
         label { display: block; font-weight: 600; margin-bottom: 4px; font-size: 11px; color: #666; }
         
-        input, textarea { 
-            width: 100%; height: 50px; padding: 12px; margin-bottom: 12px; border-radius: 12px; border: 1px solid #d1d1d6; 
-            font-size: 16px; box-sizing: border-box; background-color: #fff; appearance: none;
-        }
-        textarea { height: 90px; padding-top: 12px; }
+        input, textarea { width: 100%; height: 50px; padding: 12px; margin-bottom: 12px; border-radius: 12px; border: 1px solid #d1d1d6; font-size: 16px; box-sizing: border-box; background-color: #fff; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         
-        .btn { width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: 700; font-size: 16px; cursor: pointer; margin-bottom: 10px; display: block; text-align: center; text-decoration: none; }
+        .btn { width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: 700; font-size: 16px; cursor: pointer; margin-bottom: 10px; display: block; text-align: center; }
         .btn-main { background: var(--blue); color: white; }
-        .btn-sms { background: var(--green); color: white; }
-        .btn-gps { background: #5856d6; color: white; }
         .btn-historial { background: #8e8e93; color: white; }
+        .btn-gps { background: #5856d6; color: white; }
+        .btn-sms { background: var(--green); color: white; }
+        
+        /* LOGIN SWITCH */
+        .switch-container { display: flex; align-items: center; justify-content: space-between; background: #eee; padding: 10px 15px; border-radius: 12px; margin-bottom: 20px; cursor: pointer; }
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--blue); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        /* MODAL HISTORIAL & SWIPE */
+        #history-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 3000; overflow-y: auto; padding: 0; }
+        .history-header { padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; position: sticky; top: 0; background: white; z-index: 10; }
+        
+        .swipe-container { position: relative; overflow: hidden; border-bottom: 1px solid #eee; background: var(--red); }
+        .history-item { 
+            background: white; padding: 15px 20px; position: relative; z-index: 2; transition: transform 0.3s ease-out; 
+            display: block; touch-action: pan-y;
+        }
+        .delete-btn { 
+            position: absolute; right: 0; top: 0; bottom: 0; width: 80px; background: var(--red); 
+            color: white; display: flex; align-items: center; justify-content: center; 
+            font-weight: bold; z-index: 1; border: none; font-size: 14px;
+        }
+
+        #auth-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; }
+        #app-content { display: none; }
+        .savings-box { background: #e7f3ff; padding: 15px; border-radius: 15px; text-align: center; margin: 15px 0; border: 1px solid #cce3f5; }
+        .val-highlight { font-size: 26px; font-weight: 800; color: var(--green); display: block; }
         
         .status-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
         .status-btn { height: 50px; border-radius: 12px; border: 2px solid #ddd; background: white; font-size: 10px; font-weight: bold; cursor: pointer; }
         .status-btn.active-ins { background: var(--green); color: white; border-color: var(--green); }
         .status-btn.active-pen { background: var(--orange); color: white; border-color: var(--orange); }
         .status-btn.active-no { background: var(--red); color: white; border-color: var(--red); }
-
-        .savings-box { background: #e7f3ff; padding: 15px; border-radius: 15px; text-align: center; margin: 15px 0; border: 1px solid #cce3f5; }
-        .val-highlight { font-size: 26px; font-weight: 800; color: var(--green); display: block; }
-        
-        #auth-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; }
-        #app-content { display: none; }
-        
-        #history-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 3000; overflow-y: auto; padding: 20px; box-sizing: border-box; }
-        .history-item { border-bottom: 1px solid #eee; padding: 15px 0; font-size: 14px; }
-
-        .auth-footer { text-align: center; margin-top: 10px; font-size: 14px; color: #666; }
-        .auth-footer span { color: var(--blue); cursor: pointer; font-weight: bold; }
-        
-        /* Ajuste del botón de recordar */
-        .remember-me { 
-            display: flex; 
-            align-items: center; 
-            gap: 10px; 
-            font-size: 14px; 
-            color: #444; 
-            margin-bottom: 20px; 
-            cursor: pointer;
-            padding: 5px 0;
-        }
-        .remember-me input[type="checkbox"] { 
-            width: 22px; 
-            height: 22px; 
-            margin: 0; 
-            cursor: pointer;
-            accent-color: var(--blue); /* Color del check */
-        }
     </style>
 </head>
 <body>
@@ -77,27 +71,24 @@
         <input type="email" id="auth-email" placeholder="usuario@onedrop.com">
         <label>Contraseña</label>
         <input type="password" id="auth-pass" placeholder="••••••••">
-        
-        <label class="remember-me">
-            <input type="checkbox" id="remember-check"> 
-            <span>Recordar mi correo</span>
-        </label>
-
+        <div class="switch-container" onclick="document.getElementById('remember-check').click()">
+            <span class="switch-label">Recordar mi correo</span>
+            <label class="switch"><input type="checkbox" id="remember-check" onclick="event.stopPropagation()"><span class="slider"></span></label>
+        </div>
         <button class="btn btn-main" id="auth-btn" onclick="handleAuth()">INICIAR SESIÓN</button>
-        
-        <div class="auth-footer">
-            <p id="toggle-text">¿No tienes cuenta? <span onclick="toggleAuthMode()">Regístrate</span></p>
-            <p id="reset-link" style="font-size:12px; margin-top:10px;"><span onclick="handleReset()">Recuperar Contraseña</span></p>
+        <div style="text-align:center; font-size:14px; color:#666;">
+            <p id="toggle-text">¿No tienes cuenta? <span style="color:var(--blue); font-weight:bold; cursor:pointer;" onclick="toggleAuthMode()">Regístrate</span></p>
+            <p style="margin-top:10px;"><span style="color:var(--blue); cursor:pointer; font-size:12px;" onclick="handleReset()">Recuperar Contraseña</span></p>
         </div>
     </div>
 </div>
 
 <div id="history-modal">
-    <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h2>📋 Historial de Reportes</h2>
-        <button onclick="cerrarHistorial()" style="background:var(--red); color:white; border:none; padding:10px; border-radius:10px; font-weight:bold;">CERRAR</button>
+    <div class="history-header">
+        <h2>📋 Historial</h2>
+        <button onclick="cerrarHistorial()" style="background:var(--blue); color:white; border:none; padding:10px 15px; border-radius:10px; font-weight:bold;">LISTO</button>
     </div>
-    <div id="history-list">Cargando...</div>
+    <div id="history-list"></div>
 </div>
 
 <div id="app-content" class="container">
@@ -114,46 +105,38 @@
         </div>
         <div class="grid-2">
             <div><label>Cumpleaños</label><input type="date" id="c-birthday"></div>
-            <div><label>Personas en casa</label><input type="number" id="c-people"></div>
+            <div><label>Personas</label><input type="number" id="c-people"></div>
         </div>
-        <label>Número de Teléfono</label>
-        <input type="tel" id="c-phone">
-        <label>Dirección del Cliente</label>
-        <textarea id="c-address"></textarea>
-        <button class="btn btn-gps" onclick="goMaps()">🗺️ VER RUTA EN MAPS</button>
+        <label>Teléfono</label><input type="tel" id="c-phone">
+        <label>Dirección</label><textarea id="c-address" style="width:100%; height:80px;"></textarea>
+        <button class="btn btn-gps" onclick="goMaps()">🗺️ RUTA EN MAPS</button>
     </div>
 
     <div class="card">
-        <h2>💰 Comparativa de Gastos</h2>
+        <h2>💰 Comparativa</h2>
         <div class="grid-2">
-            <div><label>Gasto Agua ($)</label><input type="number" id="cost-water" oninput="calculate()"></div>
-            <div><label>Gasto Jabón ($)</label><input type="number" id="cost-soap" oninput="calculate()"></div>
+            <div><label>Agua ($)</label><input type="number" id="cost-water" oninput="calculate()"></div>
+            <div><label>Jabón ($)</label><input type="number" id="cost-soap" oninput="calculate()"></div>
         </div>
-        <label>Cuota One Drop ($)</label>
-        <input type="number" id="one-fee" value="180" oninput="calculate()">
-        <div class="savings-box">
-            <span class="val-highlight" id="net-savings">$0.00</span>
-        </div>
+        <label>Cuota One Drop ($)</label><input type="number" id="one-fee" value="180" oninput="calculate()">
+        <div class="savings-box"><span class="val-highlight" id="net-savings">$0.00</span></div>
         <canvas id="savingsChart"></canvas>
     </div>
 
     <div class="card">
         <h2>🧪 Reporte Técnico</h2>
         <div class="grid-2">
-            <div><label>Fecha del Test</label><input type="date" id="test-date"></div>
-            <div><label>TDS (PPM)</label><input type="number" id="tds-val"></div>
+            <div><label>Fecha</label><input type="date" id="test-date"></div>
+            <div><label>TDS</label><input type="number" id="tds-val"></div>
         </div>
-        <label>¿Presenta Cloro?</label>
-        <input type="text" id="cloro-val">
-        <label>Estado de la Venta</label>
+        <label>Cloro</label><input type="text" id="cloro-val">
         <div class="status-group">
             <button class="status-btn" id="st-ins" onclick="setStatus('INSTALADO')">INSTALADO</button>
             <button class="status-btn" id="st-pen" onclick="setStatus('PENDIENTE')">PENDIENTE</button>
             <button class="status-btn" id="st-no" onclick="setStatus('NO INTERESADO')">NO INTERESADO</button>
         </div>
-        
         <div class="grid-2" style="margin-top:20px;">
-            <button class="btn btn-main" onclick="saveData()">📝 GENERAR</button>
+            <button class="btn btn-main" onclick="saveData()">📝 GUARDAR</button>
             <button class="btn btn-historial" onclick="abrirHistorial()">📋 HISTORIAL</button>
         </div>
         <button class="btn btn-sms" id="sms-btn" style="display:none;" onclick="sendSMS()">📲 ENVIAR SMS</button>
@@ -165,7 +148,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const auth = firebase.auth();
-    const ADMIN_EMAIL = "tonyhades@gmail.com"; 
+    const ADMIN_EMAIL = "tonyhades@gmail.com";
 
     let chart, currentStatus = "", currentUser = null, isLoginMode = true;
 
@@ -188,42 +171,30 @@
         }
     });
 
-    function toggleAuthMode() {
-        isLoginMode = !isLoginMode;
-        document.getElementById('auth-title').innerText = isLoginMode ? "ONE DROP" : "CREAR CUENTA";
-        document.getElementById('auth-btn').innerText = isLoginMode ? "INICIAR SESIÓN" : "REGISTRARME";
-        document.getElementById('toggle-text').innerHTML = isLoginMode ? 
-            '¿No tienes cuenta? <span onclick="toggleAuthMode()">Regístrate</span>' : 
-            '¿Ya tienes cuenta? <span onclick="toggleAuthMode()">Inicia Sesión</span>';
-        document.querySelector('.remember-me').style.display = isLoginMode ? 'flex' : 'none';
-        document.getElementById('reset-link').style.display = isLoginMode ? 'block' : 'none';
-    }
-
     async function handleAuth() {
         const e = document.getElementById('auth-email').value;
         const p = document.getElementById('auth-pass').value;
-        const remember = document.getElementById('remember-check').checked;
-
-        if (!e || !p) return alert("Completa todos los campos");
-
-        if (remember) localStorage.setItem('onedrop_email', e);
+        if (!e || !p) return alert("Faltan datos");
+        if (document.getElementById('remember-check').checked) localStorage.setItem('onedrop_email', e);
         else localStorage.removeItem('onedrop_email');
-
         try {
-            if (isLoginMode) {
-                await auth.signInWithEmailAndPassword(e, p);
-            } else {
-                await auth.createUserWithEmailAndPassword(e, p);
-                alert("¡Cuenta creada con éxito!");
-            }
-        } catch(err) { alert("Error: " + err.message); }
+            if (isLoginMode) await auth.signInWithEmailAndPassword(e, p);
+            else { await auth.createUserWithEmailAndPassword(e, p); alert("¡Registrado!"); }
+        } catch(err) { alert(err.message); }
+    }
+
+    function toggleAuthMode() {
+        isLoginMode = !isLoginMode;
+        document.getElementById('auth-title').innerText = isLoginMode ? "ONE DROP" : "REGISTRO";
+        document.getElementById('auth-btn').innerText = isLoginMode ? "INICIAR SESIÓN" : "CREAR CUENTA";
+        document.getElementById('toggle-text').style.display = isLoginMode ? "block" : "none";
     }
 
     function logout() { auth.signOut(); }
     function handleReset() {
-        const email = document.getElementById('auth-email').value;
-        if (!email) return alert("Escribe tu email");
-        auth.sendPasswordResetEmail(email).then(() => alert("Enlace enviado."));
+        const e = document.getElementById('auth-email').value;
+        if(!e) return alert("Escribe tu email");
+        auth.sendPasswordResetEmail(e).then(() => alert("Correo de recuperación enviado"));
     }
 
     function setStatus(v) {
@@ -234,7 +205,7 @@
     }
 
     async function saveData() {
-        if(!currentStatus) return alert("Selecciona un estado");
+        if(!currentStatus) return alert("Selecciona estado");
         const data = {
             vendedorId: currentUser.uid,
             vendedorEmail: currentUser.email,
@@ -247,32 +218,59 @@
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         };
         await db.collection("reportes").add(data);
-        alert("✅ Reporte Guardado.");
-        
-        const ics = `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:Seguimiento: ${data.cliente}\nDTSTART:${data.fecha.replace(/-/g,'')}T120000\nEND:VEVENT\nEND:VCALENDAR`;
-        const blob = new Blob([ics], { type: 'text/calendar' });
-        const link = document.createElement('a');
-        link.href = window.URL.createObjectURL(blob);
-        link.download = "cita.ics";
-        link.click();
-        document.getElementById('sms-btn').style.display = 'block';
+        alert("✅ Reporte Guardado correctamente");
+        document.getElementById('sms-btn').style.display = "block";
     }
 
     async function abrirHistorial() {
-        document.getElementById('history-modal').style.display = 'block';
+        document.getElementById('history-modal').style.display = "block";
         const listDiv = document.getElementById('history-list');
-        listDiv.innerHTML = "Cargando...";
-        let query = db.collection("reportes").orderBy("timestamp", "desc");
-        if (currentUser.email !== ADMIN_EMAIL) query = query.where("vendedorId", "==", currentUser.uid);
-        const snapshot = await query.get();
+        listDiv.innerHTML = "<p style='padding:20px'>Cargando...</p>";
+        let q = db.collection("reportes").orderBy("timestamp", "desc");
+        if(currentUser.email !== ADMIN_EMAIL) q = q.where("vendedorId", "==", currentUser.uid);
+        const snap = await q.get();
         listDiv.innerHTML = "";
-        snapshot.forEach(doc => {
+        
+        snap.forEach(doc => {
             const d = doc.data();
-            listDiv.innerHTML += `<div class="history-item"><b>${d.cliente}</b> - ${d.estado}<br><small>${d.fecha} | ${d.vendedorEmail}</small></div>`;
+            const id = doc.id;
+            const itemHTML = `
+                <div class="swipe-container" id="container-${id}">
+                    <button class="delete-btn" onclick="eliminarReporte('${id}')">BORRAR</button>
+                    <div class="history-item" ontouchstart="startSwipe(event, '${id}')" ontouchmove="moveSwipe(event, '${id}')" ontouchend="endSwipe(event, '${id}')">
+                        <b style="color:var(--blue); font-size:16px;">${d.cliente}</b> <span style="font-size:10px; color:#999; float:right;">${d.fecha}</span><br>
+                        <small>Estado: <b>${d.estado}</b> | TDS: ${d.tds} | Vendedor: ${d.vendedorEmail}</small>
+                    </div>
+                </div>`;
+            listDiv.innerHTML += itemHTML;
         });
     }
 
-    function cerrarHistorial() { document.getElementById('history-modal').style.display = 'none'; }
+    // --- LÓGICA SWIPE TIPO IPHONE ---
+    let startX = 0, currentID = "";
+    function startSwipe(e, id) { startX = e.touches[0].clientX; currentID = id; }
+    function moveSwipe(e, id) {
+        let diff = startX - e.touches[0].clientX;
+        if (diff > 0 && diff < 100) {
+            e.currentTarget.style.transform = `translateX(-${diff}px)`;
+        }
+    }
+    function endSwipe(e, id) {
+        let diff = startX - e.changedTouches[0].clientX;
+        if (diff > 50) { e.currentTarget.style.transform = `translateX(-80px)`; } 
+        else { e.currentTarget.style.transform = `translateX(0px)`; }
+    }
+
+    async function eliminarReporte(id) {
+        if(confirm("¿Seguro que quieres borrar este registro?")) {
+            await db.collection("reportes").doc(id).delete();
+            document.getElementById(`container-${id}`).remove();
+        } else {
+            document.querySelector(`#container-${id} .history-item`).style.transform = `translateX(0px)`;
+        }
+    }
+
+    function cerrarHistorial() { document.getElementById('history-modal').style.display = "none"; }
     function calculate() {
         const w = parseFloat(document.getElementById('cost-water').value) || 0;
         const s = parseFloat(document.getElementById('cost-soap').value) || 0;
@@ -287,7 +285,6 @@
             options: { plugins: { legend: { display: false } } }
         });
     }
-
     function goMaps() { window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(document.getElementById('c-address').value)}`, '_blank'); }
     function sendSMS() {
         const phone = document.getElementById('c-phone').value;
