@@ -8,6 +8,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <style>
         :root { --blue: #007aff; --green: #34c759; --orange: #ff9500; --red: #ff3b30; --bg: #f2f2f7; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -30,11 +31,14 @@
         .status-btn.active-ins { background: var(--green); color: white; border-color: var(--green); }
         .status-btn.active-pen { background: var(--orange); color: white; border-color: var(--orange); }
         .status-btn.active-no { background: var(--red); color: white; border-color: var(--red); }
+        
+        /* HISTORIAL EXPANDIBLE */
         #history-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f2f2f7; z-index: 3000; overflow-y: auto; }
         .hist-card { background: white; margin: 10px; padding: 15px; border-radius: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .hist-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-        .hist-details { margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ccc; font-size: 13px; line-height: 1.6; display: none; }
+        .hist-header { display: flex; justify-content: space-between; align-items: center; }
+        .hist-details { margin-top: 15px; padding: 12px; background: #f9f9f9; border-radius: 10px; font-size: 13px; line-height: 1.6; display: none; border: 1px solid #eee; }
         .delete-btn { background: #ffebeb; color: var(--red); border: none; width: 35px; height: 35px; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer; }
+        
         .savings-box { background: #e7f3ff; padding: 15px; border-radius: 15px; text-align: center; margin: 15px 0; border: 1px solid #cce3f5; }
         .val-highlight { font-size: 26px; font-weight: 800; color: var(--green); display: block; }
     </style>
@@ -43,7 +47,7 @@
 
 <div id="history-modal">
     <div style="padding:20px; background:white; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #ddd; position:sticky; top:0; z-index:10;">
-        <h2 style="margin:0; border:none;">Historial Detallado</h2>
+        <h2 style="margin:0; border:none;">Historial de Clientes</h2>
         <button onclick="cerrarHistorial()" style="background:var(--blue); color:white; border:none; padding:8px 15px; border-radius:8px; font-weight:bold;">LISTO</button>
     </div>
     <div id="history-list"></div>
@@ -67,14 +71,14 @@
     </div>
 
     <div class="card">
-        <h2>💰 Ahorro Estimado</h2>
+        <h2>💰 Ahorro Estimado Anual</h2>
         <div class="grid-2">
             <div><label>Gasto Agua</label><input type="number" id="cost-water" oninput="calculate()"></div>
             <div><label>Gasto Jabón</label><input type="number" id="cost-soap" oninput="calculate()"></div>
         </div>
         <label>Cuota mensual OD ($)</label><input type="number" id="one-fee" value="180" oninput="calculate()">
         <div class="savings-box"><span class="val-highlight" id="net-savings">$0.00</span><small>Ahorro neto anual</small></div>
-        <canvas id="savingsChart" style="max-height:150px;"></canvas>
+        <div style="height: 250px;"><canvas id="savingsChart"></canvas></div>
     </div>
 
     <div class="card">
@@ -150,11 +154,11 @@
                         <button class="delete-btn" onclick="borrarR('${doc.id}')">✕</button>
                     </div>
                     <div class="hist-details" id="det-${doc.id}">
-                        <p><strong>Tel:</strong> ${d.tel || 'N/A'}</p>
-                        <p><strong>Dir:</strong> ${d.dir || 'N/A'}</p>
+                        <p><strong>Teléfono:</strong> ${d.tel || 'N/A'}</p>
+                        <p><strong>Dirección:</strong> ${d.dir || 'N/A'}</p>
                         <p><strong>Nacimiento:</strong> ${d.nacimiento || 'N/A'}</p>
                         <p><strong>Personas:</strong> ${d.personas || '0'}</p>
-                        <p><strong>TDS:</strong> ${d.tds} PPM | <strong>Cloro:</strong> ${d.cloro}</p>
+                        <p><strong>Calidad:</strong> TDS ${d.tds} PPM | Cloro: ${d.cloro}</p>
                         <p style="color:var(--green); font-weight:bold;">Ahorro: ${d.ahorroAnual}</p>
                     </div>
                 </div>`;
@@ -167,11 +171,11 @@
     }
 
     async function borrarR(id) {
-        if(confirm("¿Borrar este reporte?")) {
+        if(confirm("¿Seguro que quieres borrar este reporte?")) {
             try {
                 await db.collection("reportes").doc(id).delete();
                 document.getElementById('doc-' + id).remove();
-            } catch(e) { alert("Error"); }
+            } catch(e) { alert("Error al borrar"); }
         }
     }
 
@@ -183,12 +187,39 @@
         const f = parseFloat(document.getElementById('one-fee').value) || 0;
         const net = (w+s)*12 - (f*12);
         document.getElementById('net-savings').innerText = `$${net.toLocaleString()}`;
+        
         const ctx = document.getElementById('savingsChart').getContext('2d');
         if(chart) chart.destroy();
+        
+        Chart.register(ChartDataLabels);
         chart = new Chart(ctx, {
             type: 'bar',
-            data: { labels: ['Actual', 'One Drop'], datasets: [{ data: [(w+s)*12, f*12], backgroundColor: ['#ff3b30', '#007aff'] }] },
-            options: { indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { display: false } } } }
+            data: { 
+                labels: ['Gasto Actual', 'Plan One Drop'], 
+                datasets: [{ 
+                    data: [(w+s)*12, f*12], 
+                    backgroundColor: [var(--red), var(--blue)],
+                    borderRadius: 10
+                }] 
+            },
+            options: { 
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { 
+                    legend: { display: false },
+                    datalabels: {
+                        color: '#fff',
+                        anchor: 'end',
+                        align: 'bottom',
+                        font: { weight: 'bold', size: 14 },
+                        formatter: (val) => '$' + val.toLocaleString()
+                    }
+                },
+                scales: { 
+                    y: { display: false },
+                    x: { grid: { display: false }, ticks: { font: { weight: 'bold' } } } 
+                } 
+            }
         });
     }
 
@@ -199,7 +230,7 @@
 
     function sendSMS() {
         const p = document.getElementById('c-phone').value;
-        const m = `ONE DROP: Reporte de TDS ${document.getElementById('tds-val').value} PPM. Ahorro Anual: ${document.getElementById('net-savings').innerText}`;
+        const m = `ONE DROP: TDS ${document.getElementById('tds-val').value} PPM. Ahorro Anual: ${document.getElementById('net-savings').innerText}`;
         window.location.href = `sms:${p}?body=${encodeURIComponent(m)}`;
     }
 </script>
