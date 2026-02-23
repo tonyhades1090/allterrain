@@ -36,10 +36,16 @@
         .status-btn.active-pen { background: var(--orange); color: white; border-color: var(--orange); }
         .status-btn.active-no { background: var(--red); color: white; border-color: var(--red); }
 
-        #auth-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 1000; display: flex; align-items: center; justify-content: center; }
-        #app-content { display: none; }
         .savings-box { background: #e7f3ff; padding: 15px; border-radius: 15px; text-align: center; margin: 15px 0; border: 1px solid #cce3f5; }
         .val-highlight { font-size: 26px; font-weight: 800; color: var(--green); display: block; }
+        
+        #auth-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; }
+        #app-content { display: none; }
+        
+        /* Modal Historial */
+        #history-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 3000; overflow-y: auto; padding: 20px; box-sizing: border-box; }
+        .history-item { border-bottom: 1px solid #eee; padding: 15px 0; font-size: 14px; }
+        .history-item b { color: var(--blue); }
     </style>
 </head>
 <body>
@@ -54,6 +60,14 @@
         <button class="btn btn-main" onclick="handleLogin()">INICIAR SESIÓN</button>
         <button class="btn" style="background:none; color:var(--blue); font-size:12px;" onclick="handleReset()">RECUPERAR CONTRASEÑA</button>
     </div>
+</div>
+
+<div id="history-modal">
+    <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2>📋 Historial de Reportes</h2>
+        <button onclick="cerrarHistorial()" style="background:var(--red); color:white; border:none; padding:10px; border-radius:10px; font-weight:bold;">CERRAR</button>
+    </div>
+    <div id="history-list">Cargando...</div>
 </div>
 
 <div id="app-content" class="container">
@@ -110,7 +124,7 @@
         
         <div class="grid-2" style="margin-top:20px;">
             <button class="btn btn-main" onclick="saveData()">📝 GENERAR</button>
-            <button class="btn btn-historial" onclick="verHistorial()">📋 HISTORIAL</button>
+            <button class="btn btn-historial" onclick="abrirHistorial()">📋 HISTORIAL</button>
         </div>
         <button class="btn btn-sms" id="sms-btn" style="display:none;" onclick="sendSMS()">📲 ENVIAR SMS</button>
     </div>
@@ -121,7 +135,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const auth = firebase.auth();
-    const ADMIN_EMAIL = "tu-correo@administrador.com"; // CAMBIA ESTO POR TU CORREO
+    const ADMIN_EMAIL = "tonyhades@gmail.com"; 
 
     let chart, currentStatus = "", currentUser = null;
 
@@ -143,6 +157,11 @@
     }
 
     function logout() { auth.signOut(); }
+    function handleReset() {
+        const email = document.getElementById('auth-email').value;
+        if (!email) return alert("Escribe tu email");
+        auth.sendPasswordResetEmail(email).then(() => alert("Enlace de recuperación enviado."));
+    }
 
     function setStatus(v) {
         currentStatus = v;
@@ -154,35 +173,56 @@
     async function saveData() {
         if(!currentStatus) return alert("Selecciona un estado");
         const data = {
-            vendedor: currentUser.email,
+            vendedorId: currentUser.uid,
+            vendedorEmail: currentUser.email,
             cliente: document.getElementById('c-name').value + " " + document.getElementById('c-lastname').value,
             tel: document.getElementById('c-phone').value,
             tds: document.getElementById('tds-val').value,
             estado: currentStatus,
             fecha: document.getElementById('test-date').value,
+            ahorro: document.getElementById('net-savings').innerText,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         };
         await db.collection("reportes").add(data);
-        alert("Guardado. Se generará el evento de calendario.");
+        alert("✅ Reporte Guardado.");
         
-        // Generar Calendario
-        const ics = `BEGIN:VCALENDAR\nBEGIN:VEVENT\nSUMMARY:Seguimiento: ${data.cliente}\nDTSTART:${data.fecha.replace(/-/g,'')}T120000\nEND:VEVENT\nEND:VCALENDAR`;
+        const ics = `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:Seguimiento: ${data.cliente}\nDTSTART:${data.fecha.replace(/-/g,'')}T120000\nDESCRIPTION:TDS: ${data.tds} PPM. Ahorro: ${data.ahorro}\nEND:VEVENT\nEND:VCALENDAR`;
+        const blob = new Blob([ics], { type: 'text/calendar' });
         const link = document.createElement('a');
-        link.href = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(ics);
-        link.download = "cita.ics";
+        link.href = window.URL.createObjectURL(blob);
+        link.download = "cita_onedrop.ics";
         link.click();
         
         document.getElementById('sms-btn').style.display = 'block';
     }
 
-    function verHistorial() {
-        if(currentUser.email === ADMIN_EMAIL) {
-            alert("Accediendo como Administrador: Verás todos los reportes del equipo.");
-        } else {
-            alert("Accediendo a tu historial personal.");
+    async function abrirHistorial() {
+        document.getElementById('history-modal').style.display = 'block';
+        const listDiv = document.getElementById('history-list');
+        listDiv.innerHTML = "Cargando...";
+        
+        let query = db.collection("reportes").orderBy("timestamp", "desc");
+        
+        // Si NO eres tú, filtrar solo tus propios reportes
+        if (currentUser.email !== ADMIN_EMAIL) {
+            query = query.where("vendedorId", "==", currentUser.uid);
         }
-        // Aquí podrías redireccionar a una tabla con los datos de Firebase
+
+        const snapshot = await query.get();
+        listDiv.innerHTML = "";
+        
+        snapshot.forEach(doc => {
+            const d = doc.data();
+            listDiv.innerHTML += `
+                <div class="history-item">
+                    <b>${d.cliente}</b> - ${d.estado}<br>
+                    <small>Fecha: ${d.fecha} | TDS: ${d.tds} | Ahorro: ${d.ahorro}</small><br>
+                    <small style="color:#888">Vendedor: ${d.vendedorEmail}</small>
+                </div>`;
+        });
     }
+
+    function cerrarHistorial() { document.getElementById('history-modal').style.display = 'none'; }
 
     function calculate() {
         const w = parseFloat(document.getElementById('cost-water').value) || 0;
@@ -200,7 +240,11 @@
     }
 
     function goMaps() { window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(document.getElementById('c-address').value)}`, '_blank'); }
-    function handleReset() { /* lógica reset */ }
+    function sendSMS() {
+        const phone = document.getElementById('c-phone').value;
+        const msg = `ONE DROP - Reporte: TDS ${document.getElementById('tds-val').value} PPM. Ahorro Anual: ${document.getElementById('net-savings').innerText}`;
+        window.location.href = `sms:${phone}?body=${encodeURIComponent(msg)}`;
+    }
     
     document.getElementById('test-date').valueAsDate = new Date();
     calculate();
