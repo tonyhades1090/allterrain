@@ -59,6 +59,9 @@
         #history-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f2f2f7; z-index: 5000; overflow-y: auto; }
         .hist-card { background: white; margin: 10px; padding: 15px; border-radius: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .hist-details { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ccc; font-size: 13px; color: #444; }
+        
+        /* Contenedor de gráfica corregido para Tablets */
+        .chart-container { position: relative; height: 300px; width: 100%; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -71,8 +74,8 @@
 <div id="auth-screen">
     <div class="auth-card">
         <h1 style="margin-bottom:20px;">ONE DROP</h1>
-        <input type="email" id="auth-email" placeholder="Email">
-        <input type="password" id="auth-pass" placeholder="Password">
+        <input type="email" id="auth-email" placeholder="Email" autocomplete="off">
+        <input type="password" id="auth-pass" placeholder="Password" autocomplete="off">
         <button class="btn btn-blue" id="btn-action" onclick="handleAuth()" data-t="signIn">SIGN IN</button>
         <div id="auth-options">
             <button class="btn btn-link" onclick="toggleAuth(true)" data-t="noAccount">Don't have an account? Sign Up</button><br>
@@ -93,39 +96,41 @@
     <div class="card">
         <h2 data-t="clientInfo">👤 Client Info</h2>
         <div class="grid-2">
-            <div><label data-t="fName">First Name</label><input type="text" id="c-name"></div>
-            <div><label data-t="lName">Last Name</label><input type="text" id="c-lastname"></div>
+            <div><label data-t="fName">First Name</label><input type="text" id="c-name" autocomplete="off"></div>
+            <div><label data-t="lName">Last Name</label><input type="text" id="c-lastname" autocomplete="off"></div>
         </div>
         <div class="grid-2">
-            <div><label data-t="bday">Birthday</label><input type="date" id="c-birthday"></div>
-            <div><label data-t="people">People</label><input type="number" id="c-people"></div>
+            <div><label data-t="bday">Birthday</label><input type="date" id="c-birthday" autocomplete="off"></div>
+            <div><label data-t="people">People</label><input type="number" id="c-people" autocomplete="off"></div>
         </div>
-        <label data-t="phone">Phone</label><input type="tel" id="c-phone">
-        <label data-t="address">Address</label><textarea id="c-address"></textarea>
+        <label data-t="phone">Phone</label><input type="tel" id="c-phone" autocomplete="off">
+        <label data-t="address">Address</label><textarea id="c-address" autocomplete="off"></textarea>
         <button class="btn btn-gps" onclick="goMaps()" data-t="viewMaps">🗺️ VIEW ON MAPS</button>
     </div>
 
     <div class="card">
         <h2 data-t="savingsTitle">💰 Yearly Savings</h2>
         <div class="grid-2">
-            <div><label data-t="waterCost">Water Cost</label><input type="number" id="cost-water" oninput="calculate()"></div>
-            <div><label data-t="soapCost">Soap Cost</label><input type="number" id="cost-soap" oninput="calculate()"></div>
+            <div><label data-t="waterCost">Water Cost</label><input type="number" id="cost-water" oninput="calculate()" autocomplete="off"></div>
+            <div><label data-t="soapCost">Soap Cost</label><input type="number" id="cost-soap" oninput="calculate()" autocomplete="off"></div>
         </div>
-        <label data-t="monthlyFee">Monthly Fee ($)</label><input type="number" id="one-fee" value="180" oninput="calculate()">
+        <label data-t="monthlyFee">Monthly Fee ($)</label><input type="number" id="one-fee" value="180" oninput="calculate()" autocomplete="off">
         <div class="savings-box">
             <span style="font-size:26px; font-weight:800; color:var(--green);" id="net-savings">$0.00</span><br>
             <small data-t="netSavings">Net Annual Savings</small>
         </div>
-        <canvas id="savingsChart" style="max-height: 250px; width:100%;"></canvas>
+        <div class="chart-container">
+            <canvas id="savingsChart"></canvas>
+        </div>
     </div>
 
     <div class="card">
         <h2 data-t="techReport">🧪 Tech Report</h2>
         <div class="grid-2">
-            <div><label data-t="date">Date</label><input type="date" id="test-date"></div>
-            <div><label>TDS (PPM)</label><input type="number" id="tds-val"></div>
+            <div><label data-t="date">Date</label><input type="date" id="test-date" autocomplete="off"></div>
+            <div><label>TDS (PPM)</label><input type="number" id="tds-val" autocomplete="off"></div>
         </div>
-        <label data-t="chlorine">Chlorine Presence</label><input type="text" id="cloro-val">
+        <label data-t="chlorine">Chlorine Presence</label><input type="text" id="cloro-val" autocomplete="off">
         <div class="status-group">
             <button class="status-btn" id="st-ins" onclick="setStatus('INSTALLED')" data-t="stInstalled">INSTALLED</button>
             <button class="status-btn" id="st-pen" onclick="setStatus('PENDING')" data-t="stPending">PENDING</button>
@@ -160,12 +165,15 @@
     };
 
     function clearAllInputs() {
-        const ids = ['c-name','c-lastname','c-phone','c-address','c-birthday','c-people','cost-water','cost-soap','tds-val','cloro-val'];
-        ids.forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+        // Limpieza agresiva de campos
+        const inputs = document.querySelectorAll('#app-screen input, #app-screen textarea');
+        inputs.forEach(input => {
+            if (input.id !== 'one-fee') input.value = '';
+        });
         document.getElementById('net-savings').innerText = '$0.00';
         document.getElementById('sms-btn').style.display = 'none';
         setStatus('');
-        if(chart) chart.destroy();
+        if(chart) { chart.destroy(); chart = null; }
         document.getElementById('test-date').valueAsDate = new Date();
     }
 
@@ -185,7 +193,8 @@
             clearAllInputs();
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('app-screen').style.display = 'block';
-            setTimeout(calculate, 500);
+            // Pequeña espera para asegurar que el iPad renderice la gráfica
+            setTimeout(() => { calculate(); }, 300);
         } else {
             document.getElementById('auth-screen').style.display = 'flex';
             document.getElementById('app-screen').style.display = 'none';
@@ -206,13 +215,11 @@
         else { auth.signInWithEmailAndPassword(email, pass).catch(e => alert(e.message)); }
     }
 
-    function forgotPassword() {
-        const email = document.getElementById('auth-email').value;
-        if(!email) return alert("Email?");
-        auth.sendPasswordResetEmail(email).then(() => alert("Email sent!")).catch(e => alert(e.message));
+    function logout() { 
+        if(confirm(translations[currentLang].logoutConfirm)) { 
+            auth.signOut().then(() => { clearAllInputs(); });
+        } 
     }
-
-    function logout() { if(confirm(translations[currentLang].logoutConfirm)) { auth.signOut(); clearAllInputs(); } }
 
     function setStatus(v) {
         currentStatus = v;
@@ -223,7 +230,7 @@
     }
 
     async function saveData() {
-        if(!currentStatus) return alert("Status?");
+        if(!currentStatus) return alert("Select status");
         await db.collection("reportes").add({
             nombre: document.getElementById('c-name').value, apellido: document.getElementById('c-lastname').value,
             tel: document.getElementById('c-phone').value, dir: document.getElementById('c-address').value,
@@ -247,9 +254,7 @@
     }
 
     function toggleDetalle(id) { const el = document.getElementById('det-' + id); el.style.display = (el.style.display === 'block') ? 'none' : 'block'; }
-
     async function borrarRegistro(id) { if(confirm(translations[currentLang].deleteConfirm)) { await db.collection("reportes").doc(id).delete(); document.getElementById('card-' + id).remove(); } }
-
     function cerrarHistorial() { document.getElementById('history-modal').style.display = "none"; }
 
     function calculate() {
@@ -258,18 +263,33 @@
         const f = (parseFloat(document.getElementById('one-fee').value) || 0) * 12;
         const net = (w + s) - f;
         document.getElementById('net-savings').innerText = `$${net.toLocaleString()}`;
+        
         const ctx = document.getElementById('savingsChart').getContext('2d');
         if(chart) chart.destroy();
+        
         chart = new Chart(ctx, {
             type: 'bar',
-            data: { labels: currentLang === 'es' ? ['Costo Actual', 'Plan One Drop'] : ['Current Cost', 'One Drop Plan'], datasets: [{ data: [w + s, f], backgroundColor: ['#ff3b30', '#007aff'], borderRadius: 8 }] },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            data: { 
+                labels: currentLang === 'es' ? ['Costo Actual', 'Plan One Drop'] : ['Current Cost', 'One Drop Plan'], 
+                datasets: [{ 
+                    data: [w + s, f], 
+                    backgroundColor: ['#ff3b30', '#007aff'], 
+                    borderRadius: 8 
+                }] 
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                animation: { duration: 500 },
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true } }
+            }
         });
     }
 
-    function goMaps() { const addr = document.getElementById('c-address').value; if(addr) window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`, '_blank'); }
-
+    function goMaps() { const addr = document.getElementById('c-address').value; if(addr) window.open(`https://maps.google.com/?q=${encodeURIComponent(addr)}`, '_blank'); }
     function sendSMS() { const p = document.getElementById('c-phone').value; const m = `ONE DROP: Savings ${document.getElementById('net-savings').innerText}. TDS: ${document.getElementById('tds-val').value} PPM.`; window.location.href = `sms:${p}?body=${encodeURIComponent(m)}`; }
+    function forgotPassword() { const email = document.getElementById('auth-email').value; if(!email) return alert("Email?"); auth.sendPasswordResetEmail(email).then(() => alert("Email sent!")).catch(e => alert(e.message)); }
 </script>
 </body>
 </html>
