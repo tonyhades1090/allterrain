@@ -7,8 +7,6 @@
 
     <link rel="icon" type="image/png" href="https://i.ibb.co/S76pM5N8/one-drop-icon.png">
     <link rel="apple-touch-icon" href="https://i.ibb.co/S76pM5N8/one-drop-icon.png">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
 
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -37,7 +35,7 @@
         h2 { font-size: 14px; color: #333; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 15px; text-transform: uppercase; }
         
         label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 11px; color: #666; text-transform: uppercase; }
-        input, textarea, select { width: 100%; height: 48px; padding: 12px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #d1d1d6; font-size: 16px; background: #fff; }
+        input, select { width: 100%; height: 48px; padding: 12px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #d1d1d6; font-size: 16px; background: #fff; }
         
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .grid-3 { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 10px; }
@@ -79,7 +77,7 @@
 
 <div id="auth-screen">
     <div class="auth-card">
-        <h1 style="color:var(--blue); margin-bottom:20px;">ONE DROP</h1>
+        <h1>ONE DROP</h1>
         <input type="email" id="auth-email" placeholder="Email">
         <input type="password" id="auth-pass" placeholder="Password">
         <button class="btn btn-blue" id="btn-main-auth" onclick="handleAuth()" data-t="loginBtn">SIGN IN</button>
@@ -113,7 +111,6 @@
         </div>
 
         <button class="btn btn-gps" onclick="goMaps()" data-t="viewMaps">🗺️ VIEW ON MAPS</button>
-        
         <label style="margin-top:15px;" data-t="photos">📸 Photos</label>
         <input type="file" id="photo-input" accept="image/*" multiple style="display:none;" onchange="handlePhotos(this)">
         <button class="btn btn-gallery" onclick="document.getElementById('photo-input').click()" data-t="galleryBtn">📁 OPEN GALLERY</button>
@@ -127,9 +124,9 @@
             <div><label data-t="soapCost">Soap Cost / Mo</label><input type="number" id="cost-soap" oninput="calculate()"></div>
         </div>
         <div class="grid-2">
-            <div><label data-t="monthlyFee">Monthly Fee ($)</label><input type="number" id="one-fee" value="180" oninput="calculate()"></div>
+            <div><label data-t="monthlyFee">Fee ($)</label><input type="number" id="one-fee" value="180" oninput="calculate()"></div>
             <div>
-                <label data-t="projection">Years Projection</label>
+                <label data-t="projection">Years</label>
                 <select id="proj-years" onchange="calculate()">
                     <option value="1">1</option><option value="5" selected>5</option><option value="10">10</option>
                 </select>
@@ -148,7 +145,7 @@
             <div><label data-t="date">Date</label><input type="date" id="test-date"></div>
             <div><label>TDS (PPM)</label><input type="number" id="tds-val"></div>
         </div>
-        <label data-t="chlorine">Chlorine Presence</label><input type="text" id="cloro-val">
+        <label data-t="chlorine">Chlorine</label><input type="text" id="cloro-val">
         <div class="status-group">
             <button class="status-btn" id="st-ins" onclick="setStatus('INSTALLED')" data-t="stInstalled">INSTALLED</button>
             <button class="status-btn" id="st-pen" onclick="setStatus('PENDING')" data-t="stPending">PENDING</button>
@@ -186,33 +183,10 @@
     let temporalData = []; 
 
     const translations = {
-        en: { 
-            loginBtn: "SIGN IN", signUpBtn: "SIGN UP", noAccount: "No account? Sign Up", hasAccount: "Have account? Sign In",
-            forgotPass: "Forgot Password?", resetSent: "Reset email sent!", edit: "EDIT", logout: "LOGOUT", 
-            clientInfo: "👤 Client Info", fName: "First Name", lName: "Last Name", bday: "Birthday", 
-            people: "People", phone: "Phone", address: "Address", city: "City/County", state: "State", 
-            zip: "Zip", viewMaps: "🗺️ VIEW ON MAPS", photos: "📸 Photos", galleryBtn: "📁 OPEN GALLERY",
-            savingsTitle: "📊 Savings Analysis", waterCost: "Water Cost / Mo", soapCost: "Soap Cost / Mo", 
-            monthlyFee: "Monthly Fee ($)", projection: "Years Projection", netSavings: "Net Savings", 
-            techReport: "🧪 Tech Report", date: "Date", chlorine: "Chlorine Presence", stInstalled: "INSTALLED", 
-            stPending: "PENDING", stRejected: "REJECTED", saveData: "SAVE DATA", history: "HISTORY", 
-            sendSms: "📲 SEND SMS", clientHistory: "Client History", done: "DONE", deleteConfirm: "Delete?", logoutConfirm: "Logout?"
-        },
-        es: { 
-            loginBtn: "INGRESAR", signUpBtn: "REGISTRARSE", noAccount: "¿No tienes cuenta? Regístrate", hasAccount: "¿Ya tienes cuenta? Ingresa",
-            forgotPass: "¿Olvidaste tu contraseña?", resetSent: "¡Correo enviado!", edit: "EDITAR", logout: "SALIR", 
-            clientInfo: "👤 Datos Cliente", fName: "Nombre", lName: "Apellido", bday: "Nacimiento", 
-            people: "Personas", phone: "Teléfono", address: "Dirección", city: "Ciudad/Condado", state: "Estado", 
-            zip: "Zip", viewMaps: "🗺️ VER MAPS", photos: "📸 Fotos", galleryBtn: "📁 ABRIR GALERÍA",
-            savingsTitle: "📊 Análisis de Ahorro", waterCost: "Costo Agua / Mes", soapCost: "Costo Jabón / Mes", 
-            monthlyFee: "Cuota Mensual ($)", projection: "Proyección Años", netSavings: "Ahorro Neto", 
-            techReport: "🧪 Reporte Técnico", date: "Fecha", chlorine: "Presencia Cloro", stInstalled: "INSTALADO", 
-            stPending: "PENDIENTE", stRejected: "RECHAZADO", saveData: "GUARDAR", history: "HISTORIAL", 
-            sendSms: "📲 ENVIAR SMS", clientHistory: "Historial", done: "LISTO", deleteConfirm: "¿Borrar?", logoutConfirm: "¿Salir?"
-        }
+        en: { loginBtn: "SIGN IN", signUpBtn: "SIGN UP", noAccount: "No account? Sign Up", hasAccount: "Have account? Sign In", forgotPass: "Forgot Password?", resetSent: "Email sent!", edit: "EDIT", logout: "LOGOUT", clientInfo: "Client Info", fName: "First Name", lName: "Last Name", bday: "Birthday", people: "People", phone: "Phone", address: "Address", city: "City/County", state: "ST", zip: "Zip", viewMaps: "🗺️ VIEW ON MAPS", photos: "Photos", galleryBtn: "📁 OPEN GALLERY", savingsTitle: "Savings Analysis", waterCost: "Water/Mo", soapCost: "Soap/Mo", monthlyFee: "Fee ($)", projection: "Years", netSavings: "Net Savings", techReport: "Tech Report", date: "Date", chlorine: "Chlorine", stInstalled: "INSTALLED", stPending: "PENDING", stRejected: "REJECTED", saveData: "SAVE DATA", history: "HISTORY", sendSms: "📲 SEND SMS", clientHistory: "History", done: "DONE", logoutConfirm: "Logout?" },
+        es: { loginBtn: "INGRESAR", signUpBtn: "REGISTRARSE", noAccount: "¿No tienes cuenta? Regístrate", hasAccount: "¿Ya tienes cuenta? Ingresa", forgotPass: "¿Olvidaste la clave?", resetSent: "¡Correo enviado!", edit: "EDITAR", logout: "SALIR", clientInfo: "Datos Cliente", fName: "Nombre", lName: "Apellido", bday: "Nacimiento", people: "Personas", phone: "Teléfono", address: "Dirección", city: "Ciudad/Condado", state: "Est.", zip: "Zip", viewMaps: "🗺️ VER MAPS", photos: "Fotos", galleryBtn: "📁 ABRIR GALERÍA", savingsTitle: "Análisis Ahorro", waterCost: "Agua/Mes", soapCost: "Jabón/Mes", monthlyFee: "Cuota ($)", projection: "Años", netSavings: "Ahorro Neto", techReport: "Reporte Técnico", date: "Fecha", chlorine: "Cloro", stInstalled: "INSTALADO", stPending: "PENDIENTE", stRejected: "RECHAZADO", saveData: "GUARDAR", history: "HISTORIAL", sendSms: "📲 ENVIAR SMS", clientHistory: "Historial", done: "LISTO", logoutConfirm: "¿Salir?" }
     };
 
-    // IDIOMA DINÁMICO
     function setLanguage(l) { 
         currentLang = l;
         document.getElementById('btn-en').classList.toggle('active', l==='en');
@@ -221,11 +195,9 @@
             const k = el.getAttribute('data-t');
             if(translations[l][k]) el.innerText = translations[l][k];
         });
-        updateAuthLabels();
-        calculate();
+        updateAuthLabels(); calculate();
     }
 
-    // LÓGICA DE AUTH
     function toggleAuthMode() { isSignUp = !isSignUp; updateAuthLabels(); }
     function updateAuthLabels() {
         const btn = document.getElementById('btn-main-auth');
@@ -234,8 +206,7 @@
         toggle.innerText = isSignUp ? translations[currentLang].hasAccount : translations[currentLang].noAccount;
     }
     function handleAuth() {
-        const email = document.getElementById('auth-email').value;
-        const pass = document.getElementById('auth-pass').value;
+        const email = document.getElementById('auth-email').value, pass = document.getElementById('auth-pass').value;
         if(isSignUp) auth.createUserWithEmailAndPassword(email, pass).catch(e => alert(e.message));
         else auth.signInWithEmailAndPassword(email, pass).catch(e => alert(e.message));
     }
@@ -245,17 +216,13 @@
         auth.sendPasswordResetEmail(email).then(() => alert(translations[currentLang].resetSent));
     }
 
-    // CÁLCULOS Y FOTOS
     function handlePhotos(input) {
-        const preview = document.getElementById('photo-preview');
-        preview.innerHTML = ""; savedPhotos = [];
+        const preview = document.getElementById('photo-preview'); preview.innerHTML = ""; savedPhotos = [];
         Array.from(input.files).forEach(file => {
             const reader = new FileReader();
             reader.onload = e => {
-                const img = document.createElement('img');
-                img.src = e.target.result; img.className = 'preview-img';
-                preview.appendChild(img);
-                savedPhotos.push(e.target.result);
+                const img = document.createElement('img'); img.src = e.target.result; img.className = 'preview-img';
+                preview.appendChild(img); savedPhotos.push(e.target.result);
             };
             reader.readAsDataURL(file);
         });
@@ -271,70 +238,52 @@
         document.getElementById('net-savings').innerText = '$' + net.toLocaleString(undefined, {minimumFractionDigits: 2});
         var ctx = document.getElementById('savingsChart').getContext('2d');
         if(chart) chart.destroy();
-        chart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: currentLang === 'es' ? ['Actual', 'One Drop'] : ['Current', 'One Drop'],
-                datasets: [{ data: [w + s, f], backgroundColor: ['#ff3b30', '#007aff'] }]
-            },
-            options: { responsive: true, maintainAspectRatio: false, legend: { display: false } }
-        });
+        chart = new Chart(ctx, { type: 'bar', data: { labels: currentLang === 'es' ? ['Actual', 'One Drop'] : ['Current', 'One Drop'], datasets: [{ data: [w + s, f], backgroundColor: ['#ff3b30', '#007aff'] }] }, options: { responsive: true, maintainAspectRatio: false, legend: { display: false } } });
     }
 
     auth.onAuthStateChanged(user => {
-        if (user) {
-            document.getElementById('auth-screen').style.display = 'none';
-            document.getElementById('app-screen').style.display = 'block';
-            document.getElementById('test-date').valueAsDate = new Date();
-        } else {
-            document.getElementById('auth-screen').style.display = 'flex';
-            document.getElementById('app-screen').style.display = 'none';
-        }
+        if (user) { document.getElementById('auth-screen').style.display = 'none'; document.getElementById('app-screen').style.display = 'block'; }
+        else { document.getElementById('auth-screen').style.display = 'flex'; document.getElementById('app-screen').style.display = 'none'; }
     });
 
     async function saveData() {
         if(!currentStatus) return alert("Select status");
         await db.collection("reportes").add({
-            nombre: document.getElementById('c-name').value, 
-            apellido: document.getElementById('c-lastname').value,
-            tel: document.getElementById('c-phone').value,
-            dir: document.getElementById('c-address').value,
-            city: document.getElementById('c-city').value,
-            state: document.getElementById('c-state').value,
-            zip: document.getElementById('c-zip').value,
-            fotos: savedPhotos,
-            ahorro: document.getElementById('net-savings').innerText,
-            estado: currentStatus,
-            fecha: document.getElementById('test-date').value,
+            nombre: document.getElementById('c-name').value, apellido: document.getElementById('c-lastname').value,
+            tel: document.getElementById('c-phone').value, dir: document.getElementById('c-address').value,
+            city: document.getElementById('c-city').value, state: document.getElementById('c-state').value,
+            zip: document.getElementById('c-zip').value, bday: document.getElementById('c-birthday').value,
+            people: document.getElementById('c-people').value, costoAgua: document.getElementById('cost-water').value,
+            costoJabon: document.getElementById('cost-soap').value, ahorro: document.getElementById('net-savings').innerText,
+            fotos: savedPhotos, estado: currentStatus, fecha: document.getElementById('test-date').value,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
-        alert("Saved!");
-        document.getElementById('sms-btn').style.display = "block";
+        alert("Saved!"); document.getElementById('sms-btn').style.display = "block";
     }
 
     async function filtrarHistorial(filtro) {
         document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
         document.getElementById('fh-' + filtro.toLowerCase().substring(0,3)).classList.add('active');
-        var list = document.getElementById('history-list');
-        list.innerHTML = "...";
+        var list = document.getElementById('history-list'); list.innerHTML = "..."; temporalData = [];
         try {
             let q = db.collection("reportes").orderBy("timestamp", "desc");
             if(filtro !== 'ALL') q = q.where("estado", "==", filtro);
-            var snap = await q.get();
-            list.innerHTML = "";
+            var snap = await q.get(); list.innerHTML = "";
             snap.forEach(doc => {
-                var d = doc.data();
-                let imgs = "";
-                if(d.fotos) d.fotos.forEach(f => imgs += `<img src="${f}" class="preview-img">`);
+                var d = doc.data(); d.id = doc.id; temporalData.push(d);
+                let imgs = ""; if(d.fotos) d.fotos.forEach(f => imgs += `<img src="${f}" class="preview-img">`);
                 list.innerHTML += `<div class="hist-card">
-                    <div style="display:flex; justify-content:space-between;">
-                        <div onclick="toggleDetalle('${doc.id}')">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div onclick="toggleDetalle('${d.id}')" style="flex-grow:1;">
                             <b>${d.nombre} ${d.apellido}</b><br><small>${d.fecha} | ${d.estado}</small>
                         </div>
-                        <button style="color:red; border:none; background:none;" onclick="borrarRegistro('${doc.id}')">✕</button>
+                        <div>
+                            <button class="edit-btn" onclick="editarRegistro('${d.id}')">${translations[currentLang].edit}</button>
+                            <button style="color:red; border:none; background:none; font-size:18px;" onclick="borrarRegistro('${d.id}')">✕</button>
+                        </div>
                     </div>
-                    <div class="hist-details" id="det-${doc.id}">
-                        ${d.dir}, ${d.city} ${d.state}<br><b>Ahorro: ${d.ahorro}</b>
+                    <div class="hist-details" id="det-${d.id}">
+                        ${d.dir}, ${d.city} ${d.state}<br><b>Savings: ${d.ahorro}</b><br>
                         <div style="margin-top:10px;">${imgs}</div>
                     </div>
                 </div>`;
@@ -342,15 +291,29 @@
         } catch(e) { console.log(e); }
     }
 
+    function editarRegistro(id) {
+        const item = temporalData.find(d => d.id === id);
+        if(!item) return;
+        document.getElementById('c-name').value = item.nombre || "";
+        document.getElementById('c-lastname').value = item.apellido || "";
+        document.getElementById('c-phone').value = item.tel || "";
+        document.getElementById('c-address').value = item.dir || "";
+        document.getElementById('c-city').value = item.city || "";
+        document.getElementById('c-state').value = item.state || "";
+        document.getElementById('c-zip').value = item.zip || "";
+        document.getElementById('c-birthday').value = item.bday || "";
+        document.getElementById('c-people').value = item.people || "";
+        document.getElementById('cost-water').value = item.costoAgua || "";
+        document.getElementById('cost-soap').value = item.costoJabon || "";
+        setStatus(item.estado); calculate(); cerrarHistorial();
+    }
+
     function toggleDetalle(id) { var e = document.getElementById('det-'+id); e.style.display = e.style.display==='block'?'none':'block'; }
     function abrirHistorial() { document.getElementById('history-modal').style.display = "block"; filtrarHistorial('ALL'); }
     function cerrarHistorial() { document.getElementById('history-modal').style.display = "none"; }
     function logout() { if(confirm(translations[currentLang].logoutConfirm)) auth.signOut(); }
-    async function borrarRegistro(id) { if(confirm("Delete?")) await db.collection("reportes").doc(id).delete(); filtrarHistorial('ALL'); }
-    function goMaps() { 
-        var full = `${document.getElementById('c-address').value} ${document.getElementById('c-city').value} ${document.getElementById('c-state').value}`;
-        window.open('https://maps.google.com/?q=' + encodeURIComponent(full)); 
-    }
+    async function borrarRegistro(id) { if(confirm("Delete?")) { await db.collection("reportes").doc(id).delete(); filtrarHistorial('ALL'); } }
+    function goMaps() { var full = `${document.getElementById('c-address').value} ${document.getElementById('c-city').value} ${document.getElementById('c-state').value}`; window.open('https://maps.google.com/?q=' + encodeURIComponent(full)); }
     function sendSMS() { window.location.href = 'sms:' + document.getElementById('c-phone').value + '&body=One Drop Savings: ' + document.getElementById('net-savings').innerText; }
     function setStatus(v) {
         currentStatus = v;
