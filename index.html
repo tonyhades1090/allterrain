@@ -45,8 +45,11 @@
         .btn-gallery { background: #64d2ff; color: #000; margin-top: 10px; font-size: 14px; padding: 10px; }
         .btn-link { background: none; color: var(--blue); font-size: 13px; margin-top: 10px; }
         
+        /* CONTENEDOR DE FOTOS CON BOTÓN BORRAR */
         #photo-preview { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
-        .preview-img { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; }
+        .photo-item { position: relative; width: 70px; height: 70px; }
+        .preview-img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; }
+        .del-photo { position: absolute; top: -5px; right: -5px; background: var(--red); color: white; border-radius: 50%; width: 20px; height: 20px; border: none; font-size: 12px; font-weight: bold; cursor: pointer; }
 
         .status-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
         .status-btn { height: 45px; border-radius: 10px; border: 1px solid #ddd; background: #f9f9f9; font-size: 9px; font-weight: 800; }
@@ -216,16 +219,36 @@
         auth.sendPasswordResetEmail(email).then(() => alert(translations[currentLang].resetSent));
     }
 
+    // --- NUEVA LÓGICA DE MANEJO DE FOTOS CON BORRADO ---
     function handlePhotos(input) {
-        const preview = document.getElementById('photo-preview'); preview.innerHTML = ""; savedPhotos = [];
         Array.from(input.files).forEach(file => {
             const reader = new FileReader();
             reader.onload = e => {
-                const img = document.createElement('img'); img.src = e.target.result; img.className = 'preview-img';
-                preview.appendChild(img); savedPhotos.push(e.target.result);
+                savedPhotos.push(e.target.result);
+                renderPhotoPreview();
             };
             reader.readAsDataURL(file);
         });
+        input.value = ""; // Resetea el input para permitir subir la misma foto si se borra
+    }
+
+    function renderPhotoPreview() {
+        const preview = document.getElementById('photo-preview');
+        preview.innerHTML = "";
+        savedPhotos.forEach((src, index) => {
+            const div = document.createElement('div');
+            div.className = 'photo-item';
+            div.innerHTML = `
+                <img src="${src}" class="preview-img">
+                <button class="del-photo" onclick="removePhoto(${index})">✕</button>
+            `;
+            preview.appendChild(div);
+        });
+    }
+
+    function removePhoto(index) {
+        savedPhotos.splice(index, 1);
+        renderPhotoPreview();
     }
 
     function calculate() {
@@ -258,7 +281,10 @@
             fotos: savedPhotos, estado: currentStatus, fecha: document.getElementById('test-date').value,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
-        alert("Saved!"); document.getElementById('sms-btn').style.display = "block";
+        alert("Saved!"); 
+        savedPhotos = []; // Limpiar fotos tras guardar
+        renderPhotoPreview();
+        document.getElementById('sms-btn').style.display = "block";
     }
 
     async function filtrarHistorial(filtro) {
@@ -271,7 +297,7 @@
             var snap = await q.get(); list.innerHTML = "";
             snap.forEach(doc => {
                 var d = doc.data(); d.id = doc.id; temporalData.push(d);
-                let imgs = ""; if(d.fotos) d.fotos.forEach(f => imgs += `<img src="${f}" class="preview-img">`);
+                let imgs = ""; if(d.fotos) d.fotos.forEach(f => imgs += `<img src="${f}" style="width:60px;height:60px;object-fit:cover;margin:2px;border-radius:5px;">`);
                 list.innerHTML += `<div class="hist-card">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <div onclick="toggleDetalle('${d.id}')" style="flex-grow:1;">
@@ -305,6 +331,8 @@
         document.getElementById('c-people').value = item.people || "";
         document.getElementById('cost-water').value = item.costoAgua || "";
         document.getElementById('cost-soap').value = item.costoJabon || "";
+        savedPhotos = item.fotos || [];
+        renderPhotoPreview();
         setStatus(item.estado); calculate(); cerrarHistorial();
     }
 
