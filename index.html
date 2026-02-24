@@ -176,7 +176,7 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
     
-    let chart, currentStatus = "", currentChlorine = "", currentLang = 'en', isSignUp = false, savedPhotos = [];
+    let chart, currentStatus = "", currentChlorine = "", currentLang = 'en', isSignUp = false, savedPhotos = [], currentEditingId = null;
     let temporalData = []; 
 
     const translations = {
@@ -271,8 +271,13 @@
         };
 
         try {
-            await db.collection("reportes").add(data);
-            alert(currentLang === 'es' ? "¡Guardado!" : "Saved!");
+            if (currentEditingId) {
+                await db.collection("reportes").doc(currentEditingId).update(data);
+                alert(currentLang === 'es' ? "¡Actualizado!" : "Updated!");
+            } else {
+                await db.collection("reportes").add(data);
+                alert(currentLang === 'es' ? "¡Guardado!" : "Saved!");
+            }
             location.reload(); 
         } catch (e) { alert(e.message); btn.disabled = false; btn.innerText = translations[currentLang].saveData; }
     }
@@ -287,10 +292,10 @@
         var list = document.getElementById('history-list'); list.innerHTML = "Loading..."; temporalData = [];
         try {
             let q = db.collection("reportes").where("userId", "==", user.uid);
-            if(filtro === 'ALL') q = q.orderBy("timestamp", "desc");
-            else q = q.where("estado", "==", filtro).orderBy("timestamp", "desc");
+            if(filtro !== 'ALL') q = q.where("estado", "==", filtro);
             
-            const snap = await q.get(); list.innerHTML = "";
+            const snap = await q.orderBy("timestamp", "desc").get(); 
+            list.innerHTML = "";
             if(snap.empty) { list.innerHTML = "<p style='text-align:center;padding:20px;'>No records found.</p>"; return; }
             snap.forEach(doc => {
                 const d = doc.data(); d.id = doc.id; temporalData.push(d);
@@ -316,12 +321,13 @@
                     </div>
                 </div>`;
             });
-        } catch(e) { list.innerHTML = "Error loading history."; }
+        } catch(e) { list.innerHTML = "Error loading history."; console.error(e); }
     }
 
     function editarRegistro(id) {
         const item = temporalData.find(d => d.id === id);
         if(!item) return;
+        currentEditingId = id;
         document.getElementById('c-name').value = item.nombre || "";
         document.getElementById('c-lastname').value = item.apellido || "";
         document.getElementById('c-phone').value = item.tel || "";
@@ -337,10 +343,11 @@
         savedPhotos = item.fotos || []; renderPhotoPreview();
         setStatus(item.estado); setChlorine(item.cloro || "");
         calculate(); cerrarHistorial();
+        document.getElementById('save-btn').innerText = currentLang === 'es' ? "ACTUALIZAR" : "UPDATE";
     }
 
     async function borrarRegistro(id) {
-        if(confirm("Delete record?")) { await db.collection("reportes").doc(id).delete(); filtrarHistorial('ALL'); }
+        if(confirm(currentLang === 'es' ? "¿Borrar registro?" : "Delete record?")) { await db.collection("reportes").doc(id).delete(); filtrarHistorial('ALL'); }
     }
 
     function calculate() {
