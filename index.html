@@ -40,6 +40,7 @@
         input, textarea, select { width: 100%; height: 48px; padding: 12px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #d1d1d6; font-size: 16px; background: #fff; }
         
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .grid-3 { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 10px; }
         .btn { width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: 700; font-size: 16px; cursor: pointer; display: block; text-align: center; }
         .btn-blue { background: var(--blue); color: white; }
         .btn-gps { background: #5856d6; color: white; margin-top: 5px; }
@@ -104,7 +105,15 @@
             <div><label data-t="people">People</label><input type="number" id="c-people"></div>
         </div>
         <label data-t="phone">Phone</label><input type="tel" id="c-phone">
-        <label data-t="address">Address</label><textarea id="c-address" style="width:100%; height:60px;"></textarea>
+        
+        <label data-t="address">Address</label><input type="text" id="c-address" placeholder="123 Street Name">
+        
+        <div class="grid-3">
+            <div><label data-t="city">City/County</label><input type="text" id="c-city" placeholder="Birmingham"></div>
+            <div><label data-t="state">State</label><input type="text" id="c-state" placeholder="AL" maxlength="2"></div>
+            <div><label data-t="zip">Zip</label><input type="number" id="c-zip" placeholder="35201"></div>
+        </div>
+
         <button class="btn btn-gps" onclick="goMaps()" data-t="viewMaps">🗺️ VIEW ON MAPS</button>
     </div>
 
@@ -186,23 +195,20 @@
     let temporalData = []; 
 
     const translations = {
-        en: { edit: "EDIT", logout: "LOGOUT", clientInfo: "👤 Client Info", fName: "First Name", lName: "Last Name", bday: "Birthday", people: "People", phone: "Phone", address: "Address", viewMaps: "🗺️ VIEW ON MAPS", savingsTitle: "📊 Savings Analysis", waterCost: "Water Cost / Mo", soapCost: "Soap Cost / Mo", monthlyFee: "Monthly Fee ($)", projection: "Years Projection", netSavings: "Net Savings", techReport: "🧪 Tech Report", date: "Date", stInstalled: "INSTALLED", stPending: "PENDING", stRejected: "REJECTED", saveData: "SAVE DATA", history: "HISTORY", sendSms: "📲 SEND SMS", clientHistory: "Client History", done: "DONE", deleteConfirm: "Delete?", logoutConfirm: "Logout?" },
-        es: { edit: "EDITAR", logout: "SALIR", clientInfo: "👤 Datos Cliente", fName: "Nombre", lName: "Apellido", bday: "Nacimiento", people: "Personas", phone: "Teléfono", address: "Dirección", viewMaps: "🗺️ VER MAPS", savingsTitle: "📊 Análisis de Ahorro", waterCost: "Costo Agua / Mes", soapCost: "Costo Jabón / Mes", monthlyFee: "Cuota Mensual ($)", projection: "Proyección Años", netSavings: "Ahorro Neto", techReport: "🧪 Reporte Técnico", date: "Fecha", stInstalled: "INSTALADO", stPending: "PENDIENTE", stRejected: "RECHAZADO", saveData: "GUARDAR", history: "HISTORIAL", sendSms: "📲 ENVIAR SMS", clientHistory: "Historial", done: "LISTO", deleteConfirm: "¿Borrar?", logoutConfirm: "¿Salir?" }
+        en: { edit: "EDIT", logout: "LOGOUT", clientInfo: "👤 Client Info", fName: "First Name", lName: "Last Name", bday: "Birthday", people: "People", phone: "Phone", address: "Address", city: "City/County", state: "State", zip: "Zip", viewMaps: "🗺️ VIEW ON MAPS", savingsTitle: "📊 Savings Analysis", waterCost: "Water Cost / Mo", soapCost: "Soap Cost / Mo", monthlyFee: "Monthly Fee ($)", projection: "Years Projection", netSavings: "Net Savings", techReport: "🧪 Tech Report", date: "Date", stInstalled: "INSTALLED", stPending: "PENDING", stRejected: "REJECTED", saveData: "SAVE DATA", history: "HISTORY", sendSms: "📲 SEND SMS", clientHistory: "Client History", done: "DONE", deleteConfirm: "Delete?", logoutConfirm: "Logout?" },
+        es: { edit: "EDITAR", logout: "SALIR", clientInfo: "👤 Datos Cliente", fName: "Nombre", lName: "Apellido", bday: "Nacimiento", people: "Personas", phone: "Teléfono", address: "Dirección", city: "Ciudad/Condado", state: "Estado", zip: "Zip", viewMaps: "🗺️ VER MAPS", savingsTitle: "📊 Análisis de Ahorro", waterCost: "Costo Agua / Mes", soapCost: "Costo Jabón / Mes", monthlyFee: "Cuota Mensual ($)", projection: "Proyección Años", netSavings: "Ahorro Neto", techReport: "🧪 Reporte Técnico", date: "Fecha", stInstalled: "INSTALADO", stPending: "PENDIENTE", stRejected: "RECHAZADO", saveData: "GUARDAR", history: "HISTORIAL", sendSms: "📲 ENVIAR SMS", clientHistory: "Historial", done: "LISTO", deleteConfirm: "¿Borrar?", logoutConfirm: "¿Salir?" }
     };
 
     function calculate() {
         const years = parseInt(document.getElementById('proj-years').value) || 1;
         const totalMonths = years * 12;
-
         const w = (parseFloat(document.getElementById('cost-water').value) || 0) * totalMonths;
         const s = (parseFloat(document.getElementById('cost-soap').value) || 0) * totalMonths;
         const f = (parseFloat(document.getElementById('one-fee').value) || 0) * totalMonths;
         const net = (w + s) - f;
-
         const labelText = currentLang === 'es' ? `Ahorro Neto (${years} Años)` : `Net Savings (${years} Years)`;
         document.getElementById('savings-label').innerText = labelText;
         document.getElementById('net-savings').innerText = '$' + net.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-
         var ctx = document.getElementById('savingsChart').getContext('2d');
         if(chart) chart.destroy();
         chart = new Chart(ctx, {
@@ -216,7 +222,9 @@
     }
 
     function clearAllInputs() {
-        document.querySelectorAll('#app-screen input, #app-screen textarea').forEach(i => { if(i.id !== 'one-fee') i.value = ""; });
+        document.querySelectorAll('#app-screen input, #app-screen textarea, #app-screen select').forEach(i => { 
+            if(i.id !== 'one-fee' && i.id !== 'proj-years') i.value = ""; 
+        });
         document.getElementById('proj-years').value = "5";
         document.getElementById('test-date').valueAsDate = new Date();
         calculate();
@@ -233,18 +241,12 @@
         }
     });
 
-    async function abrirHistorial() {
-        document.getElementById('history-modal').style.display = "block";
-        filtrarHistorial('ALL');
-    }
-
     async function filtrarHistorial(filtro) {
         document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
         if(filtro === 'ALL') document.getElementById('fh-all').classList.add('active');
         if(filtro === 'INSTALLED') document.getElementById('fh-ins').classList.add('active');
         if(filtro === 'PENDING') document.getElementById('fh-pen').classList.add('active');
         if(filtro === 'REJECTED') document.getElementById('fh-rej').classList.add('active');
-
         var list = document.getElementById('history-list');
         list.innerHTML = "<p style='text-align:center;'>Loading...</p>";
         temporalData = [];
@@ -267,6 +269,7 @@
                         </div>
                     </div>
                     <div class="hist-details" id="det-${d.id}">
+                        <div class="hist-tag">Address:</div> ${d.dir}, ${d.city || ''} ${d.state || ''} ${d.zip || ''}<br>
                         <div class="hist-tag">Saving Record:</div> ${d.ahorro}
                     </div>
                 </div>`;
@@ -281,6 +284,9 @@
         document.getElementById('c-lastname').value = item.apellido;
         document.getElementById('c-phone').value = item.tel;
         document.getElementById('c-address').value = item.dir;
+        document.getElementById('c-city').value = item.city || "";
+        document.getElementById('c-state').value = item.state || "";
+        document.getElementById('c-zip').value = item.zip || "";
         document.getElementById('cost-water').value = item.costoAgua;
         document.getElementById('cost-soap').value = item.costoJabon;
         setStatus(item.estado);
@@ -303,6 +309,9 @@
             apellido: document.getElementById('c-lastname').value,
             tel: document.getElementById('c-phone').value,
             dir: document.getElementById('c-address').value,
+            city: document.getElementById('c-city').value,
+            state: document.getElementById('c-state').value,
+            zip: document.getElementById('c-zip').value,
             costoAgua: document.getElementById('cost-water').value,
             costoJabon: document.getElementById('cost-soap').value,
             ahorro: document.getElementById('net-savings').innerText,
@@ -323,7 +332,17 @@
     function toggleDetalle(id) { var e = document.getElementById('det-'+id); e.style.display = e.style.display==='block'?'none':'block'; }
     async function borrarRegistro(id) { if(confirm("Delete?")) { await db.collection("reportes").doc(id).delete(); document.getElementById('card-'+id).remove(); } }
     function cerrarHistorial() { document.getElementById('history-modal').style.display = "none"; }
-    function goMaps() { var a = document.getElementById('c-address').value; if(a) window.open('https://www.google.com/maps/search/' + encodeURIComponent(a)); }
+    function abrirHistorial() { document.getElementById('history-modal').style.display = "block"; filtrarHistorial('ALL'); }
+
+    function goMaps() { 
+        var street = document.getElementById('c-address').value;
+        var city = document.getElementById('c-city').value;
+        var state = document.getElementById('c-state').value;
+        var zip = document.getElementById('c-zip').value;
+        var full = `${street} ${city} ${state} ${zip}`;
+        if(street) window.open('http://maps.google.com/?q=' + encodeURIComponent(full)); 
+    }
+    
     function sendSMS() { window.location.href = 'sms:' + document.getElementById('c-phone').value + '&body=One Drop Savings: ' + document.getElementById('net-savings').innerText; }
     
     function setLanguage(l) { 
