@@ -9,7 +9,6 @@
     <link rel="apple-touch-icon" href="https://i.ibb.co/S76pM5N8/one-drop-icon.png">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -60,6 +59,8 @@
         .hist-card { background: white; margin: 10px; padding: 15px; border-radius: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
         .hist-details { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ccc; font-size: 14px; line-height: 1.6; color: #333; }
         .hist-tag { font-weight: bold; color: #666; font-size: 11px; text-transform: uppercase; }
+        
+        .edit-btn { background: var(--orange); color: white; border: none; padding: 5px 10px; border-radius: 5px; font-size: 11px; font-weight: bold; cursor: pointer; margin-right: 10px; }
     </style>
 </head>
 <body>
@@ -74,13 +75,12 @@
         <h1>ONE DROP</h1>
         <input type="email" id="auth-email" placeholder="Email" autocomplete="off">
         <input type="password" id="auth-pass" placeholder="Password" autocomplete="off">
-        <button class="btn btn-blue" id="btn-action" onclick="handleAuth()" data-t="signIn">SIGN IN</button>
+        <button class="btn btn-blue" id="btn-action" onclick="handleAuth()">SIGN IN</button>
         <div id="auth-options">
-            <button class="btn btn-link" onclick="toggleAuth(true)" data-t="noAccount">Sign Up</button>
-            <button class="btn btn-link" onclick="forgotPassword()" data-t="forgotPass">Forgot Password?</button>
+            <button class="btn btn-link" onclick="toggleAuth(true)">Sign Up</button>
         </div>
         <div id="signup-options" style="display:none;">
-            <button class="btn btn-link" onclick="toggleAuth(false)" data-t="haveAccount">Sign In</button>
+            <button class="btn btn-link" onclick="toggleAuth(false)">Sign In</button>
         </div>
     </div>
 </div>
@@ -147,7 +147,7 @@
         <h2 style="margin:0; border:none;" data-t="clientHistory">Client History</h2>
         <button onclick="cerrarHistorial()" style="background:var(--blue); color:white; border:none; padding:8px 15px; border-radius:8px; font-weight:bold;" data-t="done">DONE</button>
     </div>
-    <div id="history-list" style="padding-bottom:50px;"></div>
+    <div id="history-list" style="padding:10px;"></div>
 </div>
 
 <script>
@@ -155,11 +155,16 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const auth = firebase.auth();
+    
+    db.settings({ cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED });
+    db.enablePersistence().catch(function(err) { console.log("Persistence error", err); });
+
     let chart, currentStatus = "", isSignUp = false, currentLang = 'en';
+    let temporalData = []; // Para guardar los datos del historial localmente
 
     const translations = {
-        en: { signIn: "SIGN IN", signUp: "SIGN UP", noAccount: "Sign Up", haveAccount: "Sign In", forgotPass: "Forgot Password?", logout: "LOGOUT", clientInfo: "👤 Client Info", fName: "First Name", lName: "Last Name", bday: "Birthday", people: "People", phone: "Phone", address: "Address", viewMaps: "🗺️ VIEW ON MAPS", savingsTitle: "💰 Yearly Savings", waterCost: "Water Cost", soapCost: "Soap Cost", monthlyFee: "Monthly Fee ($)", netSavings: "Net Annual Savings", techReport: "🧪 Tech Report", date: "Date", chlorine: "Chlorine Presence", stInstalled: "INSTALLED", stPending: "PENDING", stRejected: "REJECTED", saveData: "SAVE DATA", history: "HISTORY", sendSms: "📲 SEND SMS", clientHistory: "Client History", done: "DONE", deleteConfirm: "Delete?", logoutConfirm: "Logout?" },
-        es: { signIn: "ENTRAR", signUp: "REGISTRO", noAccount: "Regístrate", haveAccount: "Entrar", forgotPass: "¿Olvidaste contraseña?", logout: "SALIR", clientInfo: "👤 Datos Cliente", fName: "Nombre", lName: "Apellido", bday: "Nacimiento", people: "Personas", phone: "Teléfono", address: "Dirección", viewMaps: "🗺️ VER MAPS", savingsTitle: "💰 Ahorro Anual", waterCost: "Costo Agua", soapCost: "Costo Jabón", monthlyFee: "Cuota Mensual ($)", netSavings: "Ahorro Neto Anual", techReport: "🧪 Reporte Técnico", date: "Fecha", chlorine: "Cloro", stInstalled: "INSTALADO", stPending: "PENDIENTE", stRejected: "RECHAZADO", saveData: "GUARDAR", history: "HISTORIAL", sendSms: "📲 ENVIAR SMS", clientHistory: "Historial", done: "LISTO", deleteConfirm: "¿Borrar?", logoutConfirm: "¿Salir?" }
+        en: { edit: "EDIT", signIn: "SIGN IN", signUp: "SIGN UP", noAccount: "Sign Up", haveAccount: "Sign In", logout: "LOGOUT", clientInfo: "👤 Client Info", fName: "First Name", lName: "Last Name", bday: "Birthday", people: "People", phone: "Phone", address: "Address", viewMaps: "🗺️ VIEW ON MAPS", savingsTitle: "💰 Yearly Savings", waterCost: "Water Cost", soapCost: "Soap Cost", monthlyFee: "Monthly Fee ($)", netSavings: "Net Annual Savings", techReport: "🧪 Tech Report", date: "Date", chlorine: "Chlorine Presence", stInstalled: "INSTALLED", stPending: "PENDING", stRejected: "REJECTED", saveData: "SAVE DATA", history: "HISTORY", sendSms: "📲 SEND SMS", clientHistory: "Client History", done: "DONE", deleteConfirm: "Delete?", logoutConfirm: "Logout?" },
+        es: { edit: "EDITAR", signIn: "ENTRAR", signUp: "REGISTRO", noAccount: "Regístrate", haveAccount: "Entrar", logout: "SALIR", clientInfo: "👤 Datos Cliente", fName: "Nombre", lName: "Apellido", bday: "Nacimiento", people: "Personas", phone: "Teléfono", address: "Dirección", viewMaps: "🗺️ VER MAPS", savingsTitle: "💰 Ahorro Anual", waterCost: "Costo Agua", soapCost: "Costo Jabón", monthlyFee: "Cuota Mensual ($)", netSavings: "Ahorro Neto Anual", techReport: "🧪 Reporte Técnico", date: "Fecha", chlorine: "Cloro", stInstalled: "INSTALADO", stPending: "PENDIENTE", stRejected: "RECHAZADO", saveData: "GUARDAR", history: "HISTORIAL", sendSms: "📲 ENVIAR SMS", clientHistory: "Historial", done: "LISTO", deleteConfirm: "¿Borrar?", logoutConfirm: "¿Salir?" }
     };
 
     function clearAllInputs() {
@@ -174,17 +179,6 @@
         document.getElementById('test-date').valueAsDate = new Date();
     }
 
-    function setLanguage(lang) {
-        currentLang = lang;
-        document.querySelectorAll('.lang-btn').forEach(function(b){ b.classList.remove('active'); });
-        document.getElementById('btn-' + lang).classList.add('active');
-        document.querySelectorAll('[data-t]').forEach(function(el){
-            var key = el.getAttribute('data-t');
-            if (translations[lang][key]) el.innerText = translations[lang][key];
-        });
-        calculate();
-    }
-
     auth.onAuthStateChanged(function(user) {
         if (user) {
             clearAllInputs();
@@ -196,6 +190,74 @@
             document.getElementById('app-screen').style.display = 'none';
         }
     });
+
+    async function abrirHistorial() {
+        document.getElementById('history-modal').style.display = "block";
+        var list = document.getElementById('history-list');
+        list.innerHTML = "<p style='text-align:center;'>Loading...</p>";
+        temporalData = [];
+        
+        try {
+            var snap = await db.collection("reportes").orderBy("timestamp", "desc").get();
+            list.innerHTML = "";
+            
+            if(snap.empty) {
+                list.innerHTML = "<p style='text-align:center;'>No records found.</p>";
+                return;
+            }
+
+            snap.forEach(function(doc){
+                var d = doc.data();
+                d.id = doc.id;
+                temporalData.push(d);
+                
+                var html = '<div class="hist-card" id="card-'+doc.id+'">';
+                html += '<div style="display:flex; justify-content:space-between; align-items:center;">';
+                html += '<div onclick="toggleDetalle(\''+doc.id+'\')" style="flex-grow:1; cursor:pointer;">';
+                html += '<b style="color:var(--blue); font-size:16px;">'+(d.nombre || '')+' '+(d.apellido || '')+'</b><br>';
+                html += '<small>'+(d.fecha || '')+' | <b>'+(d.estado || '')+'</b> ▼</small></div>';
+                html += '<div style="display:flex; align-items:center;">';
+                html += '<button class="edit-btn" onclick="editarRegistro(\''+doc.id+'\')">'+translations[currentLang].edit+'</button>';
+                html += '<button style="border:none; color:red; background:none; font-size:22px;" onclick="borrarRegistro(\''+doc.id+'\')">✕</button></div></div>';
+                html += '<div class="hist-details" id="det-'+doc.id+'">';
+                html += '<div class="hist-tag">Phone:</div> '+(d.tel || 'N/A')+'<br>';
+                html += '<div class="hist-tag">Address:</div> '+(d.dir || 'N/A')+'<br>';
+                html += '<div class="hist-tag">Birthday:</div> '+(d.bday || 'N/A')+'<br>';
+                html += '<div class="hist-tag">People:</div> '+(d.people || '0')+'<br>';
+                html += '<div class="hist-tag">TDS:</div> '+(d.tds || '0')+' PPM<br>';
+                html += '<div class="hist-tag">Yearly Savings:</div> <b style="color:var(--green)">'+(d.ahorro || '$0')+'</b>';
+                html += '</div></div>';
+                list.innerHTML += html;
+            });
+        } catch(e) {
+            list.innerHTML = "<p style='color:red;'>Error loading history: " + e.message + "</p>";
+        }
+    }
+
+    function editarRegistro(id) {
+        const item = temporalData.find(d => d.id === id);
+        if(!item) return;
+
+        // Rellenar campos
+        document.getElementById('c-name').value = item.nombre || "";
+        document.getElementById('c-lastname').value = item.apellido || "";
+        document.getElementById('c-phone').value = item.tel || "";
+        document.getElementById('c-address').value = item.dir || "";
+        document.getElementById('c-birthday').value = item.bday || "";
+        document.getElementById('c-people').value = item.people || "";
+        document.getElementById('tds-val').value = item.tds || "";
+        document.getElementById('test-date').value = item.fecha || "";
+        document.getElementById('cloro-val').value = item.cloro || "";
+        document.getElementById('cost-water').value = item.costoAgua || "";
+        document.getElementById('cost-soap').value = item.costoJabon || "";
+        
+        setStatus(item.estado || "");
+        calculate();
+        cerrarHistorial();
+        
+        // Scroll al inicio para ver los datos cargados
+        window.scrollTo({top: 0, behavior: 'smooth'});
+    }
 
     function calculate() {
         var w = (parseFloat(document.getElementById('cost-water').value) || 0) * 12;
@@ -225,7 +287,7 @@
 
     function toggleAuth(signup) {
         isSignUp = signup;
-        document.getElementById('btn-action').innerText = signup ? translations[currentLang].signUp : translations[currentLang].signIn;
+        document.getElementById('btn-action').innerText = signup ? "SIGN UP" : "SIGN IN";
         document.getElementById('auth-options').style.display = signup ? "none" : "block";
         document.getElementById('signup-options').style.display = signup ? "block" : "none";
     }
@@ -248,39 +310,17 @@
             dir: document.getElementById('c-address').value,
             bday: document.getElementById('c-birthday').value,
             people: document.getElementById('c-people').value,
-            tds: document.getElementById('tds-val').value, 
+            tds: document.getElementById('tds-val').value,
+            cloro: document.getElementById('cloro-val').value,
+            costoAgua: document.getElementById('cost-water').value,
+            costoJabon: document.getElementById('cost-soap').value,
             ahorro: document.getElementById('net-savings').innerText,
             estado: currentStatus, 
             fecha: document.getElementById('test-date').value,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
-        alert("Saved to History!");
+        alert("Saved!");
         document.getElementById('sms-btn').style.display = "block";
-    }
-
-    async function abrirHistorial() {
-        document.getElementById('history-modal').style.display = "block";
-        var snap = await db.collection("reportes").orderBy("timestamp", "desc").get();
-        var list = document.getElementById('history-list');
-        list.innerHTML = "";
-        snap.forEach(function(doc){
-            var d = doc.data();
-            var html = '<div class="hist-card" id="card-'+doc.id+'">';
-            html += '<div style="display:flex; justify-content:space-between; align-items:center;">';
-            html += '<div onclick="toggleDetalle(\''+doc.id+'\')" style="flex-grow:1; cursor:pointer;">';
-            html += '<b style="color:var(--blue); font-size:16px;">'+(d.nombre || '')+' '+(d.apellido || '')+'</b><br>';
-            html += '<small>'+(d.fecha || '')+' | <b>'+(d.estado || '')+'</b> ▼</small></div>';
-            html += '<button style="border:none; color:red; background:none; font-size:22px; padding:10px;" onclick="borrarRegistro(\''+doc.id+'\')">✕</button></div>';
-            html += '<div class="hist-details" id="det-'+doc.id+'">';
-            html += '<div class="hist-tag">Phone:</div> '+(d.tel || 'N/A')+'<br>';
-            html += '<div class="hist-tag">Address:</div> '+(d.dir || 'N/A')+'<br>';
-            html += '<div class="hist-tag">Birthday:</div> '+(d.bday || 'N/A')+'<br>';
-            html += '<div class="hist-tag">People:</div> '+(d.people || '0')+'<br>';
-            html += '<div class="hist-tag">TDS:</div> '+(d.tds || '0')+' PPM<br>';
-            html += '<div class="hist-tag">Yearly Savings:</div> <b style="color:var(--green)">'+(d.ahorro || '$0')+'</b>';
-            html += '</div></div>';
-            list.innerHTML += html;
-        });
     }
 
     function toggleDetalle(id) { 
@@ -299,7 +339,15 @@
     function cerrarHistorial() { document.getElementById('history-modal').style.display = "none"; }
     function goMaps() { var addr = document.getElementById('c-address').value; if(addr) window.open('https://maps.google.com/?q=' + encodeURIComponent(addr)); }
     function sendSMS() { var p = document.getElementById('c-phone').value; var m = "ONE DROP: Savings " + document.getElementById('net-savings').innerText; window.location.href = 'sms:' + p + '&body=' + encodeURIComponent(m); }
-    function forgotPassword() { var email = document.getElementById('auth-email').value; if(!email) return alert("Email?"); auth.sendPasswordResetEmail(email).then(function(){ alert("Email sent!"); }); }
+    function setLanguage(l) { 
+        currentLang = l; 
+        document.getElementById('btn-en').classList.toggle('active', l==='en');
+        document.getElementById('btn-es').classList.toggle('active', l==='es');
+        document.querySelectorAll('[data-t]').forEach(el => {
+            const key = el.getAttribute('data-t');
+            if(translations[l][key]) el.innerText = translations[l][key];
+        });
+    }
 </script>
 </body>
 </html>
