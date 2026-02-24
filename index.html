@@ -44,7 +44,6 @@
         .btn-blue { background: var(--blue); color: white; }
         .btn-gps { background: #5856d6; color: white; margin-top: 5px; }
         .btn-sms { background: var(--green); color: white; margin-top: 15px; }
-        .btn-link { background: none; color: var(--blue); font-size: 13px; padding: 5px; }
         
         .status-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
         .status-btn { height: 45px; border-radius: 10px; border: 1px solid #ddd; background: #f9f9f9; font-size: 9px; font-weight: 800; }
@@ -56,10 +55,15 @@
         .chart-wrap { position: relative; height: 250px; width: 100%; }
 
         #history-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f2f2f7; z-index: 5000; overflow-y: auto; }
+        
+        /* Estilos para la barra de filtros */
+        .filter-bar { display: flex; gap: 5px; padding: 10px; background: white; overflow-x: auto; sticky; top: 70px; z-index: 99; border-bottom: 1px solid #eee; }
+        .filter-chip { padding: 6px 12px; border-radius: 20px; border: 1px solid #ddd; background: #f9f9f9; font-size: 10px; font-weight: 800; white-space: nowrap; }
+        .filter-chip.active { background: var(--blue); color: white; border-color: var(--blue); }
+
         .hist-card { background: white; margin: 10px; padding: 15px; border-radius: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
         .hist-details { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ccc; font-size: 14px; line-height: 1.6; color: #333; }
         .hist-tag { font-weight: bold; color: #666; font-size: 11px; text-transform: uppercase; }
-        
         .edit-btn { background: var(--orange); color: white; border: none; padding: 5px 10px; border-radius: 5px; font-size: 11px; font-weight: bold; cursor: pointer; margin-right: 10px; }
     </style>
 </head>
@@ -147,6 +151,14 @@
         <h2 style="margin:0; border:none;" data-t="clientHistory">Client History</h2>
         <button onclick="cerrarHistorial()" style="background:var(--blue); color:white; border:none; padding:8px 15px; border-radius:8px; font-weight:bold;" data-t="done">DONE</button>
     </div>
+    
+    <div class="filter-bar">
+        <button class="filter-chip active" id="f-all" onclick="filtrarHistorial('ALL')">ALL</button>
+        <button class="filter-chip" id="f-ins" onclick="filtrarHistorial('INSTALLED')">INSTALLED</button>
+        <button class="filter-chip" id="f-pen" onclick="filtrarHistorial('PENDING')">PENDING</button>
+        <button class="filter-chip" id="f-rej" onclick="filtrarHistorial('REJECTED')">REJECTED</button>
+    </div>
+
     <div id="history-list" style="padding:10px;"></div>
 </div>
 
@@ -160,7 +172,7 @@
     db.enablePersistence().catch(function(err) { console.log("Persistence error", err); });
 
     let chart, currentStatus = "", isSignUp = false, currentLang = 'en';
-    let temporalData = []; // Para guardar los datos del historial localmente
+    let temporalData = []; 
 
     const translations = {
         en: { edit: "EDIT", signIn: "SIGN IN", signUp: "SIGN UP", noAccount: "Sign Up", haveAccount: "Sign In", logout: "LOGOUT", clientInfo: "👤 Client Info", fName: "First Name", lName: "Last Name", bday: "Birthday", people: "People", phone: "Phone", address: "Address", viewMaps: "🗺️ VIEW ON MAPS", savingsTitle: "💰 Yearly Savings", waterCost: "Water Cost", soapCost: "Soap Cost", monthlyFee: "Monthly Fee ($)", netSavings: "Net Annual Savings", techReport: "🧪 Tech Report", date: "Date", chlorine: "Chlorine Presence", stInstalled: "INSTALLED", stPending: "PENDING", stRejected: "REJECTED", saveData: "SAVE DATA", history: "HISTORY", sendSms: "📲 SEND SMS", clientHistory: "Client History", done: "DONE", deleteConfirm: "Delete?", logoutConfirm: "Logout?" },
@@ -169,9 +181,7 @@
 
     function clearAllInputs() {
         var inputs = document.querySelectorAll('#app-screen input, #app-screen textarea');
-        for(var i=0; i<inputs.length; i++) {
-            if(inputs[i].id !== 'one-fee') inputs[i].value = "";
-        }
+        for(var i=0; i<inputs.length; i++) { if(inputs[i].id !== 'one-fee') inputs[i].value = ""; }
         document.getElementById('net-savings').innerText = '$0.00';
         document.getElementById('sms-btn').style.display = 'none';
         setStatus('');
@@ -193,16 +203,32 @@
 
     async function abrirHistorial() {
         document.getElementById('history-modal').style.display = "block";
+        filtrarHistorial('ALL'); // Carga inicial
+    }
+
+    async function filtrarHistorial(filtro) {
+        // Estilo de botones de filtro
+        document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+        if(filtro === 'ALL') document.getElementById('f-all').classList.add('active');
+        if(filtro === 'INSTALLED') document.getElementById('f-ins').classList.add('active');
+        if(filtro === 'PENDING') document.getElementById('f-pen').classList.add('active');
+        if(filtro === 'REJECTED') document.getElementById('f-rej').classList.add('active');
+
         var list = document.getElementById('history-list');
         list.innerHTML = "<p style='text-align:center;'>Loading...</p>";
         temporalData = [];
         
         try {
-            var snap = await db.collection("reportes").orderBy("timestamp", "desc").get();
+            let query = db.collection("reportes").orderBy("timestamp", "desc");
+            if(filtro !== 'ALL') {
+                query = query.where("estado", "==", filtro);
+            }
+
+            var snap = await query.get();
             list.innerHTML = "";
             
             if(snap.empty) {
-                list.innerHTML = "<p style='text-align:center;'>No records found.</p>";
+                list.innerHTML = "<p style='text-align:center; padding:20px;'>No records found.</p>";
                 return;
             }
 
@@ -223,22 +249,19 @@
                 html += '<div class="hist-tag">Phone:</div> '+(d.tel || 'N/A')+'<br>';
                 html += '<div class="hist-tag">Address:</div> '+(d.dir || 'N/A')+'<br>';
                 html += '<div class="hist-tag">Birthday:</div> '+(d.bday || 'N/A')+'<br>';
-                html += '<div class="hist-tag">People:</div> '+(d.people || '0')+'<br>';
                 html += '<div class="hist-tag">TDS:</div> '+(d.tds || '0')+' PPM<br>';
                 html += '<div class="hist-tag">Yearly Savings:</div> <b style="color:var(--green)">'+(d.ahorro || '$0')+'</b>';
                 html += '</div></div>';
                 list.innerHTML += html;
             });
         } catch(e) {
-            list.innerHTML = "<p style='color:red;'>Error loading history: " + e.message + "</p>";
+            list.innerHTML = "<p style='color:red;'>Error: " + e.message + "</p>";
         }
     }
 
     function editarRegistro(id) {
         const item = temporalData.find(d => d.id === id);
         if(!item) return;
-
-        // Rellenar campos
         document.getElementById('c-name').value = item.nombre || "";
         document.getElementById('c-lastname').value = item.apellido || "";
         document.getElementById('c-phone').value = item.tel || "";
@@ -250,12 +273,9 @@
         document.getElementById('cloro-val').value = item.cloro || "";
         document.getElementById('cost-water').value = item.costoAgua || "";
         document.getElementById('cost-soap').value = item.costoJabon || "";
-        
         setStatus(item.estado || "");
         calculate();
         cerrarHistorial();
-        
-        // Scroll al inicio para ver los datos cargados
         window.scrollTo({top: 0, behavior: 'smooth'});
     }
 
@@ -331,8 +351,7 @@
     async function borrarRegistro(id) { 
         if(confirm(translations[currentLang].deleteConfirm)) { 
             await db.collection("reportes").doc(id).delete(); 
-            var el = document.getElementById('card-'+id);
-            if(el) el.remove(); 
+            var el = document.getElementById('card-'+id); if(el) el.remove(); 
         } 
     }
     
