@@ -68,7 +68,10 @@
         <input type="email" id="auth-email" placeholder="Email">
         <input type="password" id="auth-pass" placeholder="Password">
         <button class="btn btn-blue" id="btn-main-auth" onclick="handleAuth()">SIGN IN</button>
-        <button class="btn" style="background:none; color:var(--blue); font-size:12px; margin-top:10px;" onclick="toggleAuthMode()" id="toggle-auth-btn">No account? Sign Up</button>
+        <div style="margin-top:15px; display:flex; flex-direction:column; gap:10px;">
+            <button class="btn" style="background:none; color:var(--blue); font-size:12px;" onclick="toggleAuthMode()" id="toggle-auth-btn">No account? Sign Up</button>
+            <button class="btn" style="background:none; color:#666; font-size:11px;" onclick="resetPassword()" data-t="forgotPass">Forgot Password?</button>
+        </div>
     </div>
 </div>
 
@@ -177,8 +180,8 @@
     let temporalData = []; 
 
     const translations = {
-        en: { logout: "LOGOUT", clientInfo: "Client Info", fName: "First Name", lName: "Last Name", phone: "Phone", address: "Address", city: "City", state: "ST", zip: "Zip", viewMaps: "🗺️ VIEW ON MAPS", photos: "Photos", galleryBtn: "📁 OPEN GALLERY", savingsTitle: "Savings Analysis", waterCost: "Water/Mo", soapCost: "Soap/Mo", monthlyFee: "Fee ($)", projection: "Years", netSavings: "Net Savings", techReport: "Tech Report", date: "Date", stInstalled: "INSTALLED", stPending: "PENDING", stRejected: "REJECTED", saveData: "SAVE DATA", history: "HISTORY", clientHistory: "History", notes: "Notes", edit: "EDIT", chlorine: "Chlorine Level", low: "LOW", mid: "MID", high: "HIGH", statusLabel: "Status", done: "DONE" },
-        es: { logout: "SALIR", clientInfo: "Datos Cliente", fName: "Nombre", lName: "Apellido", phone: "Teléfono", address: "Dirección", city: "Ciudad", state: "Est.", zip: "Zip", viewMaps: "🗺️ VER MAPS", photos: "Fotos", galleryBtn: "📁 ABRIR GALERÍA", savingsTitle: "Análisis Ahorro", waterCost: "Agua/Mes", soapCost: "Jabón/Mes", monthlyFee: "Cuota ($)", projection: "Años", netSavings: "Ahorro Neto", techReport: "Reporte Técnico", date: "Fecha", stInstalled: "INSTALADO", stPending: "PENDIENTE", stRejected: "RECHAZADO", saveData: "GUARDAR", history: "HISTORIAL", clientHistory: "Historial", notes: "Notas", edit: "EDITAR", chlorine: "Nivel de Cloro", low: "BAJO", mid: "MEDIO", high: "ALTO", statusLabel: "Estado", done: "LISTO" }
+        en: { logout: "LOGOUT", clientInfo: "Client Info", fName: "First Name", lName: "Last Name", phone: "Phone", address: "Address", city: "City", state: "ST", zip: "Zip", viewMaps: "🗺️ VIEW ON MAPS", photos: "Photos", galleryBtn: "📁 OPEN GALLERY", savingsTitle: "Savings Analysis", waterCost: "Water/Mo", soapCost: "Soap/Mo", monthlyFee: "Fee ($)", projection: "Years", netSavings: "Net Savings", techReport: "Tech Report", date: "Date", stInstalled: "INSTALLED", stPending: "PENDING", stRejected: "REJECTED", saveData: "SAVE DATA", history: "HISTORY", clientHistory: "History", notes: "Notes", edit: "EDIT", chlorine: "Chlorine Level", low: "LOW", mid: "MID", high: "HIGH", statusLabel: "Status", done: "DONE", forgotPass: "Forgot Password?", checkEmail: "Check your email to reset password." },
+        es: { logout: "SALIR", clientInfo: "Datos Cliente", fName: "Nombre", lName: "Apellido", phone: "Teléfono", address: "Dirección", city: "Ciudad", state: "Est.", zip: "Zip", viewMaps: "🗺️ VER MAPS", photos: "Fotos", galleryBtn: "📁 ABRIR GALERÍA", savingsTitle: "Análisis Ahorro", waterCost: "Agua/Mes", soapCost: "Jabón/Mes", monthlyFee: "Cuota ($)", projection: "Años", netSavings: "Ahorro Neto", techReport: "Reporte Técnico", date: "Fecha", stInstalled: "INSTALADO", stPending: "PENDIENTE", stRejected: "RECHAZADO", saveData: "GUARDAR", history: "HISTORIAL", clientHistory: "Historial", notes: "Notas", edit: "EDITAR", chlorine: "Nivel de Cloro", low: "BAJO", mid: "MEDIO", high: "ALTO", statusLabel: "Estado", done: "LISTO", forgotPass: "¿Olvidaste tu contraseña?", checkEmail: "Revisa tu correo para resetear la contraseña." }
     };
 
     function setLanguage(l) { 
@@ -203,6 +206,14 @@
         const pass = document.getElementById('auth-pass').value;
         if(isSignUp) auth.createUserWithEmailAndPassword(email, pass).catch(e => alert(e.message));
         else auth.signInWithEmailAndPassword(email, pass).catch(e => alert(e.message));
+    }
+
+    function resetPassword() {
+        const email = document.getElementById('auth-email').value;
+        if(!email) return alert(currentLang === 'es' ? "Ingresa tu email primero" : "Enter your email first");
+        auth.sendPasswordResetEmail(email).then(() => {
+            alert(translations[currentLang].checkEmail);
+        }).catch(e => alert(e.message));
     }
 
     auth.onAuthStateChanged(user => {
