@@ -35,7 +35,9 @@
         h2 { font-size: 14px; color: #333; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 15px; text-transform: uppercase; }
         
         label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 11px; color: #666; text-transform: uppercase; }
-        input, select { width: 100%; height: 48px; padding: 12px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #d1d1d6; font-size: 16px; background: #fff; }
+        input, select, textarea { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #d1d1d6; font-size: 16px; background: #fff; font-family: inherit; }
+        input, select { height: 48px; }
+        textarea { height: 80px; resize: none; }
         
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .grid-3 { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 10px; }
@@ -107,10 +109,13 @@
         <label data-t="phone">Phone</label><input type="tel" id="c-phone">
         <label data-t="address">Address</label><input type="text" id="c-address" placeholder="123 Street Name">
         <div class="grid-3">
-            <div><label data-t="city">City/County</label><input type="text" id="c-city" placeholder="Birmingham"></div>
+            <div><label data-t="city">City/County</label><input type="text" id="c-city"></div>
             <div><label data-t="state">State</label><input type="text" id="c-state" maxlength="2"></div>
             <div><label data-t="zip">Zip</label><input type="number" id="c-zip"></div>
         </div>
+        
+        <label data-t="notes">📝 Notes</label>
+        <textarea id="c-notes" placeholder="Additional details..."></textarea>
 
         <button class="btn btn-gps" onclick="goMaps()" data-t="viewMaps">🗺️ VIEW ON MAPS</button>
         <label style="margin-top:15px;" data-t="photos">📸 Photos</label>
@@ -130,7 +135,10 @@
             <div>
                 <label data-t="projection">Years</label>
                 <select id="proj-years" onchange="calculate()">
-                    <option value="1">1</option><option value="5" selected>5</option><option value="10">10</option>
+                    <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+                    <option value="4">4</option><option value="5" selected>5</option><option value="6">6</option>
+                    <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+                    <option value="10">10</option>
                 </select>
             </div>
         </div>
@@ -157,7 +165,7 @@
             <button class="btn btn-blue" onclick="saveData()" data-t="saveData">SAVE DATA</button>
             <button class="btn" style="background:#8e8e93; color:white;" onclick="abrirHistorial()" data-t="history">HISTORY</button>
         </div>
-        <button class="btn btn-sms" id="sms-btn" style="display:none;" onclick="sendSMS()" data-t="sendSms">📲 SEND SMS</button>
+        <button class="btn btn-sms" id="sms-btn" style="display:none;" onclick="sendSMS()" data-t="sendSms">📲 ENVIAR SMS</button>
     </div>
 </div>
 
@@ -185,8 +193,8 @@
     let temporalData = []; 
 
     const translations = {
-        en: { loginBtn: "SIGN IN", signUpBtn: "SIGN UP", noAccount: "No account? Sign Up", hasAccount: "Have account? Sign In", forgotPass: "Forgot Password?", resetSent: "Email sent!", edit: "EDIT", logout: "LOGOUT", clientInfo: "Client Info", fName: "First Name", lName: "Last Name", bday: "Birthday", people: "People", phone: "Phone", address: "Address", city: "City/County", state: "ST", zip: "Zip", viewMaps: "🗺️ VIEW ON MAPS", photos: "Photos", galleryBtn: "📁 OPEN GALLERY", savingsTitle: "Savings Analysis", waterCost: "Water/Mo", soapCost: "Soap/Mo", monthlyFee: "Fee ($)", projection: "Years", netSavings: "Net Savings", techReport: "Tech Report", date: "Date", chlorine: "Chlorine", stInstalled: "INSTALLED", stPending: "PENDING", stRejected: "REJECTED", saveData: "SAVE DATA", history: "HISTORY", sendSms: "📲 SEND SMS", clientHistory: "History", done: "DONE", logoutConfirm: "Logout?" },
-        es: { loginBtn: "INGRESAR", signUpBtn: "REGISTRARSE", noAccount: "¿No tienes cuenta? Regístrate", hasAccount: "¿Ya tienes cuenta? Ingresa", forgotPass: "¿Olvidaste la clave?", resetSent: "¡Correo enviado!", edit: "EDITAR", logout: "SALIR", clientInfo: "Datos Cliente", fName: "Nombre", lName: "Apellido", bday: "Nacimiento", people: "Personas", phone: "Teléfono", address: "Dirección", city: "Ciudad/Condado", state: "Est.", zip: "Zip", viewMaps: "🗺️ VER MAPS", photos: "Fotos", galleryBtn: "📁 ABRIR GALERÍA", savingsTitle: "Análisis Ahorro", waterCost: "Agua/Mes", soapCost: "Jabón/Mes", monthlyFee: "Cuota ($)", projection: "Años", netSavings: "Ahorro Neto", techReport: "Reporte Técnico", date: "Fecha", chlorine: "Cloro", stInstalled: "INSTALADO", stPending: "PENDIENTE", stRejected: "RECHAZADO", saveData: "GUARDAR", history: "HISTORIAL", sendSms: "📲 ENVIAR SMS", clientHistory: "Historial", done: "LISTO", logoutConfirm: "¿Salir?" }
+        en: { loginBtn: "SIGN IN", signUpBtn: "SIGN UP", noAccount: "No account? Sign Up", hasAccount: "Have account? Sign In", forgotPass: "Forgot Password?", resetSent: "Email sent!", edit: "EDIT", logout: "LOGOUT", clientInfo: "Client Info", fName: "First Name", lName: "Last Name", bday: "Birthday", people: "People", phone: "Phone", address: "Address", city: "City/County", state: "ST", zip: "Zip", viewMaps: "🗺️ VIEW ON MAPS", photos: "Photos", galleryBtn: "📁 OPEN GALLERY", savingsTitle: "Savings Analysis", waterCost: "Water/Mo", soapCost: "Soap/Mo", monthlyFee: "Fee ($)", projection: "Years", netSavings: "Net Savings", techReport: "Tech Report", date: "Date", chlorine: "Chlorine", stInstalled: "INSTALLED", stPending: "PENDING", stRejected: "REJECTED", saveData: "SAVE DATA", history: "HISTORY", sendSms: "📲 SEND SMS", clientHistory: "History", done: "DONE", logoutConfirm: "Logout?", notes: "Notes" },
+        es: { loginBtn: "INGRESAR", signUpBtn: "REGISTRARSE", noAccount: "¿No tienes cuenta? Regístrate", hasAccount: "¿Ya tienes cuenta? Ingresa", forgotPass: "¿Olvidaste la clave?", resetSent: "¡Correo enviado!", edit: "EDITAR", logout: "SALIR", clientInfo: "Datos Cliente", fName: "Nombre", lName: "Apellido", bday: "Nacimiento", people: "Personas", phone: "Teléfono", address: "Dirección", city: "Ciudad/Condado", state: "Est.", zip: "Zip", viewMaps: "🗺️ VER MAPS", photos: "Fotos", galleryBtn: "📁 ABRIR GALERÍA", savingsTitle: "Análisis Ahorro", waterCost: "Agua/Mes", soapCost: "Jabón/Mes", monthlyFee: "Cuota ($)", projection: "Años", netSavings: "Ahorro Neto", techReport: "Reporte Técnico", date: "Fecha", chlorine: "Cloro", stInstalled: "INSTALADO", stPending: "PENDIENTE", stRejected: "RECHAZADO", saveData: "GUARDAR", history: "HISTORIAL", sendSms: "📲 ENVIAR SMS", clientHistory: "Historial", done: "LISTO", logoutConfirm: "¿Salir?", notes: "Notas" }
     };
 
     function setLanguage(l) { 
@@ -213,20 +221,14 @@
         toggle.innerText = isSignUp ? translations[currentLang].hasAccount : translations[currentLang].noAccount;
     }
 
-    // --- CORRECCIÓN CLAVE PARA TU ESPOSA ---
     function handleAuth() {
         const email = document.getElementById('auth-email').value;
         const pass = document.getElementById('auth-pass').value;
-
         if(!email || !pass) return alert("Fill all fields");
-
         if(isSignUp) {
-            auth.createUserWithEmailAndPassword(email, pass)
-                .then(() => { alert("Account created!"); })
-                .catch(e => alert("Error: " + e.message));
+            auth.createUserWithEmailAndPassword(email, pass).catch(e => alert("Error: " + e.message));
         } else {
-            auth.signInWithEmailAndPassword(email, pass)
-                .catch(e => alert("Error: " + e.message));
+            auth.signInWithEmailAndPassword(email, pass).catch(e => alert("Error: " + e.message));
         }
     }
 
@@ -295,14 +297,15 @@
             tel: document.getElementById('c-phone').value, dir: document.getElementById('c-address').value,
             city: document.getElementById('c-city').value, state: document.getElementById('c-state').value,
             zip: document.getElementById('c-zip').value, bday: document.getElementById('c-birthday').value,
-            people: document.getElementById('c-people').value, costoAgua: document.getElementById('cost-water').value,
+            people: document.getElementById('c-people').value, 
+            notas: document.getElementById('c-notes').value, // Campo Notas
+            costoAgua: document.getElementById('cost-water').value,
             costoJabon: document.getElementById('cost-soap').value, ahorro: document.getElementById('net-savings').innerText,
             fotos: savedPhotos, estado: currentStatus, fecha: document.getElementById('test-date').value,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
         alert("Saved!"); 
-        savedPhotos = []; renderPhotoPreview();
-        document.getElementById('sms-btn').style.display = "block";
+        location.reload(); // Recarga para limpiar todo tras guardar
     }
 
     async function filtrarHistorial(filtro) {
@@ -316,7 +319,7 @@
             snap.forEach(doc => {
                 var d = doc.data(); d.id = doc.id; temporalData.push(d);
                 let imgs = ""; if(d.fotos) d.fotos.forEach(f => imgs += `<img src="${f}" style="width:50px;height:50px;object-fit:cover;margin:2px;border-radius:5px;">`);
-                list.innerHTML += `<div class="hist-card"><div style="display:flex; justify-content:space-between; align-items:center;"><div onclick="toggleDetalle('${d.id}')" style="flex-grow:1;"><b>${d.nombre} ${d.apellido}</b><br><small>${d.fecha} | ${d.estado}</small></div><div><button class="edit-btn" onclick="editarRegistro('${d.id}')">${translations[currentLang].edit}</button><button style="color:red; border:none; background:none; font-size:18px;" onclick="borrarRegistro('${d.id}')">✕</button></div></div><div class="hist-details" id="det-${d.id}">${d.dir}, ${d.city}<br><b>Savings: ${d.ahorro}</b><br><div style="margin-top:10px;">${imgs}</div></div></div>`;
+                list.innerHTML += `<div class="hist-card"><div style="display:flex; justify-content:space-between; align-items:center;"><div onclick="toggleDetalle('${d.id}')" style="flex-grow:1;"><b>${d.nombre} ${d.apellido}</b><br><small>${d.fecha} | ${d.estado}</small></div><div><button class="edit-btn" onclick="editarRegistro('${d.id}')">${translations[currentLang].edit}</button><button style="color:red; border:none; background:none; font-size:18px;" onclick="borrarRegistro('${d.id}')">✕</button></div></div><div class="hist-details" id="det-${d.id}">${d.dir}, ${d.city}<br><b>Notes:</b> ${d.notas || ""}<br><b>Savings: ${d.ahorro}</b><br><div style="margin-top:10px;">${imgs}</div></div></div>`;
             });
         } catch(e) { console.log(e); }
     }
@@ -333,6 +336,7 @@
         document.getElementById('c-zip').value = item.zip || "";
         document.getElementById('c-birthday').value = item.bday || "";
         document.getElementById('c-people').value = item.people || "";
+        document.getElementById('c-notes').value = item.notas || ""; // Cargar Notas
         document.getElementById('cost-water').value = item.costoAgua || "";
         document.getElementById('cost-soap').value = item.costoJabon || "";
         savedPhotos = item.fotos || []; renderPhotoPreview();
