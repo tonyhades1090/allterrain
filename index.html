@@ -21,12 +21,10 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 15px; }
         
-        /* SELECTOR DE IDIOMA */
         .lang-switcher { position: absolute; top: 15px; left: 15px; display: flex; gap: 5px; z-index: 1000; }
         .lang-btn { background: white; border: 1px solid #ddd; border-radius: 5px; padding: 3px 8px; font-size: 12px; font-weight: bold; cursor: pointer; }
         .lang-btn.active { background: var(--blue); color: white; border-color: var(--blue); }
 
-        /* PANTALLAS */
         #auth-screen { display: none; flex-direction: column; align-items: center; justify-content: center; height: 90vh; }
         #app-screen { display: none; max-width: 450px; margin: auto; padding-bottom: 40px; }
 
@@ -118,7 +116,7 @@
             <span style="font-size:26px; font-weight:800; color:var(--green);" id="net-savings">$0.00</span><br>
             <small data-t="netSavings">Net Annual Savings</small>
         </div>
-        <canvas id="savingsChart" style="max-height: 250px;"></canvas>
+        <canvas id="savingsChart" style="max-height: 250px; width:100%;"></canvas>
     </div>
 
     <div class="card">
@@ -157,21 +155,19 @@
     let chart, currentStatus = "", isSignUp = false, currentLang = 'en';
 
     const translations = {
-        en: {
-            signIn: "SIGN IN", signUp: "SIGN UP", noAccount: "Don't have an account? Sign Up", haveAccount: "Already have an account? Sign In", forgotPass: "Forgot Password?",
-            logout: "LOGOUT", clientInfo: "👤 Client Info", fName: "First Name", lName: "Last Name", bday: "Birthday", people: "People", phone: "Phone", address: "Address", viewMaps: "🗺️ VIEW ON MAPS",
-            savingsTitle: "💰 Yearly Savings", waterCost: "Water Cost", soapCost: "Soap Cost", monthlyFee: "Monthly Fee ($)", netSavings: "Net Annual Savings",
-            techReport: "🧪 Tech Report", date: "Date", chlorine: "Chlorine Presence", stInstalled: "INSTALLED", stPending: "PENDING", stRejected: "REJECTED",
-            saveData: "SAVE DATA", history: "HISTORY", sendSms: "📲 SEND SMS", clientHistory: "Client History", done: "DONE", deleteConfirm: "Delete this record?", logoutConfirm: "Logout?"
-        },
-        es: {
-            signIn: "ENTRAR", signUp: "REGISTRARSE", noAccount: "¿No tienes cuenta? Regístrate", haveAccount: "¿Ya tienes cuenta? Entrar", forgotPass: "¿Olvidaste tu contraseña?",
-            logout: "SALIR", clientInfo: "👤 Datos del Cliente", fName: "Nombre", lName: "Apellido", bday: "Nacimiento", people: "Personas", phone: "Teléfono", address: "Dirección", viewMaps: "🗺️ VER EN MAPS",
-            savingsTitle: "💰 Ahorro Anual", waterCost: "Costo Agua", soapCost: "Costo Jabón", monthlyFee: "Cuota Mensual ($)", netSavings: "Ahorro Neto Anual",
-            techReport: "🧪 Reporte Técnico", date: "Fecha", chlorine: "Presencia de Cloro", stInstalled: "INSTALADO", stPending: "PENDIENTE", stRejected: "RECHAZADO",
-            saveData: "GUARDAR DATOS", history: "HISTORIAL", sendSms: "📲 ENVIAR SMS", clientHistory: "Historial de Clientes", done: "LISTO", deleteConfirm: "¿Borrar este registro?", logoutConfirm: "¿Cerrar sesión?"
-        }
+        en: { signIn: "SIGN IN", signUp: "SIGN UP", noAccount: "Don't have an account? Sign Up", haveAccount: "Already have an account? Sign In", forgotPass: "Forgot Password?", logout: "LOGOUT", clientInfo: "👤 Client Info", fName: "First Name", lName: "Last Name", bday: "Birthday", people: "People", phone: "Phone", address: "Address", viewMaps: "🗺️ VIEW ON MAPS", savingsTitle: "💰 Yearly Savings", waterCost: "Water Cost", soapCost: "Soap Cost", monthlyFee: "Monthly Fee ($)", netSavings: "Net Annual Savings", techReport: "🧪 Tech Report", date: "Date", chlorine: "Chlorine Presence", stInstalled: "INSTALLED", stPending: "PENDING", stRejected: "REJECTED", saveData: "SAVE DATA", history: "HISTORY", sendSms: "📲 SEND SMS", clientHistory: "Client History", done: "DONE", deleteConfirm: "Delete this record?", logoutConfirm: "Logout?" },
+        es: { signIn: "ENTRAR", signUp: "REGISTRARSE", noAccount: "¿No tienes cuenta? Regístrate", haveAccount: "¿Ya tienes cuenta? Entrar", forgotPass: "¿Olvidaste tu contraseña?", logout: "SALIR", clientInfo: "👤 Datos del Cliente", fName: "Nombre", lName: "Apellido", bday: "Nacimiento", people: "Personas", phone: "Teléfono", address: "Dirección", viewMaps: "🗺️ VER EN MAPS", savingsTitle: "💰 Ahorro Anual", waterCost: "Costo Agua", soapCost: "Costo Jabón", monthlyFee: "Cuota Mensual ($)", netSavings: "Ahorro Neto Anual", techReport: "🧪 Reporte Técnico", date: "Fecha", chlorine: "Presencia de Cloro", stInstalled: "INSTALADO", stPending: "PENDIENTE", stRejected: "RECHAZADO", saveData: "GUARDAR DATOS", history: "HISTORIAL", sendSms: "📲 ENVIAR SMS", clientHistory: "Historial de Clientes", done: "LISTO", deleteConfirm: "¿Borrar este registro?", logoutConfirm: "¿Cerrar sesión?" }
     };
+
+    function clearAllInputs() {
+        const ids = ['c-name','c-lastname','c-phone','c-address','c-birthday','c-people','cost-water','cost-soap','tds-val','cloro-val'];
+        ids.forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+        document.getElementById('net-savings').innerText = '$0.00';
+        document.getElementById('sms-btn').style.display = 'none';
+        setStatus('');
+        if(chart) chart.destroy();
+        document.getElementById('test-date').valueAsDate = new Date();
+    }
 
     function setLanguage(lang) {
         currentLang = lang;
@@ -181,13 +177,15 @@
             const key = el.getAttribute('data-t');
             if (translations[lang][key]) el.innerText = translations[lang][key];
         });
-        if(chart) calculate(); // Actualiza etiquetas de la gráfica
+        if(chart) calculate();
     }
 
     auth.onAuthStateChanged(user => {
         if (user) {
+            clearAllInputs();
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('app-screen').style.display = 'block';
+            setTimeout(calculate, 500);
         } else {
             document.getElementById('auth-screen').style.display = 'flex';
             document.getElementById('app-screen').style.display = 'none';
@@ -210,11 +208,11 @@
 
     function forgotPassword() {
         const email = document.getElementById('auth-email').value;
-        if(!email) return alert("Please enter your email");
+        if(!email) return alert("Email?");
         auth.sendPasswordResetEmail(email).then(() => alert("Email sent!")).catch(e => alert(e.message));
     }
 
-    function logout() { if(confirm(translations[currentLang].logoutConfirm)) auth.signOut(); }
+    function logout() { if(confirm(translations[currentLang].logoutConfirm)) { auth.signOut(); clearAllInputs(); } }
 
     function setStatus(v) {
         currentStatus = v;
@@ -225,18 +223,13 @@
     }
 
     async function saveData() {
-        if(!currentStatus) return alert("Select status");
+        if(!currentStatus) return alert("Status?");
         await db.collection("reportes").add({
-            nombre: document.getElementById('c-name').value,
-            apellido: document.getElementById('c-lastname').value,
-            tel: document.getElementById('c-phone').value,
-            dir: document.getElementById('c-address').value,
-            tds: document.getElementById('tds-val').value,
-            ahorro: document.getElementById('net-savings').innerText,
-            estado: currentStatus,
-            fecha: document.getElementById('test-date').value,
-            personas: document.getElementById('c-people').value,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            nombre: document.getElementById('c-name').value, apellido: document.getElementById('c-lastname').value,
+            tel: document.getElementById('c-phone').value, dir: document.getElementById('c-address').value,
+            tds: document.getElementById('tds-val').value, ahorro: document.getElementById('net-savings').innerText,
+            estado: currentStatus, fecha: document.getElementById('test-date').value,
+            personas: document.getElementById('c-people').value, timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
         alert("Saved!");
         document.getElementById('sms-btn').style.display = "block";
@@ -249,33 +242,13 @@
         list.innerHTML = "";
         snap.forEach(doc => {
             const d = doc.data();
-            list.innerHTML += `
-                <div class="hist-card" id="card-${doc.id}">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div onclick="toggleDetalle('${doc.id}')" style="flex-grow:1; cursor:pointer;">
-                            <b style="color:var(--blue);">${d.nombre} ${d.apellido}</b><br>
-                            <small>${d.fecha} | ${d.estado} ▼</small>
-                        </div>
-                        <button style="border:none; color:var(--red); background:none; font-size:22px;" onclick="borrarRegistro('${doc.id}')">✕</button>
-                    </div>
-                    <div class="hist-details" id="det-${doc.id}">
-                        <p>Tel: ${d.tel}<br>Address: ${d.dir}<br>TDS: ${d.tds} PPM</p>
-                    </div>
-                </div>`;
+            list.innerHTML += `<div class="hist-card" id="card-${doc.id}"><div style="display:flex; justify-content:space-between; align-items:center;"><div onclick="toggleDetalle('${doc.id}')" style="flex-grow:1; cursor:pointer;"><b style="color:var(--blue);">${d.nombre} ${d.apellido}</b><br><small>${d.fecha} | ${d.estado} ▼</small></div><button style="border:none; color:var(--red); background:none; font-size:22px;" onclick="borrarRegistro('${doc.id}')">✕</button></div><div class="hist-details" id="det-${doc.id}"><p>Tel: ${d.tel}<br>Add: ${d.dir}<br>TDS: ${d.tds} PPM</p></div></div>`;
         });
     }
 
-    function toggleDetalle(id) {
-        const el = document.getElementById('det-' + id);
-        el.style.display = (el.style.display === 'block') ? 'none' : 'block';
-    }
+    function toggleDetalle(id) { const el = document.getElementById('det-' + id); el.style.display = (el.style.display === 'block') ? 'none' : 'block'; }
 
-    async function borrarRegistro(id) {
-        if(confirm(translations[currentLang].deleteConfirm)) {
-            await db.collection("reportes").doc(id).delete();
-            document.getElementById('card-' + id).remove();
-        }
-    }
+    async function borrarRegistro(id) { if(confirm(translations[currentLang].deleteConfirm)) { await db.collection("reportes").doc(id).delete(); document.getElementById('card-' + id).remove(); } }
 
     function cerrarHistorial() { document.getElementById('history-modal').style.display = "none"; }
 
@@ -289,25 +262,14 @@
         if(chart) chart.destroy();
         chart = new Chart(ctx, {
             type: 'bar',
-            data: {
-                labels: currentLang === 'es' ? ['Costo Actual', 'Plan One Drop'] : ['Current Cost', 'One Drop Plan'],
-                datasets: [{ data: [w + s, f], backgroundColor: ['#ff3b30', '#007aff'], borderRadius: 8 }]
-            },
-            options: { responsive: true, plugins: { legend: { display: false } } }
+            data: { labels: currentLang === 'es' ? ['Costo Actual', 'Plan One Drop'] : ['Current Cost', 'One Drop Plan'], datasets: [{ data: [w + s, f], backgroundColor: ['#ff3b30', '#007aff'], borderRadius: 8 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
         });
     }
 
-    function goMaps() {
-        const addr = document.getElementById('c-address').value;
-        if(addr) window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`, '_blank');
-    }
+    function goMaps() { const addr = document.getElementById('c-address').value; if(addr) window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`, '_blank'); }
 
-    function sendSMS() {
-        const p = document.getElementById('c-phone').value;
-        const m = `ONE DROP: Savings ${document.getElementById('net-savings').innerText}. TDS: ${document.getElementById('tds-val').value} PPM.`;
-        window.location.href = `sms:${p}?body=${encodeURIComponent(m)}`;
-    }
-    document.getElementById('test-date').valueAsDate = new Date();
+    function sendSMS() { const p = document.getElementById('c-phone').value; const m = `ONE DROP: Savings ${document.getElementById('net-savings').innerText}. TDS: ${document.getElementById('tds-val').value} PPM.`; window.location.href = `sms:${p}?body=${encodeURIComponent(m)}`; }
 </script>
 </body>
 </html>
