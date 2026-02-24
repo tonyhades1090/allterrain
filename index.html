@@ -275,14 +275,16 @@
                             <b>${d.nombre} ${d.apellido}</b><br>
                             <small>${d.fecha} | ${d.estado}</small>
                         </div>
-                        <button class="edit-btn" onclick="editarRegistro('${d.id}')">${translations[currentLang].edit}</button>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <button class="edit-btn" onclick="editarRegistro('${d.id}')">${translations[currentLang].edit}</button>
+                            <button onclick="borrarRegistro('${d.id}')" style="background:none; border:none; color:var(--red); font-size:18px; cursor:pointer; padding:5px;">🗑️</button>
+                        </div>
                     </div>
                     <div class="hist-details" id="det-${d.id}">
                         📍 ${d.dir}, ${d.city}<br>
                         📝 <b>Notes:</b> ${d.notas || ""}<br>
                         💰 <b>Savings:</b> ${d.ahorro}<br>
                         <div style="margin-top:10px;">${imgs}</div>
-                        <button style="color:red; border:none; background:none; font-size:11px; margin-top:10px; padding:0;" onclick="borrarRegistro('${d.id}')">Delete Record</button>
                     </div>
                 </div>`;
             });
@@ -310,7 +312,7 @@
     }
 
     async function borrarRegistro(id) {
-        if(confirm("Delete record?")) {
+        if(confirm("Delete record permanentely?")) {
             await db.collection("reportes").doc(id).delete();
             filtrarHistorial('ALL');
         }
