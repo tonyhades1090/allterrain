@@ -14,7 +14,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js"></script>
 
     <style>
@@ -58,8 +57,9 @@
         .chart-wrap { position: relative; height: 250px; width: 100%; }
 
         #history-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f2f2f7; z-index: 5000; overflow-y: auto; }
-        .hist-card { background: white; margin: 10px; padding: 15px; border-radius: 15px; }
-        .hist-details { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ccc; font-size: 13px; }
+        .hist-card { background: white; margin: 10px; padding: 15px; border-radius: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .hist-details { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ccc; font-size: 14px; line-height: 1.6; color: #333; }
+        .hist-tag { font-weight: bold; color: #666; font-size: 11px; text-transform: uppercase; }
     </style>
 </head>
 <body>
@@ -143,11 +143,11 @@
 </div>
 
 <div id="history-modal">
-    <div style="padding:20px; background:white; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #ddd;">
-        <h2 data-t="clientHistory">Client History</h2>
-        <button onclick="cerrarHistorial()" data-t="done">DONE</button>
+    <div style="padding:20px; background:white; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #ddd; position:sticky; top:0; z-index:100;">
+        <h2 style="margin:0; border:none;" data-t="clientHistory">Client History</h2>
+        <button onclick="cerrarHistorial()" style="background:var(--blue); color:white; border:none; padding:8px 15px; border-radius:8px; font-weight:bold;" data-t="done">DONE</button>
     </div>
-    <div id="history-list"></div>
+    <div id="history-list" style="padding-bottom:50px;"></div>
 </div>
 
 <script>
@@ -163,8 +163,8 @@
     };
 
     function clearAllInputs() {
-        const inputs = document.querySelectorAll('input, textarea');
-        for(let i=0; i<inputs.length; i++) {
+        var inputs = document.querySelectorAll('#app-screen input, #app-screen textarea');
+        for(var i=0; i<inputs.length; i++) {
             if(inputs[i].id !== 'one-fee') inputs[i].value = "";
         }
         document.getElementById('net-savings').innerText = '$0.00';
@@ -203,28 +203,15 @@
         var f = (parseFloat(document.getElementById('one-fee').value) || 0) * 12;
         var net = (w + s) - f;
         document.getElementById('net-savings').innerText = '$' + net.toLocaleString();
-        
         var ctx = document.getElementById('savingsChart').getContext('2d');
         if(chart) chart.destroy();
-        
-        // Configuración especial compatible con Chart.js 2.9 (iOS 12)
         chart = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: currentLang === 'es' ? ['Costo Actual', 'One Drop'] : ['Current Cost', 'One Drop'],
-                datasets: [{
-                    data: [w + s, f],
-                    backgroundColor: ['#ff3b30', '#007aff']
-                }]
+                datasets: [{ data: [w + s, f], backgroundColor: ['#ff3b30', '#007aff'] }]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                legend: { display: false },
-                scales: {
-                    yAxes: [{ touches: { beginAtZero: true } }]
-                }
-            }
+            options: { responsive: true, maintainAspectRatio: false, legend: { display: false }, scales: { yAxes: [{ ticks: { beginAtZero: true } }] } }
         });
     }
 
@@ -255,13 +242,19 @@
     async function saveData() {
         if(!currentStatus) return alert("Select status");
         await db.collection("reportes").add({
-            nombre: document.getElementById('c-name').value, apellido: document.getElementById('c-lastname').value,
-            tel: document.getElementById('c-phone').value, dir: document.getElementById('c-address').value,
-            tds: document.getElementById('tds-val').value, ahorro: document.getElementById('net-savings').innerText,
-            estado: currentStatus, fecha: document.getElementById('test-date').value,
-            personas: document.getElementById('c-people').value, timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            nombre: document.getElementById('c-name').value, 
+            apellido: document.getElementById('c-lastname').value,
+            tel: document.getElementById('c-phone').value, 
+            dir: document.getElementById('c-address').value,
+            bday: document.getElementById('c-birthday').value,
+            people: document.getElementById('c-people').value,
+            tds: document.getElementById('tds-val').value, 
+            ahorro: document.getElementById('net-savings').innerText,
+            estado: currentStatus, 
+            fecha: document.getElementById('test-date').value,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
-        alert("Saved!");
+        alert("Saved to History!");
         document.getElementById('sms-btn').style.display = "block";
     }
 
@@ -272,12 +265,37 @@
         list.innerHTML = "";
         snap.forEach(function(doc){
             var d = doc.data();
-            list.innerHTML += '<div class="hist-card" id="card-'+doc.id+'"><div style="display:flex; justify-content:space-between; align-items:center;"><div onclick="toggleDetalle(\''+doc.id+'\')" style="flex-grow:1;"><b style="color:var(--blue);">'+d.nombre+' '+d.apellido+'</b><br><small>'+d.fecha+' | '+d.estado+'</small></div><button style="border:none; color:red; background:none; font-size:22px;" onclick="borrarRegistro(\''+doc.id+'\')">✕</button></div><div class="hist-details" id="det-'+doc.id+'"><p>Tel: '+d.tel+'<br>TDS: '+d.tds+'</p></div></div>';
+            var html = '<div class="hist-card" id="card-'+doc.id+'">';
+            html += '<div style="display:flex; justify-content:space-between; align-items:center;">';
+            html += '<div onclick="toggleDetalle(\''+doc.id+'\')" style="flex-grow:1; cursor:pointer;">';
+            html += '<b style="color:var(--blue); font-size:16px;">'+(d.nombre || '')+' '+(d.apellido || '')+'</b><br>';
+            html += '<small>'+(d.fecha || '')+' | <b>'+(d.estado || '')+'</b> ▼</small></div>';
+            html += '<button style="border:none; color:red; background:none; font-size:22px; padding:10px;" onclick="borrarRegistro(\''+doc.id+'\')">✕</button></div>';
+            html += '<div class="hist-details" id="det-'+doc.id+'">';
+            html += '<div class="hist-tag">Phone:</div> '+(d.tel || 'N/A')+'<br>';
+            html += '<div class="hist-tag">Address:</div> '+(d.dir || 'N/A')+'<br>';
+            html += '<div class="hist-tag">Birthday:</div> '+(d.bday || 'N/A')+'<br>';
+            html += '<div class="hist-tag">People:</div> '+(d.people || '0')+'<br>';
+            html += '<div class="hist-tag">TDS:</div> '+(d.tds || '0')+' PPM<br>';
+            html += '<div class="hist-tag">Yearly Savings:</div> <b style="color:var(--green)">'+(d.ahorro || '$0')+'</b>';
+            html += '</div></div>';
+            list.innerHTML += html;
         });
     }
 
-    function toggleDetalle(id) { var el = document.getElementById('det-' + id); el.style.display = (el.style.display === 'block') ? 'none' : 'block'; }
-    async function borrarRegistro(id) { if(confirm(translations[currentLang].deleteConfirm)) { await db.collection("reportes").doc(id).delete(); document.getElementById('card-'+id).remove(); } }
+    function toggleDetalle(id) { 
+        var el = document.getElementById('det-' + id); 
+        el.style.display = (el.style.display === 'block') ? 'none' : 'block'; 
+    }
+    
+    async function borrarRegistro(id) { 
+        if(confirm(translations[currentLang].deleteConfirm)) { 
+            await db.collection("reportes").doc(id).delete(); 
+            var el = document.getElementById('card-'+id);
+            if(el) el.remove(); 
+        } 
+    }
+    
     function cerrarHistorial() { document.getElementById('history-modal').style.display = "none"; }
     function goMaps() { var addr = document.getElementById('c-address').value; if(addr) window.open('https://maps.google.com/?q=' + encodeURIComponent(addr)); }
     function sendSMS() { var p = document.getElementById('c-phone').value; var m = "ONE DROP: Savings " + document.getElementById('net-savings').innerText; window.location.href = 'sms:' + p + '&body=' + encodeURIComponent(m); }
