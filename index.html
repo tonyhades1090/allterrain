@@ -3,12 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>One Drop</title>
+    <title>One Drop Pro</title>
 
     <link rel="icon" type="image/png" href="https://i.ibb.co/S76pM5N8/one-drop-icon.png">
     <link rel="apple-touch-icon" href="https://i.ibb.co/S76pM5N8/one-drop-icon.png">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
 
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -21,49 +19,30 @@
         body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); margin: 0; padding: 15px; }
         
         .lang-switcher { position: absolute; top: 15px; left: 15px; display: flex; gap: 5px; z-index: 1000; }
-        .lang-btn { background: white; border: 1px solid #ddd; border-radius: 5px; padding: 3px 8px; font-size: 12px; font-weight: bold; cursor: pointer; }
+        .lang-btn { background: white; border: 1px solid #ddd; border-radius: 5px; padding: 5px 10px; font-size: 12px; font-weight: bold; cursor: pointer; }
         .lang-btn.active { background: var(--blue); color: white; border-color: var(--blue); }
 
-        #auth-screen { display: none; flex-direction: column; align-items: center; justify-content: center; height: 90vh; }
+        #auth-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 90vh; }
         #app-screen { display: none; max-width: 450px; margin: auto; padding-bottom: 40px; }
 
         .auth-card { background: white; padding: 30px; border-radius: 25px; width: 100%; max-width: 350px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; }
         .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 15px; }
         
-        .header-bar { display: flex; justify-content: flex-end; align-items: center; margin-bottom: 15px; gap: 15px; }
-        .logout-btn { color: var(--red); font-weight: 700; font-size: 13px; cursor: pointer; border: 1px solid var(--red); padding: 5px 12px; border-radius: 8px; }
-
-        h1.main-title { color: var(--blue); font-weight: 800; margin: 0; letter-spacing: -1px; text-align: center; flex-grow: 1; }
-        h2 { font-size: 14px; color: #333; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 15px; text-transform: uppercase; }
-        
+        h1.main-title { color: var(--blue); font-weight: 800; margin: 0; text-align: center; flex-grow: 1; }
         label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 11px; color: #666; text-transform: uppercase; }
-        input, textarea, select { width: 100%; height: 48px; padding: 12px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #d1d1d6; font-size: 16px; background: #fff; }
+        input, select { width: 100%; height: 48px; padding: 12px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #d1d1d6; font-size: 16px; background: #fff; }
+        
+        .btn { width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: 700; font-size: 16px; cursor: pointer; margin-bottom: 10px; }
+        .btn-blue { background: var(--blue); color: white; }
+        .btn-link { background: none; color: var(--blue); font-size: 13px; margin: 0; padding: 5px; }
         
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .grid-3 { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 10px; }
-        .btn { width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: 700; font-size: 16px; cursor: pointer; display: block; text-align: center; }
-        .btn-blue { background: var(--blue); color: white; }
-        .btn-gps { background: #5856d6; color: white; margin-top: 5px; }
-        .btn-sms { background: var(--green); color: white; margin-top: 15px; }
         
-        .status-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-        .status-btn { height: 45px; border-radius: 10px; border: 1px solid #ddd; background: #f9f9f9; font-size: 9px; font-weight: 800; }
-        .active-ins { background: var(--green) !important; color: white; }
-        .active-pen { background: var(--orange) !important; color: white; }
-        .active-no { background: var(--red) !important; color: white; }
-
+        .preview-img { width: 70px; height: 70px; object-fit: cover; border-radius: 10px; margin: 5px; border: 1px solid #ddd; }
         .savings-box { background: #e7f3ff; padding: 15px; border-radius: 15px; text-align: center; margin: 15px 0; }
-        .chart-wrap { position: relative; height: 250px; width: 100%; }
-
+        
         #history-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f2f2f7; z-index: 5000; overflow-y: auto; }
-        .filter-bar { display: flex; gap: 5px; padding: 10px; background: white; position: sticky; top: 70px; z-index: 99; border-bottom: 1px solid #eee; overflow-x: auto; }
-        .filter-chip { padding: 6px 12px; border-radius: 20px; border: 1px solid #ddd; background: #f9f9f9; font-size: 10px; font-weight: 800; white-space: nowrap; }
-        .filter-chip.active { background: var(--blue); color: white; border-color: var(--blue); }
-
-        .hist-card { background: white; margin: 10px; padding: 15px; border-radius: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .hist-details { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ccc; font-size: 14px; line-height: 1.6; color: #333; }
-        .hist-tag { font-weight: bold; color: #666; font-size: 11px; text-transform: uppercase; }
-        .edit-btn { background: var(--orange); color: white; border: none; padding: 5px 10px; border-radius: 5px; font-size: 11px; font-weight: bold; cursor: pointer; margin-right: 10px; }
     </style>
 </head>
 <body>
@@ -75,112 +54,73 @@
 
 <div id="auth-screen">
     <div class="auth-card">
-        <h1>ONE DROP</h1>
-        <input type="email" id="auth-email" placeholder="Email" autocomplete="off">
-        <input type="password" id="auth-pass" placeholder="Password" autocomplete="off">
-        <button class="btn btn-blue" id="btn-action" onclick="handleAuth()">SIGN IN</button>
-        <div id="auth-options">
-            <button class="btn btn-link" onclick="toggleAuth(true)">Sign Up</button>
-        </div>
-        <div id="signup-options" style="display:none;">
-            <button class="btn btn-link" onclick="toggleAuth(false)">Sign In</button>
+        <h1 style="color:var(--blue); margin-bottom:20px;">ONE DROP</h1>
+        <input type="email" id="auth-email" placeholder="Email">
+        <input type="password" id="auth-pass" placeholder="Password">
+        
+        <button class="btn btn-blue" id="btn-main-auth" onclick="handleAuth()" data-t="loginBtn">SIGN IN</button>
+        
+        <div id="auth-footer">
+            <button class="btn btn-link" onclick="toggleAuthMode()" id="toggle-text" data-t="noAccount">No account? Sign Up</button><br>
+            <button class="btn btn-link" onclick="forgotPassword()" data-t="forgotPass">Forgot Password?</button>
         </div>
     </div>
 </div>
 
 <div id="app-screen">
-    <div class="header-bar">
+    <div style="display:flex; align-items:center; margin-bottom:20px;">
         <h1 class="main-title">ONE DROP</h1>
-        <div class="logout-btn" onclick="logout()" data-t="logout">LOGOUT</div>
+        <button onclick="logout()" style="border:1px solid red; color:red; background:none; padding:5px 10px; border-radius:8px; font-weight:bold;" data-t="logout">LOGOUT</button>
     </div>
 
     <div class="card">
-        <h2 data-t="clientInfo">👤 Client Info</h2>
+        <h2 style="font-size:14px;" data-t="clientInfo">👤 Client Info</h2>
         <div class="grid-2">
-            <div><label data-t="fName">First Name</label><input type="text" id="c-name" autocomplete="off"></div>
-            <div><label data-t="lName">Last Name</label><input type="text" id="c-lastname" autocomplete="off"></div>
-        </div>
-        <div class="grid-2">
-            <div><label data-t="bday">Birthday</label><input type="date" id="c-birthday"></div>
-            <div><label data-t="people">People</label><input type="number" id="c-people"></div>
+            <div><label data-t="fName">First Name</label><input type="text" id="c-name"></div>
+            <div><label data-t="lName">Last Name</label><input type="text" id="c-lastname"></div>
         </div>
         <label data-t="phone">Phone</label><input type="tel" id="c-phone">
-        
-        <label data-t="address">Address</label><input type="text" id="c-address" placeholder="123 Street Name">
-        
+        <label data-t="address">Address</label><input type="text" id="c-address">
         <div class="grid-3">
-            <div><label data-t="city">City/County</label><input type="text" id="c-city" placeholder="Birmingham"></div>
-            <div><label data-t="state">State</label><input type="text" id="c-state" placeholder="AL" maxlength="2"></div>
-            <div><label data-t="zip">Zip</label><input type="number" id="c-zip" placeholder="35201"></div>
+            <div><label data-t="city">City</label><input type="text" id="c-city"></div>
+            <div><label data-t="state">State</label><input type="text" id="c-state" maxlength="2"></div>
+            <div><label data-t="zip">Zip</label><input type="number" id="c-zip"></div>
         </div>
-
-        <button class="btn btn-gps" onclick="goMaps()" data-t="viewMaps">🗺️ VIEW ON MAPS</button>
+        <label>📸 <span data-t="photos">Photos</span></label>
+        <input type="file" id="photo-input" accept="image/*" multiple style="display:none;" onchange="handlePhotos(this)">
+        <button class="btn" style="background:#64d2ff; color:black; font-size:14px;" onclick="document.getElementById('photo-input').click()" data-t="galleryBtn">📁 OPEN GALLERY</button>
+        <div id="photo-preview"></div>
     </div>
 
     <div class="card">
-        <h2 data-t="savingsTitle">📊 Savings Analysis</h2>
+        <h2 style="font-size:14px;" data-t="savingsTitle">📊 Savings</h2>
         <div class="grid-2">
-            <div><label data-t="waterCost">Water Cost / Month</label><input type="number" id="cost-water" oninput="calculate()"></div>
-            <div><label data-t="soapCost">Soap Cost / Month</label><input type="number" id="cost-soap" oninput="calculate()"></div>
+            <div><label data-t="waterCost">Water Cost</label><input type="number" id="cost-water" oninput="calculate()"></div>
+            <div><label data-t="soapCost">Soap Cost</label><input type="number" id="cost-soap" oninput="calculate()"></div>
         </div>
         <div class="grid-2">
-            <div><label data-t="monthlyFee">Monthly Fee ($)</label><input type="number" id="one-fee" value="180" oninput="calculate()"></div>
+            <div><label data-t="monthlyFee">Fee</label><input type="number" id="one-fee" value="180" oninput="calculate()"></div>
             <div>
-                <label data-t="projection">Years Projection</label>
+                <label data-t="projection">Years</label>
                 <select id="proj-years" onchange="calculate()">
-                    <option value="1">1 Year</option>
-                    <option value="2">2 Years</option>
-                    <option value="3">3 Years</option>
-                    <option value="4">4 Years</option>
-                    <option value="5" selected>5 Years</option>
-                    <option value="6">6 Years</option>
-                    <option value="7">7 Years</option>
-                    <option value="8">8 Years</option>
-                    <option value="9">9 Years</option>
-                    <option value="10">10 Years</option>
+                    <option value="1">1</option><option value="5" selected>5</option><option value="10">10</option>
                 </select>
             </div>
         </div>
-        
         <div class="savings-box">
             <span style="font-size:26px; font-weight:800; color:var(--green);" id="net-savings">$0.00</span><br>
             <small id="savings-label" data-t="netSavings">Net Savings</small>
         </div>
-        <div class="chart-wrap">
-            <canvas id="savingsChart"></canvas>
-        </div>
     </div>
 
-    <div class="card">
-        <h2 data-t="techReport">🧪 Tech Report</h2>
-        <div class="grid-2">
-            <div><label data-t="date">Date</label><input type="date" id="test-date"></div>
-            <div><label>TDS (PPM)</label><input type="number" id="tds-val"></div>
-        </div>
-        <label data-t="chlorine">Chlorine Presence</label><input type="text" id="cloro-val">
-        <div class="status-group">
-            <button class="status-btn" id="st-ins" onclick="setStatus('INSTALLED')" data-t="stInstalled">INSTALLED</button>
-            <button class="status-btn" id="st-pen" onclick="setStatus('PENDING')" data-t="stPending">PENDING</button>
-            <button class="status-btn" id="st-no" onclick="setStatus('REJECTED')" data-t="stRejected">REJECTED</button>
-        </div>
-        <div class="grid-2" style="margin-top:25px;">
-            <button class="btn btn-blue" onclick="saveData()" data-t="saveData">SAVE DATA</button>
-            <button class="btn" style="background:#8e8e93; color:white;" onclick="abrirHistorial()" data-t="history">HISTORY</button>
-        </div>
-        <button class="btn btn-sms" id="sms-btn" style="display:none;" onclick="sendSMS()" data-t="sendSms">📲 SEND SMS</button>
-    </div>
+    <button class="btn btn-blue" onclick="saveData()" data-t="saveData">SAVE DATA</button>
+    <button class="btn" style="background:#8e8e93; color:white;" onclick="abrirHistorial()" data-t="history">HISTORY</button>
 </div>
 
 <div id="history-modal">
-    <div style="padding:20px; background:white; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #ddd; position:sticky; top:0; z-index:100;">
-        <h2 style="margin:0; border:none;" data-t="clientHistory">Client History</h2>
-        <button onclick="cerrarHistorial()" style="background:var(--blue); color:white; border:none; padding:8px 15px; border-radius:8px; font-weight:bold;" data-t="done">DONE</button>
-    </div>
-    <div class="filter-bar">
-        <button class="filter-chip active" id="fh-all" onclick="filtrarHistorial('ALL')">ALL</button>
-        <button class="filter-chip" id="fh-ins" onclick="filtrarHistorial('INSTALLED')">INSTALLED</button>
-        <button class="filter-chip" id="fh-pen" onclick="filtrarHistorial('PENDING')">PENDING</button>
-        <button class="filter-chip" id="fh-rej" onclick="filtrarHistorial('REJECTED')">REJECTED</button>
+    <div style="padding:20px; background:white; display:flex; justify-content:space-between; align-items:center;">
+        <h2 data-t="history">History</h2>
+        <button onclick="cerrarHistorial()" style="background:var(--blue); color:white; border:none; padding:8px 15px; border-radius:8px;">DONE</button>
     </div>
     <div id="history-list" style="padding:10px;"></div>
 </div>
@@ -190,171 +130,146 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const auth = firebase.auth();
-    
-    let chart, currentStatus = "", currentLang = 'en';
-    let temporalData = []; 
+
+    let isSignUp = false;
+    let currentLang = 'en';
+    let savedPhotos = [];
 
     const translations = {
-        en: { edit: "EDIT", logout: "LOGOUT", clientInfo: "👤 Client Info", fName: "First Name", lName: "Last Name", bday: "Birthday", people: "People", phone: "Phone", address: "Address", city: "City/County", state: "State", zip: "Zip", viewMaps: "🗺️ VIEW ON MAPS", savingsTitle: "📊 Savings Analysis", waterCost: "Water Cost / Mo", soapCost: "Soap Cost / Mo", monthlyFee: "Monthly Fee ($)", projection: "Years Projection", netSavings: "Net Savings", techReport: "🧪 Tech Report", date: "Date", stInstalled: "INSTALLED", stPending: "PENDING", stRejected: "REJECTED", saveData: "SAVE DATA", history: "HISTORY", sendSms: "📲 SEND SMS", clientHistory: "Client History", done: "DONE", deleteConfirm: "Delete?", logoutConfirm: "Logout?" },
-        es: { edit: "EDITAR", logout: "SALIR", clientInfo: "👤 Datos Cliente", fName: "Nombre", lName: "Apellido", bday: "Nacimiento", people: "Personas", phone: "Teléfono", address: "Dirección", city: "Ciudad/Condado", state: "Estado", zip: "Zip", viewMaps: "🗺️ VER MAPS", savingsTitle: "📊 Análisis de Ahorro", waterCost: "Costo Agua / Mes", soapCost: "Costo Jabón / Mes", monthlyFee: "Cuota Mensual ($)", projection: "Proyección Años", netSavings: "Ahorro Neto", techReport: "🧪 Reporte Técnico", date: "Fecha", stInstalled: "INSTALADO", stPending: "PENDIENTE", stRejected: "RECHAZADO", saveData: "GUARDAR", history: "HISTORIAL", sendSms: "📲 ENVIAR SMS", clientHistory: "Historial", done: "LISTO", deleteConfirm: "¿Borrar?", logoutConfirm: "¿Salir?" }
+        en: { 
+            loginBtn: "SIGN IN", signUpBtn: "SIGN UP", noAccount: "No account? Sign Up", hasAccount: "Have account? Sign In",
+            forgotPass: "Forgot Password?", logout: "LOGOUT", clientInfo: "Client Info", fName: "First Name", lName: "Last Name",
+            phone: "Phone", address: "Address", city: "City", state: "State", zip: "Zip", photos: "Photos",
+            galleryBtn: "📁 OPEN GALLERY", savingsTitle: "Savings Analysis", waterCost: "Water / Mo",
+            soapCost: "Soap / Mo", monthlyFee: "Monthly Fee", projection: "Years", netSavings: "Net Savings",
+            saveData: "SAVE DATA", history: "HISTORY", resetSent: "Reset email sent!"
+        },
+        es: { 
+            loginBtn: "INGRESAR", signUpBtn: "REGISTRARSE", noAccount: "¿No tienes cuenta? Regístrate", hasAccount: "¿Ya tienes cuenta? Ingresa",
+            forgotPass: "¿Olvidaste tu contraseña?", logout: "SALIR", clientInfo: "Datos del Cliente", fName: "Nombre", lName: "Apellido",
+            phone: "Teléfono", address: "Dirección", city: "Ciudad", state: "Estado", zip: "Zip", photos: "Fotos",
+            galleryBtn: "📁 ABRIR GALERÍA", savingsTitle: "Análisis de Ahorro", waterCost: "Agua / Mes",
+            soapCost: "Jabón / Mes", monthlyFee: "Cuota Mensual", projection: "Años", netSavings: "Ahorro Neto",
+            saveData: "GUARDAR DATOS", history: "HISTORIAL", resetSent: "¡Correo enviado!"
+        }
     };
 
-    function calculate() {
-        const years = parseInt(document.getElementById('proj-years').value) || 1;
-        const totalMonths = years * 12;
-        const w = (parseFloat(document.getElementById('cost-water').value) || 0) * totalMonths;
-        const s = (parseFloat(document.getElementById('cost-soap').value) || 0) * totalMonths;
-        const f = (parseFloat(document.getElementById('one-fee').value) || 0) * totalMonths;
-        const net = (w + s) - f;
-        const labelText = currentLang === 'es' ? `Ahorro Neto (${years} Años)` : `Net Savings (${years} Years)`;
-        document.getElementById('savings-label').innerText = labelText;
-        document.getElementById('net-savings').innerText = '$' + net.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-        var ctx = document.getElementById('savingsChart').getContext('2d');
-        if(chart) chart.destroy();
-        chart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: currentLang === 'es' ? ['Costo Actual', 'One Drop'] : ['Current Cost', 'One Drop'],
-                datasets: [{ data: [w + s, f], backgroundColor: ['#ff3b30', '#007aff'] }]
-            },
-            options: { responsive: true, maintainAspectRatio: false, legend: { display: false }, scales: { yAxes: [{ ticks: { beginAtZero: true } }] } }
+    // --- LÓGICA DE IDIOMA ---
+    function setLanguage(l) {
+        currentLang = l;
+        document.getElementById('btn-en').classList.toggle('active', l==='en');
+        document.getElementById('btn-es').classList.toggle('active', l==='es');
+        
+        document.querySelectorAll('[data-t]').forEach(el => {
+            const key = el.getAttribute('data-t');
+            if(translations[l][key]) {
+                if(el.tagName === "INPUT") el.placeholder = translations[l][key];
+                else el.innerText = translations[l][key];
+            }
         });
+        updateAuthLabels();
     }
 
-    function clearAllInputs() {
-        document.querySelectorAll('#app-screen input, #app-screen textarea, #app-screen select').forEach(i => { 
-            if(i.id !== 'one-fee' && i.id !== 'proj-years') i.value = ""; 
-        });
-        document.getElementById('proj-years').value = "5";
-        document.getElementById('test-date').valueAsDate = new Date();
-        calculate();
+    function updateAuthLabels() {
+        const btn = document.getElementById('btn-main-auth');
+        const toggle = document.getElementById('toggle-text');
+        if(!isSignUp) {
+            btn.innerText = translations[currentLang].loginBtn;
+            toggle.innerText = translations[currentLang].noAccount;
+        } else {
+            btn.innerText = translations[currentLang].signUpBtn;
+            toggle.innerText = translations[currentLang].hasAccount;
+        }
+    }
+
+    // --- LÓGICA DE AUTENTICACIÓN ---
+    function toggleAuthMode() {
+        isSignUp = !isSignUp;
+        updateAuthLabels();
+    }
+
+    function handleAuth() {
+        const email = document.getElementById('auth-email').value;
+        const pass = document.getElementById('auth-pass').value;
+        if(!email || !pass) return alert("Fill all fields");
+
+        if(isSignUp) {
+            auth.createUserWithEmailAndPassword(email, pass).catch(e => alert(e.message));
+        } else {
+            auth.signInWithEmailAndPassword(email, pass).catch(e => alert(e.message));
+        }
+    }
+
+    function forgotPassword() {
+        const email = document.getElementById('auth-email').value;
+        if(!email) return alert("Enter email first");
+        auth.sendPasswordResetEmail(email).then(() => alert(translations[currentLang].resetSent));
     }
 
     auth.onAuthStateChanged(user => {
-        if (user) {
+        if(user) {
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('app-screen').style.display = 'block';
-            clearAllInputs();
         } else {
             document.getElementById('auth-screen').style.display = 'flex';
             document.getElementById('app-screen').style.display = 'none';
         }
     });
 
-    async function filtrarHistorial(filtro) {
-        document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-        if(filtro === 'ALL') document.getElementById('fh-all').classList.add('active');
-        if(filtro === 'INSTALLED') document.getElementById('fh-ins').classList.add('active');
-        if(filtro === 'PENDING') document.getElementById('fh-pen').classList.add('active');
-        if(filtro === 'REJECTED') document.getElementById('fh-rej').classList.add('active');
-        var list = document.getElementById('history-list');
-        list.innerHTML = "<p style='text-align:center;'>Loading...</p>";
-        temporalData = [];
-        try {
-            let q = db.collection("reportes").orderBy("timestamp", "desc");
-            if(filtro !== 'ALL') q = q.where("estado", "==", filtro);
-            var snap = await q.get();
-            list.innerHTML = "";
-            snap.forEach(doc => {
-                var d = doc.data(); d.id = doc.id; temporalData.push(d);
-                list.innerHTML += `<div class="hist-card" id="card-${d.id}">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div onclick="toggleDetalle('${d.id}')" style="flex-grow:1;">
-                            <b style="color:var(--blue); font-size:16px;">${d.nombre} ${d.apellido}</b><br>
-                            <small>${d.fecha} | <b>${d.estado}</b> ▼</small>
-                        </div>
-                        <div>
-                            <button class="edit-btn" onclick="editarRegistro('${d.id}')">${translations[currentLang].edit}</button>
-                            <button style="border:none; color:red; background:none; font-size:20px;" onclick="borrarRegistro('${d.id}')">✕</button>
-                        </div>
-                    </div>
-                    <div class="hist-details" id="det-${d.id}">
-                        <div class="hist-tag">Address:</div> ${d.dir}, ${d.city || ''} ${d.state || ''} ${d.zip || ''}<br>
-                        <div class="hist-tag">Saving Record:</div> ${d.ahorro}
-                    </div>
-                </div>`;
-            });
-        } catch(e) { list.innerHTML = "Error: " + e.message; }
+    function logout() { auth.signOut(); }
+
+    // --- LÓGICA DE FOTOS Y CÁLCULOS ---
+    function handlePhotos(input) {
+        const preview = document.getElementById('photo-preview');
+        preview.innerHTML = "";
+        savedPhotos = [];
+        Array.from(input.files).forEach(file => {
+            const reader = new FileReader();
+            reader.onload = e => {
+                const img = document.createElement('img');
+                img.src = e.target.result; img.className = 'preview-img';
+                preview.appendChild(img);
+                savedPhotos.push(e.target.result);
+            };
+            reader.readAsDataURL(file);
+        });
     }
 
-    function editarRegistro(id) {
-        const item = temporalData.find(d => d.id === id);
-        if(!item) return;
-        document.getElementById('c-name').value = item.nombre;
-        document.getElementById('c-lastname').value = item.apellido;
-        document.getElementById('c-phone').value = item.tel;
-        document.getElementById('c-address').value = item.dir;
-        document.getElementById('c-city').value = item.city || "";
-        document.getElementById('c-state').value = item.state || "";
-        document.getElementById('c-zip').value = item.zip || "";
-        document.getElementById('cost-water').value = item.costoAgua;
-        document.getElementById('cost-soap').value = item.costoJabon;
-        setStatus(item.estado);
-        calculate();
-        cerrarHistorial();
-    }
-
-    function setStatus(v) {
-        currentStatus = v;
-        document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active-ins', 'active-pen', 'active-no'));
-        if(v === 'INSTALLED') document.getElementById('st-ins').classList.add('active-ins');
-        if(v === 'PENDING') document.getElementById('st-pen').classList.add('active-pen');
-        if(v === 'REJECTED') document.getElementById('st-no').classList.add('active-no');
+    function calculate() {
+        const years = parseInt(document.getElementById('proj-years').value);
+        const w = (parseFloat(document.getElementById('cost-water').value) || 0) * 12 * years;
+        const s = (parseFloat(document.getElementById('cost-soap').value) || 0) * 12 * years;
+        const f = (parseFloat(document.getElementById('one-fee').value) || 0) * 12 * years;
+        document.getElementById('net-savings').innerText = '$' + (w + s - f).toLocaleString();
     }
 
     async function saveData() {
-        if(!currentStatus) return alert("Select status");
         await db.collection("reportes").add({
-            nombre: document.getElementById('c-name').value, 
+            nombre: document.getElementById('c-name').value,
             apellido: document.getElementById('c-lastname').value,
-            tel: document.getElementById('c-phone').value,
-            dir: document.getElementById('c-address').value,
-            city: document.getElementById('c-city').value,
-            state: document.getElementById('c-state').value,
-            zip: document.getElementById('c-zip').value,
-            costoAgua: document.getElementById('cost-water').value,
-            costoJabon: document.getElementById('cost-soap').value,
-            ahorro: document.getElementById('net-savings').innerText,
-            estado: currentStatus,
-            fecha: document.getElementById('test-date').value,
+            fotos: savedPhotos,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
         alert("Saved!");
-        document.getElementById('sms-btn').style.display = "block";
+        location.reload();
     }
 
-    function handleAuth() {
-        var e = document.getElementById('auth-email').value, p = document.getElementById('auth-pass').value;
-        auth.signInWithEmailAndPassword(e, p).catch(() => auth.createUserWithEmailAndPassword(e, p));
-    }
-
-    function logout() { if(confirm(translations[currentLang].logoutConfirm)) auth.signOut(); }
-    function toggleDetalle(id) { var e = document.getElementById('det-'+id); e.style.display = e.style.display==='block'?'none':'block'; }
-    async function borrarRegistro(id) { if(confirm("Delete?")) { await db.collection("reportes").doc(id).delete(); document.getElementById('card-'+id).remove(); } }
-    function cerrarHistorial() { document.getElementById('history-modal').style.display = "none"; }
-    function abrirHistorial() { document.getElementById('history-modal').style.display = "block"; filtrarHistorial('ALL'); }
-
-    function goMaps() { 
-        var street = document.getElementById('c-address').value;
-        var city = document.getElementById('c-city').value;
-        var state = document.getElementById('c-state').value;
-        var zip = document.getElementById('c-zip').value;
-        var full = `${street} ${city} ${state} ${zip}`;
-        if(street) window.open('http://maps.google.com/?q=' + encodeURIComponent(full)); 
-    }
-    
-    function sendSMS() { window.location.href = 'sms:' + document.getElementById('c-phone').value + '&body=One Drop Savings: ' + document.getElementById('net-savings').innerText; }
-    
-    function setLanguage(l) { 
-        currentLang = l;
-        document.getElementById('btn-en').classList.toggle('active', l==='en');
-        document.getElementById('btn-es').classList.toggle('active', l==='es');
-        document.querySelectorAll('[data-t]').forEach(el => {
-            const k = el.getAttribute('data-t');
-            if(translations[l][k]) el.innerText = translations[l][k];
+    function abrirHistorial() {
+        document.getElementById('history-modal').style.display = "block";
+        db.collection("reportes").orderBy("timestamp", "desc").get().then(snap => {
+            const list = document.getElementById('history-list');
+            list.innerHTML = "";
+            snap.forEach(doc => {
+                const d = doc.data();
+                list.innerHTML += `<div class="card"><b>${d.nombre}</b><br><div id="imgs-${doc.id}"></div></div>`;
+                if(d.fotos) d.fotos.forEach(f => {
+                    const img = document.createElement('img'); img.src = f; img.className = 'preview-img';
+                    document.getElementById(`imgs-${doc.id}`).appendChild(img);
+                });
+            });
         });
-        calculate();
     }
+    function cerrarHistorial() { document.getElementById('history-modal').style.display = "none"; }
 </script>
 </body>
 </html>
