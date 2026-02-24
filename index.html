@@ -4,10 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>One Drop Pro</title>
-
     <link rel="icon" type="image/png" href="https://i.ibb.co/S76pM5N8/one-drop-icon.png">
-    <link rel="apple-touch-icon" href="https://i.ibb.co/S76pM5N8/one-drop-icon.png">
-
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
@@ -17,339 +14,229 @@
         :root { --blue: #007aff; --green: #34c759; --orange: #ff9500; --red: #ff3b30; --bg: #f2f2f7; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); margin: 0; padding: 15px; }
-        
-        .lang-switcher { position: absolute; top: 15px; left: 15px; display: flex; gap: 5px; z-index: 1000; }
-        .lang-btn { background: white; border: 1px solid #ddd; border-radius: 5px; padding: 3px 8px; font-size: 12px; font-weight: bold; cursor: pointer; }
-        .lang-btn.active { background: var(--blue); color: white; border-color: var(--blue); }
-
-        #auth-screen { display: none; flex-direction: column; align-items: center; justify-content: center; height: 90vh; }
+        #auth-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 90vh; }
         #app-screen { display: none; max-width: 450px; margin: auto; padding-bottom: 40px; }
-
         .auth-card { background: white; padding: 30px; border-radius: 25px; width: 100%; max-width: 350px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; }
         .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 15px; }
-        
-        .header-bar { display: flex; justify-content: flex-end; align-items: center; margin-bottom: 15px; gap: 15px; }
-        .logout-btn { color: var(--red); font-weight: 700; font-size: 13px; cursor: pointer; border: 1px solid var(--red); padding: 5px 12px; border-radius: 8px; }
-
-        h1.main-title { color: var(--blue); font-weight: 800; margin: 0; letter-spacing: -1px; text-align: center; flex-grow: 1; }
-        h2 { font-size: 14px; color: #333; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 15px; text-transform: uppercase; }
-        
-        label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 11px; color: #666; text-transform: uppercase; }
-        input, select { width: 100%; height: 48px; padding: 12px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #d1d1d6; font-size: 16px; background: #fff; }
-        
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .grid-3 { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 10px; }
-        .btn { width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: 700; font-size: 16px; cursor: pointer; display: block; text-align: center; }
+        input { width: 100%; height: 48px; padding: 12px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #d1d1d6; font-size: 16px; }
+        .btn { width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: 700; font-size: 16px; cursor: pointer; display: block; }
         .btn-blue { background: var(--blue); color: white; }
-        .btn-gps { background: #5856d6; color: white; margin-top: 5px; }
-        .btn-gallery { background: #64d2ff; color: #000; margin-top: 10px; font-size: 14px; padding: 10px; }
-        .btn-link { background: none; color: var(--blue); font-size: 13px; margin-top: 10px; }
-        
-        /* CONTENEDOR DE FOTOS CON BOTÓN BORRAR */
-        #photo-preview { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
-        .photo-item { position: relative; width: 70px; height: 70px; }
-        .preview-img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; }
-        .del-photo { position: absolute; top: -5px; right: -5px; background: var(--red); color: white; border-radius: 50%; width: 20px; height: 20px; border: none; font-size: 12px; font-weight: bold; cursor: pointer; }
-
-        .status-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-        .status-btn { height: 45px; border-radius: 10px; border: 1px solid #ddd; background: #f9f9f9; font-size: 9px; font-weight: 800; }
+        .btn-link { background: none; color: var(--blue); font-size: 13px; margin-top: 15px; }
+        .photo-item { position: relative; width: 70px; height: 70px; display: inline-block; margin: 5px; }
+        .preview-img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
+        .del-photo { position: absolute; top: -5px; right: -5px; background: var(--red); color: white; border-radius: 50%; width: 20px; height: 20px; border: none; font-size: 12px; cursor: pointer; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .status-btn { height: 45px; border-radius: 10px; border: 1px solid #ddd; font-size: 10px; font-weight: bold; }
         .active-ins { background: var(--green) !important; color: white; }
         .active-pen { background: var(--orange) !important; color: white; }
         .active-no { background: var(--red) !important; color: white; }
-
-        .savings-box { background: #e7f3ff; padding: 15px; border-radius: 15px; text-align: center; margin: 15px 0; }
-        .chart-wrap { position: relative; height: 250px; width: 100%; }
-
         #history-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f2f2f7; z-index: 5000; overflow-y: auto; }
-        .filter-bar { display: flex; gap: 5px; padding: 10px; background: white; position: sticky; top: 70px; z-index: 99; border-bottom: 1px solid #eee; overflow-x: auto; }
-        .filter-chip { padding: 6px 12px; border-radius: 20px; border: 1px solid #ddd; background: #f9f9f9; font-size: 10px; font-weight: 800; white-space: nowrap; }
-        .filter-chip.active { background: var(--blue); color: white; border-color: var(--blue); }
-
-        .hist-card { background: white; margin: 10px; padding: 15px; border-radius: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .hist-details { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ccc; font-size: 14px; line-height: 1.6; color: #333; }
-        .hist-tag { font-weight: bold; color: #666; font-size: 11px; text-transform: uppercase; }
-        .edit-btn { background: var(--orange); color: white; border: none; padding: 5px 10px; border-radius: 5px; font-size: 11px; font-weight: bold; cursor: pointer; margin-right: 10px; }
     </style>
 </head>
 <body>
 
-<div class="lang-switcher">
-    <button class="lang-btn active" id="btn-en" onclick="setLanguage('en')">EN</button>
-    <button class="lang-btn" id="btn-es" onclick="setLanguage('es')">ES</button>
-</div>
-
 <div id="auth-screen">
     <div class="auth-card">
-        <h1>ONE DROP</h1>
+        <h1 style="color:var(--blue)">ONE DROP</h1>
+        <p id="auth-instruction">Sign in to your account</p>
         <input type="email" id="auth-email" placeholder="Email">
-        <input type="password" id="auth-pass" placeholder="Password">
-        <button class="btn btn-blue" id="btn-main-auth" onclick="handleAuth()" data-t="loginBtn">SIGN IN</button>
-        <button class="btn btn-link" onclick="toggleAuthMode()" id="toggle-auth-btn" data-t="noAccount">No account? Sign Up</button>
-        <button class="btn btn-link" onclick="forgotPassword()" data-t="forgotPass" style="font-size:11px; opacity:0.7;">Forgot Password?</button>
+        <input type="password" id="auth-pass" placeholder="Password (min. 6 chars)">
+        <button class="btn btn-blue" id="btn-auth-action" onclick="handleAuth()">SIGN IN</button>
+        <button class="btn btn-link" id="btn-toggle-mode" onclick="toggleAuthMode()">No account? Sign Up</button>
     </div>
 </div>
 
 <div id="app-screen">
-    <div class="header-bar">
-        <h1 class="main-title">ONE DROP</h1>
-        <div class="logout-btn" onclick="logout()" data-t="logout">LOGOUT</div>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <h2 style="margin:0; color:var(--blue)">ONE DROP PRO</h2>
+        <button onclick="logout()" style="color:red; background:none; border:none; font-weight:bold;">LOGOUT</button>
     </div>
 
     <div class="card">
-        <h2 data-t="clientInfo">👤 Client Info</h2>
+        <h3>Client Info</h3>
+        <input type="text" id="c-name" placeholder="First Name">
+        <input type="text" id="c-lastname" placeholder="Last Name">
+        <input type="tel" id="c-phone" placeholder="Phone">
+        <input type="text" id="c-address" placeholder="Address">
         <div class="grid-2">
-            <div><label data-t="fName">First Name</label><input type="text" id="c-name"></div>
-            <div><label data-t="lName">Last Name</label><input type="text" id="c-lastname"></div>
+            <input type="text" id="c-city" placeholder="City">
+            <input type="text" id="c-state" placeholder="ST">
         </div>
-        <div class="grid-2">
-            <div><label data-t="bday">Birthday</label><input type="date" id="c-birthday"></div>
-            <div><label data-t="people">People</label><input type="number" id="c-people"></div>
-        </div>
-        <label data-t="phone">Phone</label><input type="tel" id="c-phone">
-        <label data-t="address">Address</label><input type="text" id="c-address" placeholder="123 Street Name">
-        <div class="grid-3">
-            <div><label data-t="city">City/County</label><input type="text" id="c-city" placeholder="Birmingham"></div>
-            <div><label data-t="state">State</label><input type="text" id="c-state" maxlength="2"></div>
-            <div><label data-t="zip">Zip</label><input type="number" id="c-zip"></div>
-        </div>
-
-        <button class="btn btn-gps" onclick="goMaps()" data-t="viewMaps">🗺️ VIEW ON MAPS</button>
-        <label style="margin-top:15px;" data-t="photos">📸 Photos</label>
-        <input type="file" id="photo-input" accept="image/*" multiple style="display:none;" onchange="handlePhotos(this)">
-        <button class="btn btn-gallery" onclick="document.getElementById('photo-input').click()" data-t="galleryBtn">📁 OPEN GALLERY</button>
-        <div id="photo-preview"></div>
+        <button class="btn btn-blue" onclick="document.getElementById('photo-input').click()">📸 ADD PHOTOS</button>
+        <input type="file" id="photo-input" accept="image/*" multiple style="display:none" onchange="handlePhotos(this)">
+        <div id="photo-preview" style="margin-top:10px;"></div>
     </div>
 
     <div class="card">
-        <h2 data-t="savingsTitle">📊 Savings Analysis</h2>
+        <h3>Tech Report & Status</h3>
         <div class="grid-2">
-            <div><label data-t="waterCost">Water Cost / Mo</label><input type="number" id="cost-water" oninput="calculate()"></div>
-            <div><label data-t="soapCost">Soap Cost / Mo</label><input type="number" id="cost-soap" oninput="calculate()"></div>
+            <input type="number" id="tds-val" placeholder="TDS">
+            <input type="text" id="cloro-val" placeholder="Chlorine">
         </div>
         <div class="grid-2">
-            <div><label data-t="monthlyFee">Fee ($)</label><input type="number" id="one-fee" value="180" oninput="calculate()"></div>
-            <div>
-                <label data-t="projection">Years</label>
-                <select id="proj-years" onchange="calculate()">
-                    <option value="1">1</option><option value="5" selected>5</option><option value="10">10</option>
-                </select>
-            </div>
+            <button class="status-btn" id="st-ins" onclick="setStatus('INSTALLED')">INSTALLED</button>
+            <button class="status-btn" id="st-pen" onclick="setStatus('PENDING')">PENDING</button>
+            <button class="status-btn" id="st-no" onclick="setStatus('REJECTED')">REJECTED</button>
         </div>
-        <div class="savings-box">
-            <span style="font-size:26px; font-weight:800; color:var(--green);" id="net-savings">$0.00</span><br>
-            <small id="savings-label" data-t="netSavings">Net Savings</small>
-        </div>
-        <div class="chart-wrap"><canvas id="savingsChart"></canvas></div>
-    </div>
-
-    <div class="card">
-        <h2 data-t="techReport">🧪 Tech Report</h2>
-        <div class="grid-2">
-            <div><label data-t="date">Date</label><input type="date" id="test-date"></div>
-            <div><label>TDS (PPM)</label><input type="number" id="tds-val"></div>
-        </div>
-        <label data-t="chlorine">Chlorine</label><input type="text" id="cloro-val">
-        <div class="status-group">
-            <button class="status-btn" id="st-ins" onclick="setStatus('INSTALLED')" data-t="stInstalled">INSTALLED</button>
-            <button class="status-btn" id="st-pen" onclick="setStatus('PENDING')" data-t="stPending">PENDING</button>
-            <button class="status-btn" id="st-no" onclick="setStatus('REJECTED')" data-t="stRejected">REJECTED</button>
-        </div>
-        <div class="grid-2" style="margin-top:25px;">
-            <button class="btn btn-blue" onclick="saveData()" data-t="saveData">SAVE DATA</button>
-            <button class="btn" style="background:#8e8e93; color:white;" onclick="abrirHistorial()" data-t="history">HISTORY</button>
-        </div>
-        <button class="btn btn-sms" id="sms-btn" style="display:none;" onclick="sendSMS()" data-t="sendSms">📲 SEND SMS</button>
+        <button class="btn btn-blue" style="margin-top:20px;" onclick="saveData()">SAVE REPORT</button>
+        <button class="btn" style="background:#8e8e93; color:white; margin-top:10px;" onclick="abrirHistorial()">VIEW HISTORY</button>
     </div>
 </div>
 
 <div id="history-modal">
-    <div style="padding:20px; background:white; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #ddd; position:sticky; top:0; z-index:100;">
-        <h2 style="margin:0; border:none;" data-t="clientHistory">History</h2>
-        <button onclick="cerrarHistorial()" style="background:var(--blue); color:white; border:none; padding:8px 15px; border-radius:8px; font-weight:bold;" data-t="done">DONE</button>
-    </div>
-    <div class="filter-bar">
-        <button class="filter-chip active" id="fh-all" onclick="filtrarHistorial('ALL')">ALL</button>
-        <button class="filter-chip" id="fh-ins" onclick="filtrarHistorial('INSTALLED')">INSTALLED</button>
-        <button class="filter-chip" id="fh-pen" onclick="filtrarHistorial('PENDING')">PENDING</button>
-        <button class="filter-chip" id="fh-rej" onclick="filtrarHistorial('REJECTED')">REJECTED</button>
+    <div style="padding:20px; background:white; display:flex; justify-content:space-between; border-bottom:1px solid #ddd;">
+        <h2 style="margin:0;">History</h2>
+        <button onclick="cerrarHistorial()" style="background:var(--blue); color:white; border:none; padding:10px; border-radius:8px;">DONE</button>
     </div>
     <div id="history-list" style="padding:10px;"></div>
 </div>
 
 <script>
+    // CONFIGURACIÓN FIREBASE
     const firebaseConfig = { apiKey: "AIzaSyAK9cldIvt1JZJ-fB-1J7Z51FLxxzT3oPg", projectId: "landmaster-aquafill" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const auth = firebase.auth();
-    
-    let chart, currentStatus = "", currentLang = 'en', isSignUp = false, savedPhotos = [];
-    let temporalData = []; 
 
-    const translations = {
-        en: { loginBtn: "SIGN IN", signUpBtn: "SIGN UP", noAccount: "No account? Sign Up", hasAccount: "Have account? Sign In", forgotPass: "Forgot Password?", resetSent: "Email sent!", edit: "EDIT", logout: "LOGOUT", clientInfo: "Client Info", fName: "First Name", lName: "Last Name", bday: "Birthday", people: "People", phone: "Phone", address: "Address", city: "City/County", state: "ST", zip: "Zip", viewMaps: "🗺️ VIEW ON MAPS", photos: "Photos", galleryBtn: "📁 OPEN GALLERY", savingsTitle: "Savings Analysis", waterCost: "Water/Mo", soapCost: "Soap/Mo", monthlyFee: "Fee ($)", projection: "Years", netSavings: "Net Savings", techReport: "Tech Report", date: "Date", chlorine: "Chlorine", stInstalled: "INSTALLED", stPending: "PENDING", stRejected: "REJECTED", saveData: "SAVE DATA", history: "HISTORY", sendSms: "📲 SEND SMS", clientHistory: "History", done: "DONE", logoutConfirm: "Logout?" },
-        es: { loginBtn: "INGRESAR", signUpBtn: "REGISTRARSE", noAccount: "¿No tienes cuenta? Regístrate", hasAccount: "¿Ya tienes cuenta? Ingresa", forgotPass: "¿Olvidaste la clave?", resetSent: "¡Correo enviado!", edit: "EDITAR", logout: "SALIR", clientInfo: "Datos Cliente", fName: "Nombre", lName: "Apellido", bday: "Nacimiento", people: "Personas", phone: "Teléfono", address: "Dirección", city: "Ciudad/Condado", state: "Est.", zip: "Zip", viewMaps: "🗺️ VER MAPS", photos: "Fotos", galleryBtn: "📁 ABRIR GALERÍA", savingsTitle: "Análisis Ahorro", waterCost: "Agua/Mes", soapCost: "Jabón/Mes", monthlyFee: "Cuota ($)", projection: "Años", netSavings: "Ahorro Neto", techReport: "Reporte Técnico", date: "Fecha", chlorine: "Cloro", stInstalled: "INSTALADO", stPending: "PENDIENTE", stRejected: "RECHAZADO", saveData: "GUARDAR", history: "HISTORIAL", sendSms: "📲 ENVIAR SMS", clientHistory: "Historial", done: "LISTO", logoutConfirm: "¿Salir?" }
-    };
+    let isSignUp = false;
+    let currentStatus = "";
+    let savedPhotos = [];
 
-    function setLanguage(l) { 
-        currentLang = l;
-        document.getElementById('btn-en').classList.toggle('active', l==='en');
-        document.getElementById('btn-es').classList.toggle('active', l==='es');
-        document.querySelectorAll('[data-t]').forEach(el => {
-            const k = el.getAttribute('data-t');
-            if(translations[l][k]) el.innerText = translations[l][k];
-        });
-        updateAuthLabels(); calculate();
+    // --- LÓGICA DE LOGIN / REGISTRO CORREGIDA ---
+    function toggleAuthMode() {
+        isSignUp = !isSignUp;
+        const btnMain = document.getElementById('btn-auth-action');
+        const btnToggle = document.getElementById('btn-toggle-mode');
+        const instruction = document.getElementById('auth-instruction');
+
+        if (isSignUp) {
+            btnMain.innerText = "SIGN UP";
+            btnToggle.innerText = "Have an account? Sign In";
+            instruction.innerText = "Create your new account";
+        } else {
+            btnMain.innerText = "SIGN IN";
+            btnToggle.innerText = "No account? Sign Up";
+            instruction.innerText = "Sign in to your account";
+        }
     }
 
-    function toggleAuthMode() { isSignUp = !isSignUp; updateAuthLabels(); }
-    function updateAuthLabels() {
-        const btn = document.getElementById('btn-main-auth');
-        const toggle = document.getElementById('toggle-auth-btn');
-        btn.innerText = isSignUp ? translations[currentLang].signUpBtn : translations[currentLang].loginBtn;
-        toggle.innerText = isSignUp ? translations[currentLang].hasAccount : translations[currentLang].noAccount;
-    }
     function handleAuth() {
-        const email = document.getElementById('auth-email').value, pass = document.getElementById('auth-pass').value;
-        if(isSignUp) auth.createUserWithEmailAndPassword(email, pass).catch(e => alert(e.message));
-        else auth.signInWithEmailAndPassword(email, pass).catch(e => alert(e.message));
-    }
-    function forgotPassword() {
         const email = document.getElementById('auth-email').value;
-        if(!email) return alert("Enter email");
-        auth.sendPasswordResetEmail(email).then(() => alert(translations[currentLang].resetSent));
+        const pass = document.getElementById('auth-pass').value;
+
+        if (!email || !pass) {
+            alert("Please enter email and password");
+            return;
+        }
+
+        if (isSignUp) {
+            // Acción de Registrarse
+            auth.createUserWithEmailAndPassword(email, pass)
+                .then((userCredential) => {
+                    alert("Account created successfully!");
+                })
+                .catch((error) => {
+                    alert("Error: " + error.message);
+                });
+        } else {
+            // Acción de Entrar
+            auth.signInWithEmailAndPassword(email, pass)
+                .catch((error) => {
+                    alert("Error: " + error.message);
+                });
+        }
     }
 
-    // --- NUEVA LÓGICA DE MANEJO DE FOTOS CON BORRADO ---
+    // --- CONTROL DE SESIÓN ---
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('app-screen').style.display = 'block';
+        } else {
+            document.getElementById('auth-screen').style.display = 'flex';
+            document.getElementById('app-screen').style.display = 'none';
+        }
+    });
+
+    function logout() {
+        if(confirm("Logout?")) auth.signOut();
+    }
+
+    // --- MANEJO DE FOTOS ---
     function handlePhotos(input) {
         Array.from(input.files).forEach(file => {
             const reader = new FileReader();
             reader.onload = e => {
                 savedPhotos.push(e.target.result);
-                renderPhotoPreview();
+                renderPhotos();
             };
             reader.readAsDataURL(file);
         });
-        input.value = ""; // Resetea el input para permitir subir la misma foto si se borra
     }
 
-    function renderPhotoPreview() {
+    function renderPhotos() {
         const preview = document.getElementById('photo-preview');
         preview.innerHTML = "";
-        savedPhotos.forEach((src, index) => {
-            const div = document.createElement('div');
-            div.className = 'photo-item';
-            div.innerHTML = `
-                <img src="${src}" class="preview-img">
-                <button class="del-photo" onclick="removePhoto(${index})">✕</button>
-            `;
-            preview.appendChild(div);
+        savedPhotos.forEach((src, idx) => {
+            preview.innerHTML += `
+                <div class="photo-item">
+                    <img src="${src}" class="preview-img">
+                    <button class="del-photo" onclick="removePhoto(${idx})">✕</button>
+                </div>`;
         });
     }
 
-    function removePhoto(index) {
-        savedPhotos.splice(index, 1);
-        renderPhotoPreview();
+    function removePhoto(idx) {
+        savedPhotos.splice(idx, 1);
+        renderPhotos();
     }
 
-    function calculate() {
-        const years = parseInt(document.getElementById('proj-years').value) || 1;
-        const totalMonths = years * 12;
-        const w = (parseFloat(document.getElementById('cost-water').value) || 0) * totalMonths;
-        const s = (parseFloat(document.getElementById('cost-soap').value) || 0) * totalMonths;
-        const f = (parseFloat(document.getElementById('one-fee').value) || 0) * totalMonths;
-        const net = (w + s) - f;
-        document.getElementById('net-savings').innerText = '$' + net.toLocaleString(undefined, {minimumFractionDigits: 2});
-        var ctx = document.getElementById('savingsChart').getContext('2d');
-        if(chart) chart.destroy();
-        chart = new Chart(ctx, { type: 'bar', data: { labels: currentLang === 'es' ? ['Actual', 'One Drop'] : ['Current', 'One Drop'], datasets: [{ data: [w + s, f], backgroundColor: ['#ff3b30', '#007aff'] }] }, options: { responsive: true, maintainAspectRatio: false, legend: { display: false } } });
+    // --- GUARDAR Y ESTADOS ---
+    function setStatus(s) {
+        currentStatus = s;
+        document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active-ins', 'active-pen', 'active-no'));
+        if(s==='INSTALLED') document.getElementById('st-ins').classList.add('active-ins');
+        if(s==='PENDING') document.getElementById('st-pen').classList.add('active-pen');
+        if(s==='REJECTED') document.getElementById('st-no').classList.add('active-no');
     }
-
-    auth.onAuthStateChanged(user => {
-        if (user) { document.getElementById('auth-screen').style.display = 'none'; document.getElementById('app-screen').style.display = 'block'; }
-        else { document.getElementById('auth-screen').style.display = 'flex'; document.getElementById('app-screen').style.display = 'none'; }
-    });
 
     async function saveData() {
-        if(!currentStatus) return alert("Select status");
-        await db.collection("reportes").add({
-            nombre: document.getElementById('c-name').value, apellido: document.getElementById('c-lastname').value,
-            tel: document.getElementById('c-phone').value, dir: document.getElementById('c-address').value,
-            city: document.getElementById('c-city').value, state: document.getElementById('c-state').value,
-            zip: document.getElementById('c-zip').value, bday: document.getElementById('c-birthday').value,
-            people: document.getElementById('c-people').value, costoAgua: document.getElementById('cost-water').value,
-            costoJabon: document.getElementById('cost-soap').value, ahorro: document.getElementById('net-savings').innerText,
-            fotos: savedPhotos, estado: currentStatus, fecha: document.getElementById('test-date').value,
+        if(!currentStatus) return alert("Select a status");
+        const data = {
+            nombre: document.getElementById('c-name').value,
+            apellido: document.getElementById('c-lastname').value,
+            tel: document.getElementById('c-phone').value,
+            dir: document.getElementById('c-address').value,
+            fotos: savedPhotos,
+            estado: currentStatus,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        alert("Saved!"); 
-        savedPhotos = []; // Limpiar fotos tras guardar
-        renderPhotoPreview();
-        document.getElementById('sms-btn').style.display = "block";
+        };
+        await db.collection("reportes").add(data);
+        alert("Report Saved!");
+        location.reload(); 
     }
 
-    async function filtrarHistorial(filtro) {
-        document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-        document.getElementById('fh-' + filtro.toLowerCase().substring(0,3)).classList.add('active');
-        var list = document.getElementById('history-list'); list.innerHTML = "..."; temporalData = [];
-        try {
-            let q = db.collection("reportes").orderBy("timestamp", "desc");
-            if(filtro !== 'ALL') q = q.where("estado", "==", filtro);
-            var snap = await q.get(); list.innerHTML = "";
-            snap.forEach(doc => {
-                var d = doc.data(); d.id = doc.id; temporalData.push(d);
-                let imgs = ""; if(d.fotos) d.fotos.forEach(f => imgs += `<img src="${f}" style="width:60px;height:60px;object-fit:cover;margin:2px;border-radius:5px;">`);
-                list.innerHTML += `<div class="hist-card">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div onclick="toggleDetalle('${d.id}')" style="flex-grow:1;">
-                            <b>${d.nombre} ${d.apellido}</b><br><small>${d.fecha} | ${d.estado}</small>
-                        </div>
-                        <div>
-                            <button class="edit-btn" onclick="editarRegistro('${d.id}')">${translations[currentLang].edit}</button>
-                            <button style="color:red; border:none; background:none; font-size:18px;" onclick="borrarRegistro('${d.id}')">✕</button>
-                        </div>
-                    </div>
-                    <div class="hist-details" id="det-${d.id}">
-                        ${d.dir}, ${d.city} ${d.state}<br><b>Savings: ${d.ahorro}</b><br>
-                        <div style="margin-top:10px;">${imgs}</div>
-                    </div>
+    // --- HISTORIAL ---
+    async function abrirHistorial() {
+        document.getElementById('history-modal').style.display = 'block';
+        const list = document.getElementById('history-list');
+        list.innerHTML = "Loading...";
+        const snap = await db.collection("reportes").orderBy("timestamp", "desc").get();
+        list.innerHTML = "";
+        snap.forEach(doc => {
+            const d = doc.data();
+            list.innerHTML += `
+                <div class="card">
+                    <b>${d.nombre} ${d.apellido}</b> - ${d.estado}<br>
+                    <small>${d.dir}</small>
                 </div>`;
-            });
-        } catch(e) { console.log(e); }
+        });
     }
 
-    function editarRegistro(id) {
-        const item = temporalData.find(d => d.id === id);
-        if(!item) return;
-        document.getElementById('c-name').value = item.nombre || "";
-        document.getElementById('c-lastname').value = item.apellido || "";
-        document.getElementById('c-phone').value = item.tel || "";
-        document.getElementById('c-address').value = item.dir || "";
-        document.getElementById('c-city').value = item.city || "";
-        document.getElementById('c-state').value = item.state || "";
-        document.getElementById('c-zip').value = item.zip || "";
-        document.getElementById('c-birthday').value = item.bday || "";
-        document.getElementById('c-people').value = item.people || "";
-        document.getElementById('cost-water').value = item.costoAgua || "";
-        document.getElementById('cost-soap').value = item.costoJabon || "";
-        savedPhotos = item.fotos || [];
-        renderPhotoPreview();
-        setStatus(item.estado); calculate(); cerrarHistorial();
-    }
-
-    function toggleDetalle(id) { var e = document.getElementById('det-'+id); e.style.display = e.style.display==='block'?'none':'block'; }
-    function abrirHistorial() { document.getElementById('history-modal').style.display = "block"; filtrarHistorial('ALL'); }
-    function cerrarHistorial() { document.getElementById('history-modal').style.display = "none"; }
-    function logout() { if(confirm(translations[currentLang].logoutConfirm)) auth.signOut(); }
-    async function borrarRegistro(id) { if(confirm("Delete?")) { await db.collection("reportes").doc(id).delete(); filtrarHistorial('ALL'); } }
-    function goMaps() { var full = `${document.getElementById('c-address').value} ${document.getElementById('c-city').value} ${document.getElementById('c-state').value}`; window.open('https://maps.google.com/?q=' + encodeURIComponent(full)); }
-    function sendSMS() { window.location.href = 'sms:' + document.getElementById('c-phone').value + '&body=One Drop Savings: ' + document.getElementById('net-savings').innerText; }
-    function setStatus(v) {
-        currentStatus = v;
-        document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active-ins', 'active-pen', 'active-no'));
-        if(v === 'INSTALLED') document.getElementById('st-ins').classList.add('active-ins');
-        if(v === 'PENDING') document.getElementById('st-pen').classList.add('active-pen');
-        if(v === 'REJECTED') document.getElementById('st-no').classList.add('active-no');
+    function cerrarHistorial() {
+        document.getElementById('history-modal').style.display = 'none';
     }
 </script>
+
 </body>
 </html>
