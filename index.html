@@ -38,10 +38,11 @@
         .preview-img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
         .del-photo { position: absolute; top: -5px; right: -5px; background: var(--red); color: white; border-radius: 50%; width: 20px; height: 20px; border: none; cursor: pointer; font-weight: bold; }
         .status-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-        .status-btn { height: 45px; border-radius: 10px; border: 1px solid #ddd; background: #f9f9f9; font-size: 9px; font-weight: 800; }
+        .status-btn { height: 45px; border-radius: 10px; border: 1px solid #ddd; background: #f9f9f9; font-size: 9px; font-weight: 800; cursor: pointer; }
         .active-ins { background: var(--green) !important; color: white; }
         .active-pen { background: var(--orange) !important; color: white; }
         .active-no { background: var(--red) !important; color: white; }
+        .active-cloro { background: var(--blue) !important; color: white; }
         .savings-box { background: #e7f3ff; padding: 15px; border-radius: 15px; text-align: center; margin: 15px 0; }
         .chart-wrap { position: relative; height: 250px; width: 100%; }
         #history-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f2f2f7; z-index: 5000; overflow-y: auto; }
@@ -130,11 +131,21 @@
             <div><label data-t="date">Date</label><input type="date" id="test-date"></div>
             <div><label>TDS (PPM)</label><input type="number" id="tds-val"></div>
         </div>
+        
+        <label data-t="chlorine">Chlorine Level</label>
+        <div class="status-group" style="margin-bottom:20px;">
+            <button class="status-btn cloro-btn" id="cl-low" onclick="setChlorine('LOW')" data-t="low">LOW</button>
+            <button class="status-btn cloro-btn" id="cl-mid" onclick="setChlorine('MID')" data-t="mid">MID</button>
+            <button class="status-btn cloro-btn" id="cl-high" onclick="setChlorine('HIGH')" data-t="high">HIGH</button>
+        </div>
+
+        <label data-t="statusLabel">Status</label>
         <div class="status-group">
             <button class="status-btn" id="st-ins" onclick="setStatus('INSTALLED')" data-t="stInstalled">INSTALLED</button>
             <button class="status-btn" id="st-pen" onclick="setStatus('PENDING')" data-t="stPending">PENDING</button>
             <button class="status-btn" id="st-no" onclick="setStatus('REJECTED')" data-t="stRejected">REJECTED</button>
         </div>
+        
         <div class="grid-2" style="margin-top:25px;">
             <button class="btn btn-blue" id="save-btn" onclick="saveData()" data-t="saveData">SAVE DATA</button>
             <button class="btn" style="background:#8e8e93; color:white;" onclick="abrirHistorial()" data-t="history">HISTORY</button>
@@ -145,13 +156,13 @@
 <div id="history-modal">
     <div style="padding:20px; background:white; border-bottom:1px solid #ddd; display:flex; justify-content:space-between; align-items:center;">
         <h2 style="margin:0; border:none;" data-t="clientHistory">History</h2>
-        <button onclick="cerrarHistorial()" style="background:var(--blue); color:white; border:none; padding:8px 15px; border-radius:8px; font-weight:bold;">DONE</button>
+        <button onclick="cerrarHistorial()" style="background:var(--blue); color:white; border:none; padding:8px 15px; border-radius:8px; font-weight:bold;" data-t="done">DONE</button>
     </div>
     <div class="filter-bar">
         <button class="filter-chip active" id="fh-all" onclick="filtrarHistorial('ALL')">ALL</button>
-        <button class="filter-chip" id="fh-ins" onclick="filtrarHistorial('INSTALLED')">INSTALLED</button>
-        <button class="filter-chip" id="fh-pen" onclick="filtrarHistorial('PENDING')">PENDING</button>
-        <button class="filter-chip" id="fh-rej" onclick="filtrarHistorial('REJECTED')">REJECTED</button>
+        <button class="filter-chip" id="fh-ins" onclick="filtrarHistorial('INSTALLED')" data-t="stInstalled">INSTALLED</button>
+        <button class="filter-chip" id="fh-pen" onclick="filtrarHistorial('PENDING')" data-t="stPending">PENDING</button>
+        <button class="filter-chip" id="fh-rej" onclick="filtrarHistorial('REJECTED')" data-t="stRejected">REJECTED</button>
     </div>
     <div id="history-list" style="padding:10px;"></div>
 </div>
@@ -162,16 +173,18 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
     
-    let chart, currentStatus = "", currentLang = 'en', isSignUp = false, savedPhotos = [];
+    let chart, currentStatus = "", currentChlorine = "", currentLang = 'en', isSignUp = false, savedPhotos = [];
     let temporalData = []; 
 
     const translations = {
-        en: { logout: "LOGOUT", clientInfo: "Client Info", fName: "First Name", lName: "Last Name", phone: "Phone", address: "Address", city: "City", state: "ST", zip: "Zip", viewMaps: "🗺️ VIEW ON MAPS", photos: "Photos", galleryBtn: "📁 OPEN GALLERY", savingsTitle: "Savings Analysis", waterCost: "Water/Mo", soapCost: "Soap/Mo", monthlyFee: "Fee ($)", projection: "Years", netSavings: "Net Savings", techReport: "Tech Report", date: "Date", stInstalled: "INSTALLED", stPending: "PENDING", stRejected: "REJECTED", saveData: "SAVE DATA", history: "HISTORY", clientHistory: "History", notes: "Notes", edit: "EDIT" },
-        es: { logout: "SALIR", clientInfo: "Datos Cliente", fName: "Nombre", lName: "Apellido", phone: "Teléfono", address: "Dirección", city: "Ciudad", state: "Est.", zip: "Zip", viewMaps: "🗺️ VER MAPS", photos: "Fotos", galleryBtn: "📁 ABRIR GALERÍA", savingsTitle: "Análisis Ahorro", waterCost: "Agua/Mes", soapCost: "Jabón/Mes", monthlyFee: "Cuota ($)", projection: "Años", netSavings: "Ahorro Neto", techReport: "Reporte Técnico", date: "Fecha", stInstalled: "INSTALADO", stPending: "PENDIENTE", stRejected: "RECHAZADO", saveData: "GUARDAR", history: "HISTORIAL", clientHistory: "Historial", notes: "Notas", edit: "EDITAR" }
+        en: { logout: "LOGOUT", clientInfo: "Client Info", fName: "First Name", lName: "Last Name", phone: "Phone", address: "Address", city: "City", state: "ST", zip: "Zip", viewMaps: "🗺️ VIEW ON MAPS", photos: "Photos", galleryBtn: "📁 OPEN GALLERY", savingsTitle: "Savings Analysis", waterCost: "Water/Mo", soapCost: "Soap/Mo", monthlyFee: "Fee ($)", projection: "Years", netSavings: "Net Savings", techReport: "Tech Report", date: "Date", stInstalled: "INSTALLED", stPending: "PENDING", stRejected: "REJECTED", saveData: "SAVE DATA", history: "HISTORY", clientHistory: "History", notes: "Notes", edit: "EDIT", chlorine: "Chlorine Level", low: "LOW", mid: "MID", high: "HIGH", statusLabel: "Status", done: "DONE" },
+        es: { logout: "SALIR", clientInfo: "Datos Cliente", fName: "Nombre", lName: "Apellido", phone: "Teléfono", address: "Dirección", city: "Ciudad", state: "Est.", zip: "Zip", viewMaps: "🗺️ VER MAPS", photos: "Fotos", galleryBtn: "📁 ABRIR GALERÍA", savingsTitle: "Análisis Ahorro", waterCost: "Agua/Mes", soapCost: "Jabón/Mes", monthlyFee: "Cuota ($)", projection: "Años", netSavings: "Ahorro Neto", techReport: "Reporte Técnico", date: "Fecha", stInstalled: "INSTALADO", stPending: "PENDIENTE", stRejected: "RECHAZADO", saveData: "GUARDAR", history: "HISTORIAL", clientHistory: "Historial", notes: "Notas", edit: "EDITAR", chlorine: "Nivel de Cloro", low: "BAJO", mid: "MEDIO", high: "ALTO", statusLabel: "Estado", done: "LISTO" }
     };
 
     function setLanguage(l) { 
         currentLang = l;
+        document.getElementById('btn-en').classList.toggle('active', l === 'en');
+        document.getElementById('btn-es').classList.toggle('active', l === 'es');
         document.querySelectorAll('[data-t]').forEach(el => {
             const k = el.getAttribute('data-t');
             if(translations[l][k]) el.innerText = translations[l][k];
@@ -205,10 +218,18 @@
 
     function setStatus(v) {
         currentStatus = v;
-        document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active-ins', 'active-pen', 'active-no'));
+        document.querySelectorAll('.status-btn:not(.cloro-btn)').forEach(b => b.classList.remove('active-ins', 'active-pen', 'active-no'));
         if(v === 'INSTALLED') document.getElementById('st-ins').classList.add('active-ins');
         if(v === 'PENDING') document.getElementById('st-pen').classList.add('active-pen');
         if(v === 'REJECTED') document.getElementById('st-no').classList.add('active-no');
+    }
+
+    function setChlorine(v) {
+        currentChlorine = v;
+        document.querySelectorAll('.cloro-btn').forEach(b => b.classList.remove('active-cloro'));
+        if(v === 'LOW') document.getElementById('cl-low').classList.add('active-cloro');
+        if(v === 'MID') document.getElementById('cl-mid').classList.add('active-cloro');
+        if(v === 'HIGH') document.getElementById('cl-high').classList.add('active-cloro');
     }
 
     async function saveData() {
@@ -231,6 +252,7 @@
             costoJabon: document.getElementById('cost-soap').value,
             ahorro: document.getElementById('net-savings').innerText,
             tds: document.getElementById('tds-val').value,
+            cloro: currentChlorine,
             fotos: savedPhotos,
             estado: currentStatus,
             fecha: document.getElementById('test-date').value,
@@ -247,37 +269,21 @@
     async function filtrarHistorial(filtro) {
         const user = auth.currentUser;
         if(!user) return;
-        
         document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-        const chipId = 'fh-' + filtro.toLowerCase().substring(0,3);
+        const chipId = filtro === 'ALL' ? 'fh-all' : 'fh-' + filtro.toLowerCase().substring(0,3);
         if(document.getElementById(chipId)) document.getElementById(chipId).classList.add('active');
 
-        var list = document.getElementById('history-list'); 
-        list.innerHTML = "Loading..."; temporalData = [];
-        
+        var list = document.getElementById('history-list'); list.innerHTML = "Loading..."; temporalData = [];
         try {
-            let q;
-            // CAMBIO AQUÍ: Separamos la consulta según el índice
-            if(filtro === 'ALL') {
-                q = db.collection("reportes")
-                      .where("userId", "==", user.uid)
-                      .orderBy("timestamp", "desc");
-            } else {
-                q = db.collection("reportes")
-                      .where("userId", "==", user.uid)
-                      .where("estado", "==", filtro)
-                      .orderBy("timestamp", "desc");
-            }
+            let q = db.collection("reportes").where("userId", "==", user.uid);
+            if(filtro === 'ALL') q = q.orderBy("timestamp", "desc");
+            else q = q.where("estado", "==", filtro).orderBy("timestamp", "desc");
             
-            const snap = await q.get();
-            list.innerHTML = "";
+            const snap = await q.get(); list.innerHTML = "";
             if(snap.empty) { list.innerHTML = "<p style='text-align:center;padding:20px;'>No records found.</p>"; return; }
-
             snap.forEach(doc => {
                 const d = doc.data(); d.id = doc.id; temporalData.push(d);
-                let imgs = "";
-                if(d.fotos) d.fotos.forEach(f => imgs += `<img src="${f}" style="width:40px;height:40px;object-fit:cover;margin:2px;border-radius:5px;">`);
-                
+                let imgs = ""; if(d.fotos) d.fotos.forEach(f => imgs += `<img src="${f}" style="width:40px;height:40px;object-fit:cover;margin:2px;border-radius:5px;">`);
                 list.innerHTML += `
                 <div class="hist-card">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -287,20 +293,19 @@
                         </div>
                         <div style="display:flex; gap:10px; align-items:center;">
                             <button class="edit-btn" onclick="editarRegistro('${d.id}')">${translations[currentLang].edit}</button>
-                            <button onclick="borrarRegistro('${d.id}')" style="background:none; border:none; color:var(--red); font-size:18px; cursor:pointer; padding:5px;">🗑️</button>
+                            <button onclick="borrarRegistro('${d.id}')" style="background:none; border:none; color:var(--red); font-size:18px; cursor:pointer;">🗑️</button>
                         </div>
                     </div>
                     <div class="hist-details" id="det-${d.id}">
                         📍 ${d.dir}, ${d.city}<br>
+                        🧪 <b>Chlorine:</b> ${d.cloro || "N/A"}<br>
                         📝 <b>Notes:</b> ${d.notas || ""}<br>
                         💰 <b>Savings:</b> ${d.ahorro}<br>
                         <div style="margin-top:10px;">${imgs}</div>
                     </div>
                 </div>`;
             });
-        } catch(e) { 
-            list.innerHTML = "Error loading history. Refresh in 1 minute."; 
-        }
+        } catch(e) { list.innerHTML = "Error loading history."; }
     }
 
     function editarRegistro(id) {
@@ -318,16 +323,13 @@
         document.getElementById('cost-soap').value = item.costoJabon || "";
         document.getElementById('tds-val').value = item.tds || "";
         document.getElementById('test-date').value = item.fecha || "";
-        savedPhotos = item.fotos || [];
-        renderPhotoPreview();
-        setStatus(item.estado); calculate(); cerrarHistorial();
+        savedPhotos = item.fotos || []; renderPhotoPreview();
+        setStatus(item.estado); setChlorine(item.cloro || "");
+        calculate(); cerrarHistorial();
     }
 
     async function borrarRegistro(id) {
-        if(confirm("Delete record permanentely?")) {
-            await db.collection("reportes").doc(id).delete();
-            filtrarHistorial('ALL');
-        }
+        if(confirm("Delete record?")) { await db.collection("reportes").doc(id).delete(); filtrarHistorial('ALL'); }
     }
 
     function calculate() {
@@ -359,7 +361,7 @@
     function abrirHistorial() { document.getElementById('history-modal').style.display = "block"; filtrarHistorial('ALL'); }
     function cerrarHistorial() { document.getElementById('history-modal').style.display = "none"; }
     function logout() { auth.signOut(); }
-    function goMaps() { window.open('https://www.google.com/maps/search/' + encodeURIComponent(document.getElementById('c-address').value)); }
+    function goMaps() { window.open('https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(document.getElementById('c-address').value)); }
 </script>
 </body>
 </html>
