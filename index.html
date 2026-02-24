@@ -256,8 +256,18 @@
         list.innerHTML = "Loading..."; temporalData = [];
         
         try {
-            let q = db.collection("reportes").where("userId", "==", user.uid).orderBy("timestamp", "desc");
-            if(filtro !== 'ALL') q = q.where("estado", "==", filtro);
+            let q;
+            // CAMBIO AQUÍ: Separamos la consulta según el índice
+            if(filtro === 'ALL') {
+                q = db.collection("reportes")
+                      .where("userId", "==", user.uid)
+                      .orderBy("timestamp", "desc");
+            } else {
+                q = db.collection("reportes")
+                      .where("userId", "==", user.uid)
+                      .where("estado", "==", filtro)
+                      .orderBy("timestamp", "desc");
+            }
             
             const snap = await q.get();
             list.innerHTML = "";
@@ -288,7 +298,9 @@
                     </div>
                 </div>`;
             });
-        } catch(e) { list.innerHTML = "Error loading history. Make sure index is enabled."; }
+        } catch(e) { 
+            list.innerHTML = "Error loading history. Refresh in 1 minute."; 
+        }
     }
 
     function editarRegistro(id) {
