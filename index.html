@@ -291,37 +291,102 @@
     });
 
     async function saveData() {
-        if(!currentStatus) return alert("Select status");
-        await db.collection("reportes").add({
-            nombre: document.getElementById('c-name').value, apellido: document.getElementById('c-lastname').value,
-            tel: document.getElementById('c-phone').value, dir: document.getElementById('c-address').value,
-            city: document.getElementById('c-city').value, state: document.getElementById('c-state').value,
-            zip: document.getElementById('c-zip').value, bday: document.getElementById('c-birthday').value,
-            people: document.getElementById('c-people').value, 
-            notas: document.getElementById('c-notes').value, // Campo Notas
-            costoAgua: document.getElementById('cost-water').value,
-            costoJabon: document.getElementById('cost-soap').value, ahorro: document.getElementById('net-savings').innerText,
-            fotos: savedPhotos, estado: currentStatus, fecha: document.getElementById('test-date').value,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        alert("Saved!"); 
-        location.reload(); // Recarga para limpiar todo tras guardar
+        if(!currentStatus) return alert(currentLang === 'es' ? "Selecciona un estado" : "Select status");
+        
+        const btnSave = document.querySelector('[data-t="saveData"]');
+        const originalText = btnSave.innerText;
+        btnSave.innerText = "...";
+        btnSave.disabled = true;
+
+        try {
+            await db.collection("reportes").add({
+                nombre: document.getElementById('c-name').value, 
+                apellido: document.getElementById('c-lastname').value,
+                tel: document.getElementById('c-phone').value, 
+                dir: document.getElementById('c-address').value,
+                city: document.getElementById('c-city').value, 
+                state: document.getElementById('c-state').value,
+                zip: document.getElementById('c-zip').value, 
+                bday: document.getElementById('c-birthday').value,
+                people: document.getElementById('c-people').value, 
+                notas: document.getElementById('c-notes').value,
+                costoAgua: document.getElementById('cost-water').value,
+                costoJabon: document.getElementById('cost-soap').value, 
+                ahorro: document.getElementById('net-savings').innerText,
+                fotos: savedPhotos, 
+                estado: currentStatus, 
+                fecha: document.getElementById('test-date').value,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            alert(currentLang === 'es' ? "¡Datos guardados con éxito!" : "Saved successfully!");
+            
+            // Limpiar formulario y resetear estado
+            document.querySelectorAll('#app-screen input').forEach(i => i.value = "");
+            document.getElementById('c-notes').value = "";
+            savedPhotos = [];
+            renderPhotoPreview();
+            setStatus("");
+            document.getElementById('test-date').valueAsDate = new Date();
+            document.getElementById('sms-btn').style.display = "block";
+            
+        } catch (error) {
+            alert("Error: " + error.message);
+        } finally {
+            btnSave.innerText = originalText;
+            btnSave.disabled = false;
+        }
     }
 
     async function filtrarHistorial(filtro) {
         document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-        document.getElementById('fh-' + filtro.toLowerCase().substring(0,3)).classList.add('active');
-        var list = document.getElementById('history-list'); list.innerHTML = "..."; temporalData = [];
+        const chipId = 'fh-' + filtro.toLowerCase().substring(0,3);
+        if(document.getElementById(chipId)) document.getElementById(chipId).classList.add('active');
+        
+        var list = document.getElementById('history-list'); 
+        list.innerHTML = "<p style='text-align:center;'>Loading...</p>"; 
+        temporalData = [];
+
         try {
             let q = db.collection("reportes").orderBy("timestamp", "desc");
             if(filtro !== 'ALL') q = q.where("estado", "==", filtro);
-            var snap = await q.get(); list.innerHTML = "";
+            
+            const snap = await q.get();
+            list.innerHTML = "";
+            
+            if (snap.empty) {
+                list.innerHTML = "<p style='text-align:center; padding:20px;'>No records found.</p>";
+                return;
+            }
+
             snap.forEach(doc => {
                 var d = doc.data(); d.id = doc.id; temporalData.push(d);
-                let imgs = ""; if(d.fotos) d.fotos.forEach(f => imgs += `<img src="${f}" style="width:50px;height:50px;object-fit:cover;margin:2px;border-radius:5px;">`);
-                list.innerHTML += `<div class="hist-card"><div style="display:flex; justify-content:space-between; align-items:center;"><div onclick="toggleDetalle('${d.id}')" style="flex-grow:1;"><b>${d.nombre} ${d.apellido}</b><br><small>${d.fecha} | ${d.estado}</small></div><div><button class="edit-btn" onclick="editarRegistro('${d.id}')">${translations[currentLang].edit}</button><button style="color:red; border:none; background:none; font-size:18px;" onclick="borrarRegistro('${d.id}')">✕</button></div></div><div class="hist-details" id="det-${d.id}">${d.dir}, ${d.city}<br><b>Notes:</b> ${d.notas || ""}<br><b>Savings: ${d.ahorro}</b><br><div style="margin-top:10px;">${imgs}</div></div></div>`;
+                let imgs = ""; 
+                if(d.fotos) d.fotos.forEach(f => imgs += `<img src="${f}" style="width:50px;height:50px;object-fit:cover;margin:2px;border-radius:5px;">`);
+
+                list.innerHTML += `
+                    <div class="hist-card">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div onclick="toggleDetalle('${d.id}')" style="flex-grow:1;">
+                                <b>${d.nombre} ${d.apellido}</b><br>
+                                <small>${d.fecha || 'No date'} | ${d.estado}</small>
+                            </div>
+                            <div style="display:flex; align-items:center;">
+                                <button class="edit-btn" onclick="editarRegistro('${d.id}')">${translations[currentLang].edit}</button>
+                                <button style="color:red; border:none; background:none; font-size:22px;" onclick="borrarRegistro('${d.id}')">✕</button>
+                            </div>
+                        </div>
+                        <div class="hist-details" id="det-${d.id}">
+                            <p style="margin:5px 0;">📍 ${d.dir}, ${d.city}</p>
+                            <p style="margin:5px 0;">📝 <b>Notes:</b> ${d.notas || ""}</p>
+                            <p style="margin:5px 0; color:var(--green); font-weight:bold;">💰 Savings: ${d.ahorro}</p>
+                            <div style="margin-top:10px; display:flex; flex-wrap:wrap;">${imgs}</div>
+                        </div>
+                    </div>`;
             });
-        } catch(e) { console.log(e); }
+        } catch(e) { 
+            list.innerHTML = "<p style='color:red; text-align:center;'>Error loading history</p>";
+        }
     }
 
     function editarRegistro(id) {
@@ -336,10 +401,12 @@
         document.getElementById('c-zip').value = item.zip || "";
         document.getElementById('c-birthday').value = item.bday || "";
         document.getElementById('c-people').value = item.people || "";
-        document.getElementById('c-notes').value = item.notas || ""; // Cargar Notas
+        document.getElementById('c-notes').value = item.notas || "";
         document.getElementById('cost-water').value = item.costoAgua || "";
         document.getElementById('cost-soap').value = item.costoJabon || "";
-        savedPhotos = item.fotos || []; renderPhotoPreview();
+        document.getElementById('test-date').value = item.fecha || "";
+        savedPhotos = item.fotos || []; 
+        renderPhotoPreview();
         setStatus(item.estado); calculate(); cerrarHistorial();
     }
 
@@ -350,6 +417,7 @@
     async function borrarRegistro(id) { if(confirm("Delete?")) { await db.collection("reportes").doc(id).delete(); filtrarHistorial('ALL'); } }
     function goMaps() { var full = `${document.getElementById('c-address').value} ${document.getElementById('c-city').value}`; window.open('https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(full)); }
     function sendSMS() { window.location.href = 'sms:' + document.getElementById('c-phone').value + '&body=One Drop Savings: ' + document.getElementById('net-savings').innerText; }
+    
     function setStatus(v) {
         currentStatus = v;
         document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active-ins', 'active-pen', 'active-no'));
