@@ -175,6 +175,13 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const auth = firebase.auth();
+
+    // NUEVA CONFIGURACIÓN PARA ELIMINAR EL ERROR DE DYNAMIC LINKS
+    const actionCodeSettings = {
+        url: 'https://landmaster-aquafill.firebaseapp.com/__/auth/action',
+        handleCodeInApp: true,
+        linkDomain: 'landmaster-aquafill.firebaseapp.com' 
+    };
     
     let chart, currentStatus = "", currentChlorine = "", currentLang = 'en', isSignUp = false, savedPhotos = [], currentEditingId = null;
     let temporalData = []; 
@@ -211,7 +218,8 @@
     function resetPassword() {
         const email = document.getElementById('auth-email').value;
         if(!email) return alert(currentLang === 'es' ? "Ingresa tu email primero" : "Enter your email first");
-        auth.sendPasswordResetEmail(email).then(() => {
+        // SE AGREGA actionCodeSettings PARA CUMPLIR CON EL NUEVO REQUISITO
+        auth.sendPasswordResetEmail(email, actionCodeSettings).then(() => {
             alert(translations[currentLang].checkEmail);
         }).catch(e => alert(e.message));
     }
@@ -376,7 +384,6 @@
                     canvas.width = maxW;
                     canvas.height = img.height * scale;
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    // Comprimimos a 50% de calidad para ahorrar espacio
                     const compressed = canvas.toDataURL('image/jpeg', 0.5);
                     savedPhotos.push(compressed);
                     renderPhotoPreview();
